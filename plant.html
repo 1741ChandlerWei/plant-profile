@@ -309,7 +309,7 @@ main { padding-top: 56px; }
 <script>
 // ── Supabase ──────────────────────────────────────────
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3MDU1MTMsImV4cCI6MjA1ODI4MTUxM30.b6BtROCKfCHaRDfEWTOOFqSmMf9GRnGPNNp6opXH9XM';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 
 async function db(table, query) {
   const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
@@ -395,24 +395,38 @@ async function init() {
   document.getElementById('nav-upload-btn').href =
     'https://plant-pos.vercel.app/upload.html?rid=' + rid;
 
-  // Fetch plant data
-  const plants = await db('plants', `?rid=eq.${rid}&limit=1`);
 
-  if (!plants || !plants.length) {
+  // Step 1: 用 rid 查 rehab 表
+  const rehabRows = await db('rehab', `?rid=eq.${rid}&limit=1`);
+
+  if (!rehabRows || !rehabRows.length) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-state').style.display = 'block';
     return;
   }
 
-  const plant = plants[0];
+  const rehab = rehabRows[0];
 
-  // Fill plant info
-  document.getElementById('plant-name').textContent = plant.species || plant.name || rid;
+  // Step 2: 用 plant_id 查 plants 表
+  let plantName = rehab.plant_name || rid;
+  let plantPrice = '';
+  let plantStatus = rehab.status || 'available';
+
+  if (rehab.plant_id) {
+    const plantRows = await db('plants', `?id=eq.${rehab.plant_id}&limit=1`);
+    if (plantRows && plantRows.length) {
+      const p = plantRows[0];
+      plantName = p.name || plantName;
+      plantPrice = p.price ? 'NT$ ' + Number(p.price).toLocaleString() : '';
+    }
+  }
+
+  document.getElementById('plant-name').textContent = plantName;
   document.getElementById('plant-rid-display').textContent = rid;
 
   const badge = document.getElementById('status-badge');
   const priceEl = document.getElementById('plant-price');
-  if (plant.status === 'sold') {
+  if (plantStatus === 'sold') {
     badge.textContent = '已售出';
     badge.className = 'status-badge sold';
     priceEl.textContent = '';
@@ -420,25 +434,18 @@ async function init() {
   } else {
     badge.textContent = '可購買';
     badge.className = 'status-badge available';
-    priceEl.textContent = plant.price ? 'NT$ ' + Number(plant.price).toLocaleString() : '';
+    priceEl.textContent = plantPrice;
   }
 
-  // Days
-  if (plant.created_at || plant.intake_date) {
-    const start = new Date(plant.intake_date || plant.created_at);
+  if (rehab.purchase_date) {
+    const start = new Date(rehab.purchase_date);
     const days = Math.floor((Date.now() - start) / 86400000);
     document.getElementById('stat-days').textContent = days + ' 天';
   }
 
-  // Description
   document.getElementById('plant-description').textContent =
-    plant.notes || plant.description || '這株植物正在悄悄生長，每一天都是新的故事。';
+    rehab.notes || rehab.description || '這株植物正在悄悄生長，每一天都是新的故事。';
 
-  // Phase
-  if (plant.phase !== undefined && plant.phase !== null) {
-    const phaseEl = document.getElementById('phase-' + plant.phase);
-    if (phaseEl) phaseEl.classList.add('active');
-  }
 
   // Fetch photos
   const photoData = await db('photos', `?rid=eq.${rid}&is_public=eq.true&order=upload_date.asc`);
