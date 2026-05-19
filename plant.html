@@ -6,213 +6,63 @@
 <title>rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --cream: #F5F0E8;
-  --cream2: #EDE6D6;
-  --dark: #0D0D0A;
-  --dark2: #1A1A14;
-  --green: #2D4A2D;
-  --green2: #3D6B3D;
-  --green-pale: #C8DBC8;
-  --gold: #B8922A;
-  --text: #1A1A14;
-  --text2: #6B6B55;
-  --text3: #9B9B85;
-  --border: #D8D0C0;
-  --red: #8B1A1A;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background: var(--cream);
-  color: var(--text);
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-/* NAV */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: rgba(245,240,232,.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 24px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.nav-logo { font-size: 13px; letter-spacing: .15em; color: var(--green); font-style: italic; }
-.nav-rid { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); }
-.nav-upload {
-  background: var(--green); color: var(--cream);
-  border: none; padding: 7px 18px;
-  font-size: 11px; letter-spacing: .12em;
-  cursor: pointer; font-family: inherit;
-  text-decoration: none;
-  transition: background .2s;
-}
-.nav-upload:hover { background: var(--green2); }
-
-/* LOADING */
-.loading {
-  position: fixed; inset: 0;
-  background: var(--cream);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 16px; z-index: 200;
-}
-.loading-logo { font-size: 28px; font-style: italic; color: var(--green); letter-spacing: .1em; }
-.loading-bar { width: 120px; height: 1px; background: var(--border); position: relative; overflow: hidden; }
-.loading-bar::after {
-  content: ''; position: absolute; left: -40%; top: 0;
-  width: 40%; height: 100%; background: var(--green);
-  animation: load 1.2s ease-in-out infinite;
-}
-@keyframes load { to { left: 140%; } }
-
-/* MAIN */
-main { padding-top: 56px; }
-
-/* PHOTO HERO */
-.photo-hero {
-  position: relative; width: 100%;
-  background: var(--dark2);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-  height: calc(100vh - 56px); max-height: 700px;
-}
-.photo-img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: contain;
-  transition: opacity .12s ease;
-}
-.photo-img.hidden { opacity: 0; pointer-events: none; }
-.photo-nav {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  background: rgba(245,240,232,.15);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(245,240,232,.2);
-  color: var(--cream);
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 18px;
-  transition: all .2s; z-index: 10; user-select: none;
-}
-.photo-nav:hover { background: rgba(245,240,232,.3); }
-.photo-nav.disabled { opacity: .3; cursor: not-allowed; }
-.photo-nav.prev { left: 16px; }
-.photo-nav.next { right: 16px; }
-.photo-info {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 24px;
-  background: linear-gradient(transparent, rgba(13,13,10,.85));
-  color: var(--cream);
-}
-.photo-meta { display: flex; gap: 20px; align-items: baseline; margin-bottom: 4px; }
-.photo-date { font-family: 'DM Mono', monospace; font-size: 12px; opacity: .7; }
-.photo-weight { font-size: 20px; font-style: italic; }
-.photo-note { font-size: 13px; opacity: .6; font-style: italic; }
-.photo-counter {
-  position: absolute; top: 16px; right: 16px;
-  font-family: 'DM Mono', monospace; font-size: 11px;
-  color: rgba(245,240,232,.5);
-}
-
-/* THUMBNAILS */
-.thumbnails {
-  display: flex; gap: 4px;
-  padding: 12px 16px;
-  overflow-x: auto;
-  background: var(--dark);
-  scrollbar-width: none;
-}
-.thumbnails::-webkit-scrollbar { display: none; }
-.thumb {
-  width: 56px; height: 56px; flex-shrink: 0;
-  object-fit: cover; opacity: .5; cursor: pointer;
-  transition: opacity .2s; border: 2px solid transparent;
-}
-.thumb.active { opacity: 1; border-color: var(--gold); }
-.thumb:hover { opacity: .8; }
-
-/* PLANT INFO */
-.plant-info { padding: 32px 24px 24px; border-bottom: 1px solid var(--border); }
-.plant-name { font-size: 32px; font-weight: 300; margin-bottom: 4px; }
-.plant-rid { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--gold); margin-bottom: 12px; }
-.plant-status-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.status-badge {
-  display: inline-block; padding: 4px 12px;
-  font-size: 11px; letter-spacing: .12em;
-  border: 1px solid;
-}
-.status-badge.available { border-color: var(--green); color: var(--green); background: rgba(45,74,45,.08); }
-.status-badge.sold { border-color: var(--text3); color: var(--text3); background: transparent; }
-.plant-price { font-size: 22px; font-style: italic; color: var(--green); }
-
-/* STATS ROW */
-.stats-row {
-  display: flex; gap: 0;
-  border-bottom: 1px solid var(--border);
-}
-.stat {
-  flex: 1; padding: 20px 24px;
-  border-right: 1px solid var(--border);
-  text-align: center;
-}
-.stat:last-child { border-right: none; }
-.stat-val { font-size: 22px; font-style: italic; color: var(--text); margin-bottom: 4px; }
-.stat-label { font-size: 11px; letter-spacing: .1em; color: var(--text3); }
-
-/* SECTION */
-.section { padding: 32px 24px; border-bottom: 1px solid var(--border); }
-.section-title {
-  font-size: 11px; letter-spacing: .15em; color: var(--text3);
-  margin-bottom: 16px; text-transform: uppercase;
-}
-
-/* PHASE BAR */
-.phases { display: flex; gap: 0; margin-bottom: 8px; }
-.phase {
-  flex: 1; padding: 10px 4px; text-align: center;
-  font-size: 10px; letter-spacing: .08em;
-  color: var(--text3); border-bottom: 2px solid var(--border);
-  transition: all .2s;
-}
-.phase.active {
-  color: var(--green); border-bottom-color: var(--green);
-  font-weight: 400;
-}
-
-/* DESCRIPTION */
-.description { font-size: 16px; line-height: 1.8; color: var(--text2); font-style: italic; }
-
-/* CONTACT BTN */
-.contact-btn {
-  display: block; width: 100%;
-  background: var(--green); color: var(--cream);
-  border: none; padding: 16px;
-  font-size: 13px; letter-spacing: .15em;
-  cursor: pointer; font-family: inherit;
-  text-decoration: none; text-align: center;
-  margin-top: 24px;
-  transition: background .2s;
-}
-.contact-btn:hover { background: var(--green2); }
-
-/* ERROR STATE */
-.error-state {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 60vh; gap: 16px;
-  color: var(--text3); font-style: italic;
-}
-.error-state h2 { font-size: 24px; font-weight: 300; color: var(--text2); }
-
-/* NO PHOTO */
-.no-photo {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  color: rgba(245,240,232,.3); font-style: italic; font-size: 14px;
-  letter-spacing: .1em;
-}
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--green-pale:#C8DBC8;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.nav-logo{font-size:13px;letter-spacing:.15em;color:var(--green);font-style:italic}
+.nav-rid{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)}
+.nav-upload{background:var(--green);color:var(--cream);border:none;padding:7px 18px;font-size:11px;letter-spacing:.12em;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .2s}
+.nav-upload:hover{background:var(--green2)}
+.loading{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200}
+.loading-logo{font-size:28px;font-style:italic;color:var(--green);letter-spacing:.1em}
+.loading-bar{width:120px;height:1px;background:var(--border);position:relative;overflow:hidden}
+.loading-bar::after{content:'';position:absolute;left:-40%;top:0;width:40%;height:100%;background:var(--green);animation:load 1.2s ease-in-out infinite}
+@keyframes load{to{left:140%}}
+main{padding-top:56px}
+.photo-hero{position:relative;width:100%;background:var(--dark2);display:flex;align-items:center;justify-content:center;overflow:hidden;height:calc(100vh - 56px);max-height:700px}
+.photo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .12s ease}
+.photo-img.hidden{opacity:0;pointer-events:none}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(245,240,232,.15);backdrop-filter:blur(4px);border:1px solid rgba(245,240,232,.2);color:var(--cream);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;z-index:10;user-select:none}
+.photo-nav:hover{background:rgba(245,240,232,.3)}
+.photo-nav.disabled{opacity:.3;cursor:not-allowed}
+.photo-nav.prev{left:16px}
+.photo-nav.next{right:16px}
+.photo-info{position:absolute;bottom:0;left:0;right:0;padding:24px;background:linear-gradient(transparent,rgba(13,13,10,.85));color:var(--cream)}
+.photo-meta{display:flex;gap:20px;align-items:baseline;margin-bottom:4px}
+.photo-date{font-family:'DM Mono',monospace;font-size:12px;opacity:.7}
+.photo-weight{font-size:20px;font-style:italic}
+.photo-note{font-size:13px;opacity:.6;font-style:italic}
+.photo-counter{position:absolute;top:16px;right:16px;font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,.5)}
+.thumbnails{display:flex;gap:4px;padding:12px 16px;overflow-x:auto;background:var(--dark);scrollbar-width:none}
+.thumbnails::-webkit-scrollbar{display:none}
+.thumb{width:56px;height:56px;flex-shrink:0;object-fit:cover;opacity:.5;cursor:pointer;transition:opacity .2s;border:2px solid transparent}
+.thumb.active{opacity:1;border-color:var(--gold)}
+.thumb:hover{opacity:.8}
+.plant-info{padding:32px 24px 24px;border-bottom:1px solid var(--border)}
+.plant-name{font-size:32px;font-weight:300;margin-bottom:4px}
+.plant-rid{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);margin-bottom:12px}
+.plant-status-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.status-badge{display:inline-block;padding:4px 12px;font-size:11px;letter-spacing:.12em;border:1px solid}
+.status-badge.available{border-color:var(--green);color:var(--green);background:rgba(45,74,45,.08)}
+.status-badge.sold{border-color:var(--text3);color:var(--text3);background:transparent}
+.plant-price{font-size:22px;font-style:italic;color:var(--green)}
+.stats-row{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.stat{flex:1;padding:20px 24px;border-right:1px solid var(--border);text-align:center}
+.stat:last-child{border-right:none}
+.stat-val{font-size:22px;font-style:italic;color:var(--text);margin-bottom:4px}
+.stat-label{font-size:11px;letter-spacing:.1em;color:var(--text3)}
+.section{padding:32px 24px;border-bottom:1px solid var(--border)}
+.section-title{font-size:11px;letter-spacing:.15em;color:var(--text3);margin-bottom:16px;text-transform:uppercase}
+.phases{display:flex;gap:0;margin-bottom:8px}
+.phase{flex:1;padding:10px 4px;text-align:center;font-size:10px;letter-spacing:.08em;color:var(--text3);border-bottom:2px solid var(--border);transition:all .2s}
+.phase.active{color:var(--green);border-bottom-color:var(--green);font-weight:400}
+.description{font-size:16px;line-height:1.8;color:var(--text2);font-style:italic}
+.contact-btn{display:block;width:100%;background:var(--green);color:var(--cream);border:none;padding:16px;font-size:13px;letter-spacing:.15em;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;margin-top:24px;transition:background .2s}
+.contact-btn:hover{background:var(--green2)}
+.error-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;color:var(--text3);font-style:italic}
+.error-state h2{font-size:24px;font-weight:300;color:var(--text2)}
+.no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(245,240,232,.3);font-style:italic;font-size:14px;letter-spacing:.1em}
 </style>
 </head>
 <body>
@@ -229,8 +79,6 @@ main { padding-top: 56px; }
 </nav>
 
 <main id="main-content" style="display:none">
-
-  <!-- PHOTO HERO -->
   <div class="photo-hero" id="photo-hero">
     <div class="no-photo" id="no-photo" style="display:none">尚無照片紀錄</div>
     <img class="photo-img" id="photo-img" src="" alt="" style="display:none">
@@ -245,11 +93,7 @@ main { padding-top: 56px; }
       <div class="photo-note" id="photo-note"></div>
     </div>
   </div>
-
-  <!-- THUMBNAILS -->
   <div class="thumbnails" id="thumbnails"></div>
-
-  <!-- PLANT INFO -->
   <div class="plant-info">
     <div class="plant-name" id="plant-name">—</div>
     <div class="plant-rid" id="plant-rid-display"></div>
@@ -258,24 +102,11 @@ main { padding-top: 56px; }
       <span class="plant-price" id="plant-price"></span>
     </div>
   </div>
-
-  <!-- STATS -->
   <div class="stats-row">
-    <div class="stat">
-      <div class="stat-val" id="stat-days">—</div>
-      <div class="stat-label">生長天數</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" id="stat-weight">—</div>
-      <div class="stat-label">目前重量</div>
-    </div>
-    <div class="stat">
-      <div class="stat-val" id="stat-photos">—</div>
-      <div class="stat-label">照片紀錄</div>
-    </div>
+    <div class="stat"><div class="stat-val" id="stat-days">—</div><div class="stat-label">生長天數</div></div>
+    <div class="stat"><div class="stat-val" id="stat-weight">—</div><div class="stat-label">目前重量</div></div>
+    <div class="stat"><div class="stat-val" id="stat-photos">—</div><div class="stat-label">照片紀錄</div></div>
   </div>
-
-  <!-- PHASE -->
   <div class="section">
     <div class="section-title">生長階段</div>
     <div class="phases">
@@ -286,19 +117,13 @@ main { padding-top: 56px; }
       <div class="phase" id="phase-4">巔峰期</div>
     </div>
   </div>
-
-  <!-- DESCRIPTION -->
   <div class="section">
     <div class="section-title">植物故事</div>
     <div class="description" id="plant-description">正在載入...</div>
-    <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">
-      聯繫我們了解這株植物
-    </a>
+    <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">聯繫我們了解這株植物</a>
   </div>
-
 </main>
 
-<!-- ERROR STATE -->
 <div id="error-state" style="display:none">
   <div class="error-state">
     <h2>找不到這株植物</h2>
@@ -307,34 +132,22 @@ main { padding-top: 56px; }
 </div>
 
 <script>
-// ── Supabase ──────────────────────────────────────────
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 
 async function db(table, query) {
-  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
-  const res = await fetch(url, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY
-    }
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + table + query, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
   });
   return res.json();
 }
 
-// ── Get RID from URL ──────────────────────────────────
 function getRid() {
-  // Support /plant/R-000001 and ?rid=R-000001
-  const pathMatch = location.pathname.match(/\/plant\/([A-Z]-\d+)/i);
-  if (pathMatch) return pathMatch[1].toUpperCase();
-  const params = new URLSearchParams(location.search);
-  return params.get('rid') || params.get('r') || null;
+  const m = location.pathname.match(/\/plant\/([A-Z]-\d+)/i);
+  if (m) return m[1].toUpperCase();
+  return new URLSearchParams(location.search).get('rid') || null;
 }
 
-// ── Phases ────────────────────────────────────────────
-const PHASES = ['突破期','換葉期','強健期','調適期','巔峰期'];
-
-// ── Photos state ──────────────────────────────────────
 let photos = [];
 let currentIdx = 0;
 
@@ -342,49 +155,36 @@ function showPhoto(idx) {
   if (!photos.length) return;
   currentIdx = idx;
   const p = photos[idx];
-
   const img = document.getElementById('photo-img');
   img.style.display = 'block';
   document.getElementById('no-photo').style.display = 'none';
-
-  // Fade transition
   img.style.opacity = '0';
   img.src = p.photo_url;
   img.onload = () => { img.style.transition = 'opacity .2s'; img.style.opacity = '1'; };
-
-  document.getElementById('photo-date').textContent = p.upload_date ? p.upload_date.slice(0,10) : '';
+  document.getElementById('photo-date').textContent = p.taken_at ? p.taken_at.slice(0,10) : (p.created_at ? p.created_at.slice(0,10) : '');
   document.getElementById('photo-weight').textContent = p.weight ? p.weight + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
   document.getElementById('photo-info').style.display = 'block';
   document.getElementById('photo-counter').textContent = (idx+1) + ' / ' + photos.length;
-
-  // Thumbnails
-  document.querySelectorAll('.thumb').forEach((t, i) => {
-    t.classList.toggle('active', i === idx);
-  });
-
-  // Nav buttons
-  document.getElementById('btn-prev').classList.toggle('disabled', idx === 0);
-  document.getElementById('btn-next').classList.toggle('disabled', idx === photos.length - 1);
+  document.querySelectorAll('.thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.getElementById('btn-prev').classList.toggle('disabled', idx===0);
+  document.getElementById('btn-next').classList.toggle('disabled', idx===photos.length-1);
 }
 
 function buildThumbnails() {
-  const container = document.getElementById('thumbnails');
-  container.innerHTML = '';
-  photos.forEach((p, i) => {
+  const c = document.getElementById('thumbnails');
+  c.innerHTML = '';
+  photos.forEach((p,i) => {
     const img = document.createElement('img');
     img.className = 'thumb';
     img.src = p.photo_url;
-    img.alt = '';
     img.onclick = () => showPhoto(i);
-    container.appendChild(img);
+    c.appendChild(img);
   });
 }
 
-// ── Main ──────────────────────────────────────────────
 async function init() {
   const rid = getRid();
-
   if (!rid) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-state').style.display = 'block';
@@ -392,13 +192,10 @@ async function init() {
   }
 
   document.getElementById('nav-rid').textContent = rid;
-  document.getElementById('nav-upload-btn').href =
-    'https://plant-pos.vercel.app/upload.html?rid=' + rid;
+  document.getElementById('nav-upload-btn').href = 'https://plant-pos.vercel.app/upload.html?rid=' + rid;
 
-
-  // Step 1: 用 rid 查 rehab 表
-  const rehabRows = await db('rehab', `?rid=eq.${rid}&limit=1`);
-
+  // 查 rehab 表
+  const rehabRows = await db('rehab', '?rid=eq.' + rid + '&limit=1');
   if (!rehabRows || !rehabRows.length) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error-state').style.display = 'block';
@@ -406,18 +203,16 @@ async function init() {
   }
 
   const rehab = rehabRows[0];
-
-  // Step 2: 用 plant_id 查 plants 表
   let plantName = rehab.plant_name || rid;
   let plantPrice = '';
   let plantStatus = rehab.status || 'available';
 
+  // 查 plants 表拿名稱和價格
   if (rehab.plant_id) {
-    const plantRows = await db('plants', `?id=eq.${rehab.plant_id}&limit=1`);
+    const plantRows = await db('plants', '?id=eq.' + rehab.plant_id + '&limit=1');
     if (plantRows && plantRows.length) {
-      const p = plantRows[0];
-      plantName = p.name || plantName;
-      plantPrice = p.price ? 'NT$ ' + Number(p.price).toLocaleString() : '';
+      plantName = plantRows[0].name || plantName;
+      plantPrice = plantRows[0].price ? 'NT$ ' + Number(plantRows[0].price).toLocaleString() : '';
     }
   }
 
@@ -438,67 +233,48 @@ async function init() {
   }
 
   if (rehab.purchase_date) {
-    const start = new Date(rehab.purchase_date);
-    const days = Math.floor((Date.now() - start) / 86400000);
+    const days = Math.floor((Date.now() - new Date(rehab.purchase_date)) / 86400000);
     document.getElementById('stat-days').textContent = days + ' 天';
   }
 
   document.getElementById('plant-description').textContent =
     rehab.notes || rehab.description || '這株植物正在悄悄生長，每一天都是新的故事。';
 
-
-  // Fetch photos
-  const photoData = await db('photos', `?rid=eq.${rid}&is_public=eq.true&order=upload_date.asc`);
-  photos = photoData || [];
-
+  // 查 photos 表（先試有哪些欄位）
+  const photoData = await db('photos', '?rid=eq.' + rid + '&is_public=eq.true&select=*');
+  photos = Array.isArray(photoData) ? photoData : [];
   document.getElementById('stat-photos').textContent = photos.length + ' 張';
 
   if (photos.length) {
-    // Latest weight
-    const lastWithWeight = [...photos].reverse().find(p => p.weight);
-    if (lastWithWeight) {
-      document.getElementById('stat-weight').textContent = lastWithWeight.weight + ' g';
-    }
-
+    const lastW = [...photos].reverse().find(p => p.weight);
+    if (lastW) document.getElementById('stat-weight').textContent = lastW.weight + ' g';
     buildThumbnails();
-    showPhoto(photos.length - 1); // Show latest photo
+    showPhoto(photos.length - 1);
   } else {
     document.getElementById('no-photo').style.display = 'flex';
     document.getElementById('photo-counter').textContent = '尚無照片';
     document.getElementById('btn-prev').style.display = 'none';
     document.getElementById('btn-next').style.display = 'none';
-    document.getElementById('stat-weight').textContent = plant.current_weight ? plant.current_weight + ' g' : '—';
   }
 
-  // Show content
+  document.getElementById('stat-weight').textContent = document.getElementById('stat-weight').textContent || '—';
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
 }
 
-// ── Nav button events ─────────────────────────────────
-document.getElementById('btn-prev').onclick = () => {
-  if (currentIdx > 0) showPhoto(currentIdx - 1);
-};
-document.getElementById('btn-next').onclick = () => {
-  if (currentIdx < photos.length - 1) showPhoto(currentIdx + 1);
-};
-
-// Keyboard navigation
+document.getElementById('btn-prev').onclick = () => { if (currentIdx > 0) showPhoto(currentIdx-1); };
+document.getElementById('btn-next').onclick = () => { if (currentIdx < photos.length-1) showPhoto(currentIdx+1); };
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft' && currentIdx > 0) showPhoto(currentIdx - 1);
-  if (e.key === 'ArrowRight' && currentIdx < photos.length - 1) showPhoto(currentIdx + 1);
+  if (e.key==='ArrowLeft' && currentIdx>0) showPhoto(currentIdx-1);
+  if (e.key==='ArrowRight' && currentIdx<photos.length-1) showPhoto(currentIdx+1);
 });
-
-// Touch swipe
 let touchStartX = 0;
-document.getElementById('photo-hero').addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-});
+document.getElementById('photo-hero').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
 document.getElementById('photo-hero').addEventListener('touchend', e => {
   const diff = touchStartX - e.changedTouches[0].clientX;
-  if (Math.abs(diff) > 50) {
-    if (diff > 0 && currentIdx < photos.length - 1) showPhoto(currentIdx + 1);
-    if (diff < 0 && currentIdx > 0) showPhoto(currentIdx - 1);
+  if (Math.abs(diff)>50) {
+    if (diff>0 && currentIdx<photos.length-1) showPhoto(currentIdx+1);
+    if (diff<0 && currentIdx>0) showPhoto(currentIdx-1);
   }
 });
 
