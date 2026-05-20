@@ -100,6 +100,8 @@ const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手�
 const STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出' };
 const PUBLIC_STATUSES = ['available', 'tracking', 'pup_sale', 'sold'];
 const FOR_SALE_STATUSES = ['available', 'tracking', 'pup_sale'];
+// plant_web 對應
+const WEB_STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出' };
 
 async function dbGet(table, q) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
@@ -119,9 +121,10 @@ function renderCard(p) {
     ? `<img class="plant-card-img" src="${p.photo_url}" alt="${p.plant_name||''}" loading="lazy">`
     : `<div class="plant-card-no-img"><span>尚無照片</span></div>`;
 
-  const showPrice = (p.status === 'available' || p.status === 'pup_sale') && p.price;
+  const ws = p.web_status || p.status;
+  const showPrice = (ws === 'available' || ws === 'pup_sale') && p.price;
   const priceHtml = showPrice ? `<div class="plant-card-price">NT$ ${Number(p.price).toLocaleString()}</div>` : '';
-  const locText = p.loc ? (LOC_LABEL[p.loc] || p.loc) : '';
+  const ownerText = p.web_owner ? (LOC_LABEL[p.web_owner] || p.web_owner) : '';
 
   return `
     <a class="plant-card" href="${getCardUrl(p.rid)}">
@@ -130,10 +133,10 @@ function renderCard(p) {
         <div class="plant-card-name">${p.plant_name || p.rid}</div>
         <div class="plant-card-rid">${p.rid}</div>
         <div class="plant-card-badges">
-          <span class="badge ${p.status}">${STATUS_LABEL[p.status] || p.status}</span>
+          <span class="badge ${ws}">${WEB_STATUS_LABEL[ws] || ws}</span>
         </div>
         ${priceHtml}
-        ${locText ? `<div class="plant-card-loc">📍 ${locText}</div>` : ''}
+        ${ownerText ? `<div class="plant-card-loc">📍 ${ownerText}</div>` : ''}
       </div>
     </a>`;
 }
@@ -152,37 +155,39 @@ function renderGrid(plants, gridId, emptyId) {
 }
 
 async function init() {
-  // 1. Fetch all public rehab records
-  const rehabRows = await dbGet('rehab', '?order=rid.asc&select=*');
-  if (!Array.isArray(rehabRows)) {
+  // 1. 從 plant_web 取得所有公開狀態（排除 private）
+  const webRows = await dbGet('plant_web', '?web_status=neq.private&web_status=not.is.null&select=rid,web_status,web_owner');
+  if (!Array.isArray(webRows) || !webRows.length) {
     document.getElementById('loading-indicator').style.display = 'none';
     document.getElementById('empty-for-sale').style.display = 'block';
     return;
   }
-  const visible = rehabRows.filter(r => PUBLIC_STATUSES.includes(r.status));
+  const webMap = {};
+  webRows.forEach(w => { webMap[w.rid] = w; });
+  const visibleRids = webRows.map(w => w.rid);
 
-  // 2. Fetch plants table for prices
+  // 2. 從 rehab 取得植物基本資料（name、plant_id）
+  const rehabRows = await dbGet('rehab', `?rid=in.(${visibleRids.join(',')})&select=rid,plant_id,plant_name,purchase_date`);
+  const rehabMap = {};
+  if (Array.isArray(rehabRows)) rehabRows.forEach(r => { rehabMap[r.rid] = r; });
+
+  // 3. 從 plants 取得品種價格
   const plantsRows = await dbGet('plants', '?select=id,name,price');
   const plantsMap = {};
   if (Array.isArray(plantsRows)) plantsRows.forEach(p => { plantsMap[p.id] = p; });
 
-  // 3. Fetch featured photos for all rids
-  const rids = visible.map(r => r.rid);
+  // 4. 取得精選照片
   let photosMap = {};
-  if (rids.length) {
-    const ridList = rids.map(r => `"${r}"`).join(',');
-    const photoRows = await dbGet('photos', `?rid=in.(${rids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at,created_at`);
+  if (visibleRids.length) {
+    const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at,created_at`);
     if (Array.isArray(photoRows)) {
-      // Group by rid, pick is_featured=true first, else latest
       photoRows.forEach(ph => {
         if (!photosMap[ph.rid]) {
           photosMap[ph.rid] = ph;
         } else {
-          // prefer featured
           if (ph.is_featured && !photosMap[ph.rid].is_featured) {
             photosMap[ph.rid] = ph;
           } else if (!photosMap[ph.rid].is_featured && !ph.is_featured) {
-            // keep latest (rows ordered asc, so last = latest)
             photosMap[ph.rid] = ph;
           }
         }
@@ -190,20 +195,23 @@ async function init() {
     }
   }
 
-  // 4. Enrich
-  allPlants = visible.map(r => {
+  // 5. 組合資料
+  allPlants = webRows.map(w => {
+    const r = rehabMap[w.rid] || {};
     const plant = r.plant_id ? plantsMap[r.plant_id] : null;
     return {
-      ...r,
-      plant_name: (plant && plant.name) || r.plant_name || r.rid,
+      rid: w.rid,
+      web_status: w.web_status,
+      web_owner: w.web_owner,
+      plant_name: (plant && plant.name) || r.plant_name || w.rid,
       price: plant ? plant.price : null,
-      photo_url: photosMap[r.rid] ? photosMap[r.rid].photo_url : null,
+      photo_url: photosMap[w.rid] ? photosMap[w.rid].photo_url : null,
     };
   });
 
-  // 5. Render tabs
-  const forSale = allPlants.filter(p => FOR_SALE_STATUSES.includes(p.status));
-  const sold = allPlants.filter(p => p.status === 'sold');
+  // 6. 渲染分頁（以 web_status 為準）
+  const forSale = allPlants.filter(p => FOR_SALE_STATUSES.includes(p.web_status));
+  const sold = allPlants.filter(p => p.web_status === 'sold');
 
   document.getElementById('loading-indicator').style.display = 'none';
   renderGrid(forSale, 'grid-for-sale', 'empty-for-sale');
