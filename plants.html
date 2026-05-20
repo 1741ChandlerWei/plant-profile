@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>植物展示 — rễ , thân , lá studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav-back{display:inline-flex;align-items:center;gap:6px;color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em;transition:color .2s;flex-shrink:0}
+.nav-back:hover{color:var(--green2)}
+.nav-logo{font-size:13px;letter-spacing:.15em;color:var(--text3);font-style:italic;text-align:center;flex:1}
+.nav-spacer{width:60px;flex-shrink:0}
+
+main{padding-top:56px}
+
+.page-header{padding:32px 20px 0;text-align:center}
+.page-title{font-size:28px;font-weight:300;font-style:italic;color:var(--text);margin-bottom:4px}
+.page-title-vn{font-size:12px;letter-spacing:.18em;color:var(--text3);margin-bottom:24px}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--cream);position:sticky;top:56px;z-index:50}
+.tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:14px 8px;font-size:12px;letter-spacing:.1em;color:var(--text3);cursor:pointer;font-family:inherit;transition:all .2s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+.tab-content{display:none;padding:20px 16px}
+.tab-content.active{display:block}
+
+.plant-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:600px){.plant-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.plant-grid{grid-template-columns:repeat(4,1fr)}}
+
+.plant-card{background:#fff;border:1px solid var(--border);text-decoration:none;color:var(--text);display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s;cursor:pointer}
+.plant-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);border-color:#C4BAA8}
+.plant-card-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--cream2);display:block}
+.plant-card-no-img{width:100%;aspect-ratio:1;background:var(--cream2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-style:italic;font-size:12px}
+.plant-card-body{padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;gap:4px}
+.plant-card-name{font-size:15px;font-style:italic;color:var(--text);line-height:1.3}
+.plant-card-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.06em}
+.plant-card-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.badge{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.1em;border:1px solid}
+.badge.available{border-color:var(--green);color:var(--green);background:rgba(45,74,45,.07)}
+.badge.tracking{border-color:var(--gold);color:var(--gold);background:rgba(184,146,42,.07)}
+.badge.pup_sale{border-color:#4A7FB5;color:#4A7FB5;background:rgba(74,127,181,.07)}
+.badge.sold{border-color:var(--text3);color:var(--text3);background:transparent}
+.plant-card-price{font-size:15px;font-style:italic;color:var(--green);margin-top:2px}
+.plant-card-loc{font-size:11px;color:var(--text3);letter-spacing:.04em}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3);font-style:italic}
+
+.loading-state{text-align:center;padding:60px 20px}
+.loading-dots{display:inline-flex;gap:6px}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:blink 1.2s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="/index.html">← 首頁</a>
+  <div class="nav-logo">rễ , thân , lá studio</div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">植物展示</div>
+    <div class="page-title-vn">VƯỜN CÂY</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="for-sale">展示販售中</button>
+    <button class="tab" data-tab="sold">已售出</button>
+  </div>
+
+  <div class="tab-content active" id="tab-for-sale">
+    <div class="loading-state" id="loading-indicator">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+    <div class="plant-grid" id="grid-for-sale" style="display:none"></div>
+    <div class="empty-state" id="empty-for-sale" style="display:none">目前沒有展示中的植物 / Chưa có cây nào</div>
+  </div>
+
+  <div class="tab-content" id="tab-sold">
+    <div class="plant-grid" id="grid-sold"></div>
+    <div class="empty-state" id="empty-sold" style="display:none">尚無已售出紀錄</div>
+  </div>
+</main>
+
+<script>
+const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+
+const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
+const STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出' };
+const PUBLIC_STATUSES = ['available', 'tracking', 'pup_sale', 'sold'];
+const FOR_SALE_STATUSES = ['available', 'tracking', 'pup_sale'];
+
+async function dbGet(table, q) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  });
+  return r.json();
+}
+
+let allPlants = []; // enriched plant records
+
+function getCardUrl(rid) {
+  return '/plant.html?rid=' + rid;
+}
+
+function renderCard(p) {
+  const imgHtml = p.photo_url
+    ? `<img class="plant-card-img" src="${p.photo_url}" alt="${p.plant_name||''}" loading="lazy">`
+    : `<div class="plant-card-no-img"><span>尚無照片</span></div>`;
+
+  const showPrice = (p.status === 'available' || p.status === 'pup_sale') && p.price;
+  const priceHtml = showPrice ? `<div class="plant-card-price">NT$ ${Number(p.price).toLocaleString()}</div>` : '';
+  const locText = p.loc ? (LOC_LABEL[p.loc] || p.loc) : '';
+
+  return `
+    <a class="plant-card" href="${getCardUrl(p.rid)}">
+      ${imgHtml}
+      <div class="plant-card-body">
+        <div class="plant-card-name">${p.plant_name || p.rid}</div>
+        <div class="plant-card-rid">${p.rid}</div>
+        <div class="plant-card-badges">
+          <span class="badge ${p.status}">${STATUS_LABEL[p.status] || p.status}</span>
+        </div>
+        ${priceHtml}
+        ${locText ? `<div class="plant-card-loc">📍 ${locText}</div>` : ''}
+      </div>
+    </a>`;
+}
+
+function renderGrid(plants, gridId, emptyId) {
+  const grid = document.getElementById(gridId);
+  const empty = document.getElementById(emptyId);
+  if (!plants.length) {
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  grid.innerHTML = plants.map(renderCard).join('');
+  grid.style.display = 'grid';
+  empty.style.display = 'none';
+}
+
+async function init() {
+  // 1. Fetch all public rehab records
+  const rehabRows = await dbGet('rehab', '?order=rid.asc&select=*');
+  if (!Array.isArray(rehabRows)) {
+    document.getElementById('loading-indicator').style.display = 'none';
+    document.getElementById('empty-for-sale').style.display = 'block';
+    return;
+  }
+  const visible = rehabRows.filter(r => PUBLIC_STATUSES.includes(r.status));
+
+  // 2. Fetch plants table for prices
+  const plantsRows = await dbGet('plants', '?select=id,name,price');
+  const plantsMap = {};
+  if (Array.isArray(plantsRows)) plantsRows.forEach(p => { plantsMap[p.id] = p; });
+
+  // 3. Fetch featured photos for all rids
+  const rids = visible.map(r => r.rid);
+  let photosMap = {};
+  if (rids.length) {
+    const ridList = rids.map(r => `"${r}"`).join(',');
+    const photoRows = await dbGet('photos', `?rid=in.(${rids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at,created_at`);
+    if (Array.isArray(photoRows)) {
+      // Group by rid, pick is_featured=true first, else latest
+      photoRows.forEach(ph => {
+        if (!photosMap[ph.rid]) {
+          photosMap[ph.rid] = ph;
+        } else {
+          // prefer featured
+          if (ph.is_featured && !photosMap[ph.rid].is_featured) {
+            photosMap[ph.rid] = ph;
+          } else if (!photosMap[ph.rid].is_featured && !ph.is_featured) {
+            // keep latest (rows ordered asc, so last = latest)
+            photosMap[ph.rid] = ph;
+          }
+        }
+      });
+    }
+  }
+
+  // 4. Enrich
+  allPlants = visible.map(r => {
+    const plant = r.plant_id ? plantsMap[r.plant_id] : null;
+    return {
+      ...r,
+      plant_name: (plant && plant.name) || r.plant_name || r.rid,
+      price: plant ? plant.price : null,
+      photo_url: photosMap[r.rid] ? photosMap[r.rid].photo_url : null,
+    };
+  });
+
+  // 5. Render tabs
+  const forSale = allPlants.filter(p => FOR_SALE_STATUSES.includes(p.status));
+  const sold = allPlants.filter(p => p.status === 'sold');
+
+  document.getElementById('loading-indicator').style.display = 'none';
+  renderGrid(forSale, 'grid-for-sale', 'empty-for-sale');
+  renderGrid(sold, 'grid-sold', 'empty-sold');
+}
+
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  };
+});
+
+init();
+</script>
+</body>
+</html>

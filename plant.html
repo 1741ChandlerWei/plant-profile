@@ -72,6 +72,7 @@ main{padding-top:56px}
 .plant-name{font-size:32px;font-weight:300;margin-bottom:4px}
 .plant-rid{font-family:'DM Mono',monospace;font-size:13px;color:var(--gold);margin-bottom:12px}
 .plant-status-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.plant-owner{font-size:13px;color:var(--text2);letter-spacing:.04em}
 .status-badge{display:inline-block;padding:4px 12px;font-size:11px;letter-spacing:.12em;border:1px solid}
 .status-badge.available{border-color:var(--green);color:var(--green);background:rgba(45,74,45,.08)}
 .status-badge.sold{border-color:var(--text3);color:var(--text3);background:transparent}
@@ -93,6 +94,15 @@ main{padding-top:56px}
 .description{font-size:16px;line-height:1.85;color:var(--text2);font-style:italic}
 .contact-btn{display:block;width:100%;background:var(--green);color:var(--cream);border:none;padding:16px;font-size:13px;letter-spacing:.15em;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;margin-top:24px;transition:background .2s}
 .contact-btn:hover{background:var(--green2)}
+
+/* ── 按讚 & 分享 ── */
+.action-row{display:flex;gap:10px;margin-top:20px}
+.like-btn,.share-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 8px;font-size:13px;letter-spacing:.1em;cursor:pointer;font-family:inherit;background:#fff;border:1px solid var(--border);color:var(--text2);transition:all .2s}
+.like-btn:hover{border-color:var(--gold);color:var(--gold)}
+.like-btn.liked{border-color:var(--gold);color:var(--gold);background:rgba(184,146,42,.06)}
+.like-btn .heart{font-size:16px;line-height:1}
+.share-btn{color:var(--green)}
+.share-btn:hover{border-color:var(--green);background:rgba(45,74,45,.05)}
 
 /* ── 區域 2：生長日記 ── */
 .diary-section{border-bottom:1px solid var(--border)}
@@ -212,6 +222,15 @@ main{padding-top:56px}
 .save-toast{position:fixed;bottom:70px;right:20px;background:var(--green);color:var(--cream);padding:8px 16px;font-size:11px;letter-spacing:.1em;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
 .save-toast.show{opacity:1}
 
+/* ── 狀態管理 Tab ── */
+.status-mgmt-form{display:flex;flex-direction:column;gap:16px}
+.form-row{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:10px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase}
+.form-select{width:100%;padding:10px 12px;border:1px solid var(--border);background:var(--cream);font-size:14px;font-family:inherit;color:var(--text);appearance:none;-webkit-appearance:none;outline:none;cursor:pointer}
+.form-select:focus{border-color:var(--green)}
+.form-save-btn{background:var(--green);color:var(--cream);border:none;padding:14px;font-size:12px;letter-spacing:.15em;cursor:pointer;font-family:inherit;transition:background .2s}
+.form-save-btn:hover{background:var(--green2)}
+
 /* ── 縮時合成進度 ── */
 .tl-progress-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(13,13,10,.88);align-items:center;justify-content:center;flex-direction:column;gap:20px}
 .tl-progress-overlay.open{display:flex}
@@ -282,6 +301,7 @@ main{padding-top:56px}
     <div class="plant-status-row">
       <span class="status-badge available" id="status-badge">可購買</span>
       <span class="plant-price" id="plant-price"></span>
+      <span class="plant-owner" id="plant-owner"></span>
     </div>
   </div>
 
@@ -308,6 +328,15 @@ main{padding-top:56px}
   <div class="section">
     <div class="section-title">植物故事 / Câu Chuyện Cây</div>
     <div class="description" id="plant-description">正在載入...</div>
+    <div class="action-row">
+      <button class="like-btn" id="like-btn" onclick="toggleLike()">
+        <span class="heart" id="like-heart">♡</span>
+        <span id="like-count">0</span>
+      </button>
+      <button class="share-btn" id="share-btn" onclick="shareUrl()">
+        ↗ 分享
+      </button>
+    </div>
     <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">聯繫我們了解這株植物 / Liên hệ để biết thêm</a>
   </div>
 
@@ -387,6 +416,7 @@ main{padding-top:56px}
       <button class="atab active" data-tab="featured">精選照片</button>
       <button class="atab" data-tab="videos">影片管理</button>
       <button class="atab" data-tab="timelapse">縮時素材</button>
+      <button class="atab" data-tab="statusmgmt">狀態管理</button>
     </div>
 
     <!-- 精選照片 -->
@@ -405,6 +435,32 @@ main{padding-top:56px}
     <div class="atab-content hidden" id="atab-timelapse">
       <div class="admin-notice">標記為「縮時」的照片是合成縮時影片的素材。點擊照片下方的按鈕切換用途。<br>Ảnh được đánh dấu "Timelapse" sẽ dùng để tổng hợp video.</div>
       <div class="admin-photo-grid" id="admin-tl-grid"></div>
+    </div>
+
+    <!-- 狀態管理 -->
+    <div class="atab-content hidden" id="atab-statusmgmt">
+      <div class="admin-notice">修改這株植物的販售狀態與目前位置。儲存後頁面顯示會即時更新。</div>
+      <div class="status-mgmt-form">
+        <div class="form-row">
+          <div class="form-label">販售狀態 / Trạng thái</div>
+          <select class="form-select" id="mgmt-status">
+            <option value="available">可販售</option>
+            <option value="tracking">展示中</option>
+            <option value="pup_sale">側芽販售</option>
+            <option value="sold">已售出</option>
+            <option value="rehab">暫不販售（復健中）</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-label">目前位置 / Vị trí</div>
+          <select class="form-select" id="mgmt-loc">
+            <option value="mine">Chandler家</option>
+            <option value="quang">Quang家</option>
+            <option value="helper">小幫手家</option>
+          </select>
+        </div>
+        <button class="form-save-btn" id="mgmt-save-btn" onclick="saveStatusMgmt()">儲存 / Lưu</button>
+      </div>
     </div>
   </div>
 </div>
@@ -927,6 +983,7 @@ async function init() {
     return;
   }
   const rehab = rehabRows[0];
+  rehabRowId = rehab.id;
   let plantName = rehab.plant_name || rid;
   let plantPrice = '';
   let plantStatus = rehab.status || 'available';
@@ -944,13 +1001,19 @@ async function init() {
 
   const badge = document.getElementById('status-badge');
   const priceEl = document.getElementById('plant-price');
-  if (plantStatus === 'sold') {
-    badge.textContent = '已售出 / Đã bán'; badge.className = 'status-badge sold';
-    priceEl.textContent = ''; document.getElementById('contact-btn').style.display = 'none';
-  } else {
-    badge.textContent = '可購買 / Có thể mua'; badge.className = 'status-badge available';
-    priceEl.textContent = plantPrice;
-  }
+  const statusMap = {
+    available: { text: '可購買 / Có thể mua', cls: 'available', showPrice: true, showContact: true },
+    tracking:  { text: '展示中 / Đang trưng bày', cls: 'available', showPrice: false, showContact: true },
+    pup_sale:  { text: '側芽販售 / Bán chồi', cls: 'available', showPrice: true, showContact: true },
+    sold:      { text: '已售出 / Đã bán', cls: 'sold', showPrice: false, showContact: false },
+    rehab:     { text: '暫不販售', cls: 'sold', showPrice: false, showContact: false },
+    private:   { text: '暫不販售', cls: 'sold', showPrice: false, showContact: false },
+  };
+  const sm = statusMap[plantStatus] || statusMap['available'];
+  badge.textContent = sm.text;
+  badge.className = 'status-badge ' + sm.cls;
+  priceEl.textContent = sm.showPrice ? plantPrice : '';
+  if (!sm.showContact) document.getElementById('contact-btn').style.display = 'none';
 
   if (rehab.purchase_date) {
     const days = Math.floor((Date.now() - new Date(rehab.purchase_date)) / 86400000);
@@ -987,11 +1050,124 @@ async function init() {
     if (Array.isArray(vids)) buildFeaturedVideos(vids);
   } catch(_) {}
 
+  // 顯示擁有者
+  const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
+  if (rehab.loc) {
+    document.getElementById('plant-owner').textContent = '📍 ' + (LOC_LABEL[rehab.loc] || rehab.loc);
+  }
+
+  // 初始化按讚
+  initLike(rid);
+
+  // 預填狀態管理下拉
+  const mgmtStatus = document.getElementById('mgmt-status');
+  const mgmtLoc = document.getElementById('mgmt-loc');
+  if (mgmtStatus && rehab.status) mgmtStatus.value = rehab.status;
+  if (mgmtLoc && rehab.loc) mgmtLoc.value = rehab.loc;
+
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
 }
 
 init();
+
+// ─── 按讚 ────────────────────────────────────────────────
+function initLike(rid) {
+  const key = 'liked_' + rid;
+  const countKey = 'like_count_' + rid;
+  const liked = localStorage.getItem(key) === '1';
+  let count = parseInt(localStorage.getItem(countKey) || '0', 10);
+  const btn = document.getElementById('like-btn');
+  const heart = document.getElementById('like-heart');
+  const countEl = document.getElementById('like-count');
+  countEl.textContent = count;
+  if (liked) { btn.classList.add('liked'); heart.textContent = '♥'; }
+}
+
+function toggleLike() {
+  const rid = getRid();
+  if (!rid) return;
+  const key = 'liked_' + rid;
+  const countKey = 'like_count_' + rid;
+  const liked = localStorage.getItem(key) === '1';
+  let count = parseInt(localStorage.getItem(countKey) || '0', 10);
+  const btn = document.getElementById('like-btn');
+  const heart = document.getElementById('like-heart');
+  const countEl = document.getElementById('like-count');
+  if (liked) {
+    count = Math.max(0, count - 1);
+    localStorage.setItem(key, '0');
+    btn.classList.remove('liked');
+    heart.textContent = '♡';
+  } else {
+    count += 1;
+    localStorage.setItem(key, '1');
+    btn.classList.add('liked');
+    heart.textContent = '♥';
+  }
+  localStorage.setItem(countKey, count);
+  countEl.textContent = count;
+}
+
+// ─── 分享 ────────────────────────────────────────────────
+function shareUrl() {
+  const btn = document.getElementById('share-btn');
+  navigator.clipboard.writeText(location.href).then(() => {
+    btn.textContent = '✓ 已複製';
+    setTimeout(() => { btn.textContent = '↗ 分享'; }, 1500);
+  }).catch(() => {
+    btn.textContent = '✓ 已複製';
+    setTimeout(() => { btn.textContent = '↗ 分享'; }, 1500);
+  });
+}
+
+// ─── 狀態管理 ────────────────────────────────────────────
+let rehabRowId = null;
+
+async function saveStatusMgmt() {
+  if (!rehabRowId) {
+    // fetch the id if not stored yet
+    const rid = getRid();
+    const rows = await dbGet('rehab', '?rid=eq.' + rid + '&limit=1&select=id,status,loc');
+    if (!rows || !rows.length) { toast('找不到記錄'); return; }
+    rehabRowId = rows[0].id;
+  }
+  const newStatus = document.getElementById('mgmt-status').value;
+  const newLoc = document.getElementById('mgmt-loc').value;
+  const btn = document.getElementById('mgmt-save-btn');
+  btn.textContent = '儲存中...'; btn.disabled = true;
+
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rehab?id=eq.' + rehabRowId, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json', Prefer: 'return=minimal'
+    },
+    body: JSON.stringify({ status: newStatus, loc: newLoc })
+  });
+
+  btn.textContent = '儲存 / Lưu'; btn.disabled = false;
+
+  if (r.ok) {
+    toast('狀態已更新 ✓');
+    // 即時更新頁面顯示
+    const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
+    const STATUS_MAP = {
+      available: { text: '可購買 / Có thể mua', cls: 'available' },
+      tracking:  { text: '展示中 / Đang trưng bày', cls: 'available' },
+      pup_sale:  { text: '側芽販售 / Bán chồi', cls: 'available' },
+      sold:      { text: '已售出 / Đã bán', cls: 'sold' },
+      rehab:     { text: '暫不販售', cls: 'sold' },
+    };
+    const badge = document.getElementById('status-badge');
+    const sm = STATUS_MAP[newStatus] || STATUS_MAP['available'];
+    badge.textContent = sm.text;
+    badge.className = 'status-badge ' + sm.cls;
+    document.getElementById('plant-owner').textContent = newLoc ? '📍 ' + (LOC_LABEL[newLoc] || newLoc) : '';
+  } else {
+    toast('儲存失敗，請檢查 RLS 設定');
+  }
+}
 
 // ─── 縮時影片合成 ──────────────────────────────────────
 let tlCancelled = false;
