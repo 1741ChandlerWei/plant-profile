@@ -6,25 +6,332 @@
 <title>後台管理 — rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root{--cream:#F5F0E8;--dark2:#1A1A14;--green:#2D4A2D;--text3:#9B9B85;--border:#D8D0C0}
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--cream);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;display:flex;flex-direction:column}
-nav{background:rgba(245,240,232,.96);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
-.nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em;flex-shrink:0}
 .nav-logo{flex:1;text-align:center;font-size:13px;letter-spacing:.15em;color:var(--text3);font-style:italic}
-.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3);font-style:italic;font-size:16px}
-.placeholder-sub{font-size:11px;letter-spacing:.12em;opacity:.6}
+.nav-spacer{width:60px;flex-shrink:0}
+
+/* 密碼屏 */
+.auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:24px}
+.auth-logo{font-size:26px;font-style:italic;color:var(--green);letter-spacing:.1em;margin-bottom:8px}
+.auth-sub{font-size:12px;color:var(--text3);letter-spacing:.12em}
+.pwd-row{display:flex;gap:0;border:1px solid var(--border);width:100%;max-width:280px}
+.pwd-input{flex:1;border:none;background:transparent;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none}
+.pwd-btn{background:var(--green);color:var(--cream);border:none;padding:12px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.pwd-btn:hover{background:var(--green2)}
+.pwd-error{font-size:11px;color:var(--red);font-style:italic;height:16px}
+
+/* 主面板 */
+.main-panel{display:none;padding-top:56px}
+
+.page-header{padding:28px 20px 0;border-bottom:1px solid var(--border);padding-bottom:20px}
+.page-title{font-size:24px;font-weight:300;font-style:italic;margin-bottom:4px}
+.page-title-sub{font-size:11px;letter-spacing:.14em;color:var(--text3)}
+
+/* 篩選列 */
+.filter-row{display:flex;gap:8px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.filter-label{font-size:11px;letter-spacing:.1em;color:var(--text3);flex-shrink:0}
+.filter-btn{background:none;border:1px solid var(--border);padding:5px 14px;font-size:11px;letter-spacing:.08em;color:var(--text3);cursor:pointer;font-family:inherit;transition:all .2s}
+.filter-btn.active{background:var(--green);color:var(--cream);border-color:var(--green)}
+.filter-btn:hover:not(.active){border-color:var(--text2);color:var(--text2)}
+
+/* 植物列表 */
+.plant-list{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+
+.plant-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);background:#fff;transition:border-color .2s}
+.plant-row:hover{border-color:#C4BAA8}
+.plant-thumb{width:52px;height:52px;object-fit:cover;flex-shrink:0;background:var(--cream2)}
+.plant-thumb-empty{width:52px;height:52px;background:var(--cream2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text3)}
+.plant-info{flex:1;min-width:0}
+.plant-name{font-size:15px;font-style:italic;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plant-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.06em}
+.plant-controls{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.status-select{border:1px solid var(--border);background:var(--cream);padding:6px 10px;font-size:12px;font-family:inherit;color:var(--text);appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;min-width:100px}
+.status-select:focus{border-color:var(--green)}
+.owner-select{border:1px solid var(--border);background:var(--cream);padding:6px 10px;font-size:12px;font-family:inherit;color:var(--text);appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;min-width:88px}
+.save-row-btn{background:var(--green);color:var(--cream);border:none;padding:6px 14px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s}
+.save-row-btn:hover{background:var(--green2)}
+.save-row-btn:disabled{opacity:.5;cursor:not-allowed}
+.view-link{font-size:11px;color:var(--text3);text-decoration:none;letter-spacing:.06em;white-space:nowrap}
+.view-link:hover{color:var(--green)}
+
+/* status 色標 */
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-private{background:#C4BAA8}
+.dot-available{background:var(--green)}
+.dot-tracking{background:var(--gold)}
+.dot-pup_sale{background:#4A7FB5}
+.dot-sold{background:var(--text3)}
+
+/* loading */
+.loading-state{text-align:center;padding:60px 20px;color:var(--text3);font-style:italic}
+
+/* toast */
+.save-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--cream);padding:8px 16px;font-size:11px;letter-spacing:.1em;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
+.save-toast.show{opacity:1}
+
+/* 統計列 */
+.stats-bar{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--cream2)}
+.stat-item{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-size:22px;font-style:italic;color:var(--text)}
+.stat-lbl{font-size:9.5px;letter-spacing:.1em;color:var(--text3)}
 </style>
 </head>
 <body>
+
 <nav>
   <a class="nav-back" href="/index.html">← 首頁</a>
-  <div class="nav-logo">rễ , thân , lá studio</div>
-  <div style="width:60px"></div>
+  <div class="nav-logo">後台管理 · Quản Lý</div>
+  <div class="nav-spacer"></div>
 </nav>
-<div class="placeholder">
-  <div>⚙ 後台管理 / Quản lý</div>
-  <div class="placeholder-sub">即將推出 · Sắp ra mắt</div>
+
+<!-- 密碼屏 -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-logo">rễ , thân , lá</div>
+  <div class="auth-sub">後台管理 · Quản lý nội bộ</div>
+  <div class="pwd-row">
+    <input class="pwd-input" id="pwd-input" type="password" placeholder="輸入密碼" autocomplete="current-password">
+    <button class="pwd-btn" id="pwd-btn">進入</button>
+  </div>
+  <div class="pwd-error" id="pwd-error"></div>
 </div>
+
+<!-- 主面板 -->
+<div class="main-panel" id="main-panel">
+
+  <div class="page-header">
+    <div class="page-title">植物網頁狀態管理</div>
+    <div class="page-title-sub">QUẢN LÝ TRẠNG THÁI HIỂN THỊ WEB</div>
+  </div>
+
+  <!-- 統計 -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-item"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">總植物數</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">公開展示</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">未公開</div></div>
+    <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">已售出</div></div>
+  </div>
+
+  <!-- 篩選 -->
+  <div class="filter-row">
+    <span class="filter-label">篩選：</span>
+    <button class="filter-btn active" data-filter="all">全部</button>
+    <button class="filter-btn" data-filter="private">未公開</button>
+    <button class="filter-btn" data-filter="available">可販售</button>
+    <button class="filter-btn" data-filter="tracking">展示中</button>
+    <button class="filter-btn" data-filter="pup_sale">側芽販售</button>
+    <button class="filter-btn" data-filter="sold">已售出</button>
+  </div>
+
+  <div id="loading-state" class="loading-state">載入中...</div>
+  <div class="plant-list" id="plant-list"></div>
+</div>
+
+<div class="save-toast" id="save-toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const ADMIN_PWD = 'roots';
+
+async function dbGet(table, q) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  });
+  return r.json();
+}
+
+function toast(msg) {
+  const t = document.getElementById('save-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── 登入 ──────────────────────────────────────────────────
+document.getElementById('pwd-btn').onclick = tryLogin;
+document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+function tryLogin() {
+  if (document.getElementById('pwd-input').value === ADMIN_PWD) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'block';
+    loadPlants();
+  } else {
+    const err = document.getElementById('pwd-error');
+    err.textContent = '密碼錯誤 / Sai mật khẩu';
+    setTimeout(() => err.textContent = '', 2500);
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+// ── 資料 ──────────────────────────────────────────────────
+let allRows = [];
+let currentFilter = 'all';
+
+const WEB_STATUS_OPTIONS = [
+  { value: 'private',  label: '暫不公開' },
+  { value: 'available',label: '可販售' },
+  { value: 'tracking', label: '展示中' },
+  { value: 'pup_sale', label: '側芽販售' },
+  { value: 'sold',     label: '已售出' },
+];
+const OWNER_OPTIONS = [
+  { value: '',       label: '（不顯示）' },
+  { value: 'mine',   label: 'Chandler家' },
+  { value: 'quang',  label: 'Quang家' },
+  { value: 'helper', label: '小幫手家' },
+];
+
+async function loadPlants() {
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('plant-list').innerHTML = '';
+
+  // 同時取得 rehab、plant_web、每株最新照片
+  const [rehabRows, webRows, photoRows, plantsRows] = await Promise.all([
+    dbGet('rehab', '?order=rid.asc&select=rid,plant_id,plant_name,purchase_date'),
+    dbGet('plant_web', '?select=rid,web_status,web_owner'),
+    dbGet('photos', '?approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured'),
+    dbGet('plants', '?select=id,name'),
+  ]);
+
+  const webMap = {};
+  if (Array.isArray(webRows)) webRows.forEach(w => { webMap[w.rid] = w; });
+
+  // 每株取精選照片，否則最後一張
+  const photoMap = {};
+  if (Array.isArray(photoRows)) {
+    photoRows.forEach(ph => {
+      if (!photoMap[ph.rid]) photoMap[ph.rid] = ph;
+      else if (ph.is_featured && !photoMap[ph.rid].is_featured) photoMap[ph.rid] = ph;
+      else if (!photoMap[ph.rid].is_featured && !ph.is_featured) photoMap[ph.rid] = ph;
+    });
+  }
+
+  const plantsMap = {};
+  if (Array.isArray(plantsRows)) plantsRows.forEach(p => { plantsMap[p.id] = p; });
+
+  allRows = Array.isArray(rehabRows) ? rehabRows.map(r => {
+    const w = webMap[r.rid] || null;
+    const pl = r.plant_id ? plantsMap[r.plant_id] : null;
+    return {
+      rid: r.rid,
+      plant_name: (pl && pl.name) || r.plant_name || r.rid,
+      web_status: w ? (w.web_status || 'private') : 'private',
+      web_owner: w ? (w.web_owner || '') : '',
+      photo_url: photoMap[r.rid] ? photoMap[r.rid].photo_url : null,
+    };
+  }) : [];
+
+  updateStats();
+  document.getElementById('loading-state').style.display = 'none';
+  renderList();
+}
+
+function updateStats() {
+  const total = allRows.length;
+  const pub = allRows.filter(r => r.web_status !== 'private').length;
+  const priv = allRows.filter(r => r.web_status === 'private').length;
+  const sold = allRows.filter(r => r.web_status === 'sold').length;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-public').textContent = pub;
+  document.getElementById('s-private').textContent = priv;
+  document.getElementById('s-sold').textContent = sold;
+}
+
+function renderList() {
+  const filtered = currentFilter === 'all'
+    ? allRows
+    : allRows.filter(r => r.web_status === currentFilter);
+
+  const list = document.getElementById('plant-list');
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);font-style:italic">沒有符合條件的植物</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(r => {
+    const statusOpts = WEB_STATUS_OPTIONS.map(o =>
+      `<option value="${o.value}" ${r.web_status === o.value ? 'selected' : ''}>${o.label}</option>`
+    ).join('');
+    const ownerOpts = OWNER_OPTIONS.map(o =>
+      `<option value="${o.value}" ${r.web_owner === o.value ? 'selected' : ''}>${o.label}</option>`
+    ).join('');
+    const thumb = r.photo_url
+      ? `<img class="plant-thumb" src="${r.photo_url}" loading="lazy" alt="">`
+      : `<div class="plant-thumb-empty">🌿</div>`;
+
+    return `
+    <div class="plant-row" id="row-${r.rid}">
+      ${thumb}
+      <div class="plant-info">
+        <div class="plant-name">${r.plant_name}</div>
+        <div class="plant-rid">${r.rid}</div>
+      </div>
+      <div class="plant-controls">
+        <select class="status-select" id="sel-status-${r.rid}" onchange="markDirty('${r.rid}')">${statusOpts}</select>
+        <select class="owner-select" id="sel-owner-${r.rid}" onchange="markDirty('${r.rid}')">${ownerOpts}</select>
+        <button class="save-row-btn" id="save-btn-${r.rid}" onclick="saveRow('${r.rid}')">儲存</button>
+        <a class="view-link" href="/plant.html?rid=${r.rid}" target="_blank">查看 →</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function markDirty(rid) {
+  const btn = document.getElementById('save-btn-' + rid);
+  if (btn) btn.style.background = 'var(--gold)';
+}
+
+async function saveRow(rid) {
+  const newStatus = document.getElementById('sel-status-' + rid).value;
+  const newOwner  = document.getElementById('sel-owner-' + rid).value;
+  const btn = document.getElementById('save-btn-' + rid);
+  btn.textContent = '儲存中...'; btn.disabled = true;
+
+  const r = await fetch(SUPABASE_URL + '/rest/v1/plant_web', {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({
+      rid,
+      web_status: newStatus,
+      web_owner: newOwner || null,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  btn.textContent = '儲存'; btn.disabled = false;
+  btn.style.background = '';
+
+  if (r.ok) {
+    const row = allRows.find(x => x.rid === rid);
+    if (row) { row.web_status = newStatus; row.web_owner = newOwner; }
+    updateStats();
+    toast(rid + ' 已更新 ✓');
+  } else {
+    toast('儲存失敗，請確認 RLS 設定');
+  }
+}
+
+// ── 篩選 ──────────────────────────────────────────────────
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderList();
+  };
+});
+</script>
 </body>
 </html>
