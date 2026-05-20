@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--green-pale:#C8DBC8;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--green-pale:#C8DBC8;--gold:#B8922A;--water:#4A90D9;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -63,6 +64,75 @@ main{padding-top:56px}
 .error-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;color:var(--text3);font-style:italic}
 .error-state h2{font-size:24px;font-weight:300;color:var(--text2)}
 .no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(245,240,232,.3);font-style:italic;font-size:14px;letter-spacing:.1em}
+
+/* ===== 生長日記區 ===== */
+.diary-section{border-bottom:1px solid var(--border)}
+.diary-top{display:flex;justify-content:space-between;align-items:center;padding:28px 24px 0}
+.diary-title-group{}
+.diary-title-zh{font-size:11px;letter-spacing:.15em;color:var(--text3);text-transform:uppercase}
+.diary-title-vn{font-size:10px;color:var(--text3);font-style:italic;margin-top:2px;opacity:.7}
+.play-btn{background:var(--green);color:var(--cream);border:none;padding:8px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit;transition:background .2s;white-space:nowrap}
+.play-btn:hover{background:var(--green2)}
+.play-btn.playing{background:var(--text2)}
+
+/* 重量折線圖 */
+.chart-wrap{padding:20px 24px 0}
+.chart-hint{font-size:10px;color:var(--text3);letter-spacing:.04em;margin-bottom:8px}
+.chart-canvas-box{position:relative;height:180px}
+.chart-legend{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);letter-spacing:.04em;margin-top:8px}
+.legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.legend-sep{margin:0 10px;color:var(--border)}
+
+/* 時間軸照片 */
+.timeline-wrap{padding:16px 0 0}
+.timeline-label{padding:0 24px 10px;font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase}
+.timeline-strip{display:flex;gap:8px;padding:0 24px 16px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.timeline-strip::-webkit-scrollbar{height:3px}
+.timeline-strip::-webkit-scrollbar-track{background:transparent}
+.timeline-strip::-webkit-scrollbar-thumb{background:var(--border)}
+.tl-item{flex:0 0 68px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.tl-thumb{width:68px;height:68px;object-fit:cover;border:2px solid transparent;transition:border-color .2s,opacity .2s;opacity:.65}
+.tl-item:hover .tl-thumb{opacity:.9;border-color:var(--green-pale)}
+.tl-item.active .tl-thumb{opacity:1;border-color:var(--gold)}
+.tl-date{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--text3);text-align:center;line-height:1.4}
+.tl-weight{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--text2);text-align:center}
+.tl-water-dot{width:5px;height:5px;background:var(--water);border-radius:50%;margin:0 auto}
+
+/* AI 分析 */
+.ai-wrap{padding:20px 24px 0}
+.subsection-title{font-size:10px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:12px}
+.ai-scores-row{display:flex;gap:0;border:1px solid var(--border);margin-bottom:14px}
+.ai-score-item{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border)}
+.ai-score-item:last-child{border-right:none}
+.ai-score-val{font-size:26px;font-style:italic;margin-bottom:2px}
+.ai-score-val.hi{color:var(--green)}
+.ai-score-val.mid{color:var(--gold)}
+.ai-score-val.lo{color:var(--red)}
+.ai-score-label{font-size:9.5px;letter-spacing:.08em;color:var(--text3)}
+.ai-summary-text{font-size:15px;line-height:1.85;color:var(--text2);font-style:italic;margin-bottom:6px}
+.ai-meta{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--text3)}
+
+/* 影片區 */
+.videos-wrap{padding:20px 24px 0}
+.videos-list{display:flex;flex-direction:column;gap:10px}
+.video-card{border:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:14px}
+.video-icon{font-size:22px;opacity:.6}
+.video-info{flex:1}
+.video-title{font-size:14px;color:var(--text2);margin-bottom:3px}
+.video-period{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3)}
+.video-play-btn{background:var(--green);color:var(--cream);border:none;padding:6px 14px;font-size:10px;letter-spacing:.1em;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+/* 縮時影片 CTA */
+.timelapse-cta{display:block;width:calc(100% - 48px);margin:20px 24px 28px;background:transparent;color:var(--text3);border:1px dashed var(--border);padding:12px;font-size:11px;letter-spacing:.1em;cursor:not-allowed;font-family:inherit;text-align:center;transition:all .2s}
+.timelapse-cta:not(:disabled){background:var(--green);color:var(--cream);border-color:var(--green);cursor:pointer}
+
+/* 影片燈箱 */
+.video-modal{display:none;position:fixed;inset:0;background:rgba(13,13,10,.92);z-index:300;align-items:center;justify-content:center;padding:24px}
+.video-modal.open{display:flex}
+.video-modal-inner{width:100%;max-width:700px}
+.video-modal video{width:100%;display:block;background:#000}
+.video-modal-close{color:var(--cream);font-size:13px;letter-spacing:.12em;cursor:pointer;margin-top:12px;text-align:right;opacity:.7}
+.video-modal-close:hover{opacity:1}
 </style>
 </head>
 <body>
@@ -79,8 +149,10 @@ main{padding-top:56px}
 </nav>
 
 <main id="main-content" style="display:none">
+
+  <!-- 主照片區 -->
   <div class="photo-hero" id="photo-hero">
-    <div class="no-photo" id="no-photo" style="display:none">尚無照片紀錄</div>
+    <div class="no-photo" id="no-photo" style="display:none">尚無照片紀錄 / Chưa có ảnh</div>
     <img class="photo-img" id="photo-img" src="" alt="" style="display:none">
     <div class="photo-nav prev disabled" id="btn-prev">&#8592;</div>
     <div class="photo-nav next disabled" id="btn-next">&#8594;</div>
@@ -94,6 +166,8 @@ main{padding-top:56px}
     </div>
   </div>
   <div class="thumbnails" id="thumbnails"></div>
+
+  <!-- 植物資訊 -->
   <div class="plant-info">
     <div class="plant-name" id="plant-name">—</div>
     <div class="plant-rid" id="plant-rid-display"></div>
@@ -102,13 +176,17 @@ main{padding-top:56px}
       <span class="plant-price" id="plant-price"></span>
     </div>
   </div>
+
+  <!-- 統計 -->
   <div class="stats-row">
     <div class="stat"><div class="stat-val" id="stat-days">—</div><div class="stat-label">生長天數</div></div>
     <div class="stat"><div class="stat-val" id="stat-weight">—</div><div class="stat-label">目前重量</div></div>
     <div class="stat"><div class="stat-val" id="stat-photos">—</div><div class="stat-label">照片紀錄</div></div>
   </div>
+
+  <!-- 生長階段 -->
   <div class="section">
-    <div class="section-title">生長階段</div>
+    <div class="section-title">生長階段 / Giai Đoạn Sinh Trưởng</div>
     <div class="phases">
       <div class="phase" id="phase-0">突破期</div>
       <div class="phase" id="phase-1">換葉期</div>
@@ -117,17 +195,79 @@ main{padding-top:56px}
       <div class="phase" id="phase-4">巔峰期</div>
     </div>
   </div>
+
+  <!-- 植物故事 -->
   <div class="section">
-    <div class="section-title">植物故事</div>
+    <div class="section-title">植物故事 / Câu Chuyện Cây</div>
     <div class="description" id="plant-description">正在載入...</div>
-    <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">聯繫我們了解這株植物</a>
+    <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">聯繫我們了解這株植物 / Liên hệ để biết thêm</a>
   </div>
+
+  <!-- ===== 生長日記區 ===== -->
+  <div class="diary-section" id="diary-section" style="display:none">
+
+    <!-- 標題列 + 播放按鈕 -->
+    <div class="diary-top">
+      <div class="diary-title-group">
+        <div class="diary-title-zh">生長日記</div>
+        <div class="diary-title-vn">Nhật Ký Sinh Trưởng</div>
+      </div>
+      <button class="play-btn" id="btn-play">▶ 連續播放</button>
+    </div>
+
+    <!-- 重量折線圖 -->
+    <div class="chart-wrap" id="chart-wrap" style="display:none">
+      <div class="chart-hint">點擊曲線上的點可查看對應照片 · Nhấp vào điểm để xem ảnh</div>
+      <div class="chart-canvas-box">
+        <canvas id="weight-chart"></canvas>
+      </div>
+      <div class="chart-legend">
+        <span class="legend-dot" style="background:var(--gold)"></span>&nbsp;照片
+        <span class="legend-sep">|</span>
+        <span class="legend-dot" style="background:var(--water)"></span>&nbsp;澆水 / Tưới nước
+      </div>
+    </div>
+
+    <!-- 時間軸照片 -->
+    <div class="timeline-wrap" id="timeline-wrap">
+      <div class="timeline-label">時間軸 / Dòng Thời Gian</div>
+      <div class="timeline-strip" id="timeline-strip"></div>
+    </div>
+
+    <!-- AI 分析 -->
+    <div class="ai-wrap" id="ai-wrap" style="display:none">
+      <div class="subsection-title">AI 分析 / Phân Tích AI</div>
+      <div class="ai-scores-row" id="ai-scores-row"></div>
+      <div class="ai-summary-text" id="ai-summary-text"></div>
+      <div class="ai-meta" id="ai-meta"></div>
+    </div>
+
+    <!-- 影片展示 -->
+    <div class="videos-wrap" id="videos-wrap" style="display:none">
+      <div class="subsection-title">縮時影片 / Video Timelapse</div>
+      <div class="videos-list" id="videos-list"></div>
+    </div>
+
+    <!-- 合成縮時影片按鈕（開發中） -->
+    <button class="timelapse-cta" disabled>🎬 合成縮時影片 / Video Timelapse（即將推出）</button>
+
+  </div><!-- /diary-section -->
+
 </main>
 
+<!-- 錯誤狀態 -->
 <div id="error-state" style="display:none">
   <div class="error-state">
     <h2>找不到這株植物</h2>
     <p>請確認編號是否正確</p>
+  </div>
+</div>
+
+<!-- 影片燈箱 -->
+<div class="video-modal" id="video-modal">
+  <div class="video-modal-inner">
+    <video id="modal-video" controls playsinline></video>
+    <div class="video-modal-close" id="modal-close">✕ 關閉 / Đóng</div>
   </div>
 </div>
 
@@ -148,6 +288,25 @@ function getRid() {
   return new URLSearchParams(location.search).get('rid') || null;
 }
 
+function isWatering(note) {
+  if (!note) return false;
+  const n = note.toLowerCase();
+  return n.includes('澆水') || n.includes('tưới') || n.includes('watered');
+}
+
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return (d.getMonth()+1).toString().padStart(2,'0') + '/' + d.getDate().toString().padStart(2,'0');
+}
+
+function scoreClass(v) {
+  if (v >= 80) return 'hi';
+  if (v >= 50) return 'mid';
+  return 'lo';
+}
+
+// ===== 主照片瀏覽 =====
 let photos = [];
 let currentIdx = 0;
 
@@ -161,7 +320,7 @@ function showPhoto(idx) {
   img.style.opacity = '0';
   img.src = p.photo_url;
   img.onload = () => { img.style.transition = 'opacity .2s'; img.style.opacity = '1'; };
-  document.getElementById('photo-date').textContent = ( p.taken_at || p.created_at || '').slice(0,10);
+  document.getElementById('photo-date').textContent = (p.taken_at || p.created_at || '').slice(0,10);
   document.getElementById('photo-weight').textContent = p.weight_g ? p.weight_g + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
   document.getElementById('photo-info').style.display = 'block';
@@ -169,6 +328,8 @@ function showPhoto(idx) {
   document.querySelectorAll('.thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
   document.getElementById('btn-prev').classList.toggle('disabled', idx===0);
   document.getElementById('btn-next').classList.toggle('disabled', idx===photos.length-1);
+  // 同步時間軸
+  syncTimeline(idx);
 }
 
 function buildThumbnails() {
@@ -183,6 +344,306 @@ function buildThumbnails() {
   });
 }
 
+// ===== 生長日記 =====
+let timelinePhotos = [];
+let slideshowTimer = null;
+let weightChart = null;
+
+function buildDiary(allPhotos, rid) {
+  // 取 timeline zone 的照片，最多60張
+  timelinePhotos = allPhotos
+    .filter(p => !p.zone || p.zone === 'timeline')
+    .slice(-60);
+
+  if (!timelinePhotos.length) return;
+
+  document.getElementById('diary-section').style.display = 'block';
+
+  buildTimeline();
+  buildWeightChart();
+  loadAI(rid);
+  loadVideos(rid);
+}
+
+function buildTimeline() {
+  const strip = document.getElementById('timeline-strip');
+  strip.innerHTML = '';
+  timelinePhotos.forEach((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'tl-item';
+    item.dataset.idx = i;
+
+    const img = document.createElement('img');
+    img.className = 'tl-thumb';
+    img.src = p.photo_url;
+    img.alt = '';
+    img.loading = 'lazy';
+
+    const date = document.createElement('div');
+    date.className = 'tl-date';
+    date.textContent = fmtDate(p.taken_at || p.created_at);
+
+    const weight = document.createElement('div');
+    weight.className = 'tl-weight';
+    weight.textContent = p.weight_g ? p.weight_g + 'g' : '';
+
+    item.appendChild(img);
+    item.appendChild(date);
+    if (p.weight_g) item.appendChild(weight);
+
+    if (isWatering(p.note)) {
+      const dot = document.createElement('div');
+      dot.className = 'tl-water-dot';
+      item.appendChild(dot);
+    }
+
+    item.onclick = () => {
+      // 找到這張照片在 photos 中的 index
+      const globalIdx = photos.findIndex(ph => ph.id === p.id);
+      if (globalIdx >= 0) showPhoto(globalIdx);
+      setTimelineActive(i);
+    };
+
+    strip.appendChild(item);
+  });
+}
+
+function setTimelineActive(tlIdx) {
+  document.querySelectorAll('.tl-item').forEach((el, i) => {
+    el.classList.toggle('active', i === tlIdx);
+  });
+  // 捲動到 active 項目
+  const activeEl = document.querySelector('.tl-item.active');
+  if (activeEl) activeEl.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+}
+
+function syncTimeline(globalPhotoIdx) {
+  const p = photos[globalPhotoIdx];
+  if (!p) return;
+  const tlIdx = timelinePhotos.findIndex(tp => tp.id === p.id);
+  if (tlIdx >= 0) setTimelineActive(tlIdx);
+}
+
+function buildWeightChart() {
+  const withWeight = timelinePhotos.filter(p => p.weight_g);
+  if (withWeight.length < 2) return;
+
+  document.getElementById('chart-wrap').style.display = 'block';
+
+  const labels = withWeight.map(p => fmtDate(p.taken_at || p.created_at));
+  const weights = withWeight.map(p => p.weight_g);
+  const pointColors = withWeight.map(p => isWatering(p.note) ? '#4A90D9' : '#B8922A');
+  const pointRadii = withWeight.map(p => isWatering(p.note) ? 7 : 5);
+
+  // 照片在 photos 全域陣列中的 index 映射
+  const photoIndices = withWeight.map(p => photos.findIndex(ph => ph.id === p.id));
+
+  const ctx = document.getElementById('weight-chart').getContext('2d');
+  if (weightChart) weightChart.destroy();
+
+  weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: weights,
+        borderColor: '#2D4A2D',
+        backgroundColor: 'rgba(45,74,45,0.06)',
+        pointBackgroundColor: pointColors,
+        pointBorderColor: pointColors,
+        pointRadius: pointRadii,
+        pointHoverRadius: 9,
+        tension: 0.3,
+        fill: true,
+        borderWidth: 1.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      onClick: (e, elements) => {
+        if (!elements.length) return;
+        const i = elements[0].index;
+        const globalIdx = photoIndices[i];
+        if (globalIdx >= 0) {
+          showPhoto(globalIdx);
+          document.getElementById('photo-hero').scrollIntoView({ behavior: 'smooth' });
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => labels[items[0].dataIndex],
+            label: ctx => {
+              const p = withWeight[ctx.dataIndex];
+              let s = ctx.parsed.y + ' g';
+              if (isWatering(p.note)) s += ' 💧';
+              if (p.note && !isWatering(p.note)) s += '  ' + p.note;
+              return s;
+            }
+          },
+          titleFont: { family: 'DM Mono', size: 11 },
+          bodyFont: { family: 'Cormorant Garamond', size: 13 },
+          backgroundColor: 'rgba(26,26,20,.88)',
+          titleColor: '#9B9B85',
+          bodyColor: '#F5F0E8',
+          padding: 10,
+          borderColor: '#D8D0C0',
+          borderWidth: 0.5,
+        }
+      },
+      scales: {
+        x: {
+          ticks: { font: { family: 'DM Mono', size: 9 }, color: '#9B9B85', maxTicksLimit: 8, maxRotation: 0 },
+          grid: { color: 'rgba(216,208,192,0.4)' },
+          border: { color: 'var(--border)' }
+        },
+        y: {
+          ticks: { font: { family: 'DM Mono', size: 9 }, color: '#9B9B85', callback: v => v + 'g' },
+          grid: { color: 'rgba(216,208,192,0.4)' },
+          border: { color: 'var(--border)' }
+        }
+      },
+      interaction: { mode: 'index', intersect: false },
+      cursor: 'pointer',
+    }
+  });
+}
+
+// ===== 幻燈片播放 =====
+function startSlideshow() {
+  if (!timelinePhotos.length) return;
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '⏸ 暫停';
+  btn.classList.add('playing');
+
+  let tlIdx = 0;
+  function advance() {
+    const p = timelinePhotos[tlIdx];
+    const globalIdx = photos.findIndex(ph => ph.id === p.id);
+    if (globalIdx >= 0) showPhoto(globalIdx);
+    setTimelineActive(tlIdx);
+    tlIdx = (tlIdx + 1) % timelinePhotos.length;
+  }
+  advance();
+  slideshowTimer = setInterval(advance, 280);
+}
+
+function stopSlideshow() {
+  clearInterval(slideshowTimer);
+  slideshowTimer = null;
+  const btn = document.getElementById('btn-play');
+  btn.textContent = '▶ 連續播放';
+  btn.classList.remove('playing');
+}
+
+document.getElementById('btn-play').onclick = () => {
+  if (slideshowTimer) stopSlideshow();
+  else startSlideshow();
+};
+
+// ===== AI 分析 =====
+async function loadAI(rid) {
+  try {
+    const rows = await db('ai_analysis', '?rid=eq.' + rid + '&order=analysis_date.desc&limit=1');
+    if (!rows || !rows.length) return;
+    const a = rows[0];
+
+    const wrap = document.getElementById('ai-wrap');
+    wrap.style.display = 'block';
+
+    const scoresRow = document.getElementById('ai-scores-row');
+    const scores = [
+      { label: '健康 / Sức Khỏe', val: a.health_score },
+      { label: '生長 / Sinh Trưởng', val: a.growth_score },
+      { label: '美感 / Vẻ Đẹp', val: a.beauty_score },
+    ];
+    scoresRow.innerHTML = scores.map(s => `
+      <div class="ai-score-item">
+        <div class="ai-score-val ${scoreClass(s.val || 0)}">${s.val != null ? s.val : '—'}</div>
+        <div class="ai-score-label">${s.label}</div>
+      </div>
+    `).join('');
+
+    if (a.summary) {
+      document.getElementById('ai-summary-text').textContent = a.summary;
+    }
+    if (a.analysis_date) {
+      document.getElementById('ai-meta').textContent = '分析日期 ' + a.analysis_date;
+    }
+  } catch(e) { /* AI table may not exist yet */ }
+}
+
+// ===== 影片 =====
+async function loadVideos(rid) {
+  try {
+    const rows = await db('videos', '?rid=eq.' + rid + '&is_displayed=eq.true&order=created_at.desc');
+    if (!rows || !rows.length) return;
+
+    const wrap = document.getElementById('videos-wrap');
+    wrap.style.display = 'block';
+
+    const list = document.getElementById('videos-list');
+    list.innerHTML = rows.map((v, i) => `
+      <div class="video-card">
+        <div class="video-icon">🎬</div>
+        <div class="video-info">
+          <div class="video-title">${v.title || '縮時影片 ' + (i+1)}</div>
+          ${v.period_start && v.period_end
+            ? `<div class="video-period">${v.period_start} → ${v.period_end}</div>`
+            : ''}
+        </div>
+        <button class="video-play-btn" data-url="${v.video_url}" data-title="${v.title || ''}">▶ 播放</button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.video-play-btn').forEach(btn => {
+      btn.onclick = () => {
+        const modal = document.getElementById('video-modal');
+        const vid = document.getElementById('modal-video');
+        vid.src = btn.dataset.url;
+        vid.play();
+        modal.classList.add('open');
+      };
+    });
+  } catch(e) { /* videos table may not exist yet */ }
+}
+
+// 影片燈箱關閉
+document.getElementById('modal-close').onclick = () => {
+  const modal = document.getElementById('video-modal');
+  const vid = document.getElementById('modal-video');
+  vid.pause();
+  vid.src = '';
+  modal.classList.remove('open');
+};
+document.getElementById('video-modal').onclick = (e) => {
+  if (e.target === e.currentTarget) document.getElementById('modal-close').click();
+};
+
+// ===== 導航控制 =====
+document.getElementById('btn-prev').onclick = () => { if (currentIdx > 0) showPhoto(currentIdx-1); };
+document.getElementById('btn-next').onclick = () => { if (currentIdx < photos.length-1) showPhoto(currentIdx+1); };
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowLeft' && currentIdx>0) showPhoto(currentIdx-1);
+  if (e.key==='ArrowRight' && currentIdx<photos.length-1) showPhoto(currentIdx+1);
+  if (e.key===' ') {
+    e.preventDefault();
+    document.getElementById('btn-play').click();
+  }
+});
+let touchStartX = 0;
+document.getElementById('photo-hero').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.getElementById('photo-hero').addEventListener('touchend', e => {
+  const diff = touchStartX - e.changedTouches[0].clientX;
+  if (Math.abs(diff)>50) {
+    if (diff>0 && currentIdx<photos.length-1) showPhoto(currentIdx+1);
+    if (diff<0 && currentIdx>0) showPhoto(currentIdx-1);
+  }
+});
+
+// ===== 初始化 =====
 async function init() {
   const rid = getRid();
   if (!rid) {
@@ -194,7 +655,6 @@ async function init() {
   document.getElementById('nav-rid').textContent = rid;
   document.getElementById('nav-upload-btn').href = 'https://plant-pos.vercel.app/upload.html?rid=' + rid;
 
-  // 查 rehab 表
   const rehabRows = await db('rehab', '?rid=eq.' + rid + '&limit=1');
   if (!rehabRows || !rehabRows.length) {
     document.getElementById('loading').style.display = 'none';
@@ -207,7 +667,6 @@ async function init() {
   let plantPrice = '';
   let plantStatus = rehab.status || 'available';
 
-  // 查 plants 表拿名稱和價格
   if (rehab.plant_id) {
     const plantRows = await db('plants', '?id=eq.' + rehab.plant_id + '&limit=1');
     if (plantRows && plantRows.length) {
@@ -222,12 +681,12 @@ async function init() {
   const badge = document.getElementById('status-badge');
   const priceEl = document.getElementById('plant-price');
   if (plantStatus === 'sold') {
-    badge.textContent = '已售出';
+    badge.textContent = '已售出 / Đã bán';
     badge.className = 'status-badge sold';
     priceEl.textContent = '';
     document.getElementById('contact-btn').style.display = 'none';
   } else {
-    badge.textContent = '可購買';
+    badge.textContent = '可購買 / Có thể mua';
     badge.className = 'status-badge available';
     priceEl.textContent = plantPrice;
   }
@@ -240,16 +699,18 @@ async function init() {
   document.getElementById('plant-description').textContent =
     rehab.notes || rehab.description || '這株植物正在悄悄生長，每一天都是新的故事。';
 
-  // 查 photos 表（先試有哪些欄位）
+  // 查照片
   const photoData = await db('photos', '?rid=eq.' + rid + '&approved=eq.true&order=taken_at.asc&select=*');
   photos = Array.isArray(photoData) ? photoData : [];
   document.getElementById('stat-photos').textContent = photos.length + ' 張';
 
   if (photos.length) {
     const lastW = [...photos].reverse().find(p => p.weight_g);
-    if (lastW) document.getElementById('stat-weight').textContent = lastW.weight + ' g';
+    if (lastW) document.getElementById('stat-weight').textContent = lastW.weight_g + ' g';
     buildThumbnails();
     showPhoto(photos.length - 1);
+    // 建立生長日記區
+    buildDiary(photos, rid);
   } else {
     document.getElementById('no-photo').style.display = 'flex';
     document.getElementById('photo-counter').textContent = '尚無照片';
@@ -257,26 +718,13 @@ async function init() {
     document.getElementById('btn-next').style.display = 'none';
   }
 
-  document.getElementById('stat-weight').textContent = document.getElementById('stat-weight').textContent || '—';
+  if (!document.getElementById('stat-weight').textContent) {
+    document.getElementById('stat-weight').textContent = '—';
+  }
+
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
 }
-
-document.getElementById('btn-prev').onclick = () => { if (currentIdx > 0) showPhoto(currentIdx-1); };
-document.getElementById('btn-next').onclick = () => { if (currentIdx < photos.length-1) showPhoto(currentIdx+1); };
-document.addEventListener('keydown', e => {
-  if (e.key==='ArrowLeft' && currentIdx>0) showPhoto(currentIdx-1);
-  if (e.key==='ArrowRight' && currentIdx<photos.length-1) showPhoto(currentIdx+1);
-});
-let touchStartX = 0;
-document.getElementById('photo-hero').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
-document.getElementById('photo-hero').addEventListener('touchend', e => {
-  const diff = touchStartX - e.changedTouches[0].clientX;
-  if (Math.abs(diff)>50) {
-    if (diff>0 && currentIdx<photos.length-1) showPhoto(currentIdx+1);
-    if (diff<0 && currentIdx>0) showPhoto(currentIdx-1);
-  }
-});
 
 init();
 </script>
