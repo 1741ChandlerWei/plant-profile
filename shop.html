@@ -6,25 +6,396 @@
 <title>其他商品 — rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root{--cream:#F5F0E8;--dark2:#1A1A14;--green:#2D4A2D;--text3:#9B9B85;--border:#D8D0C0}
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--cream);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;display:flex;flex-direction:column}
-nav{background:rgba(245,240,232,.96);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
-.nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em;flex-shrink:0}
 .nav-logo{flex:1;text-align:center;font-size:13px;letter-spacing:.15em;color:var(--text3);font-style:italic}
-.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text3);font-style:italic;font-size:16px}
-.placeholder-sub{font-size:11px;letter-spacing:.12em;opacity:.6}
+.nav-spacer{width:60px;flex-shrink:0}
+main{padding-top:56px}
+
+.page-header{padding:36px 20px 24px;text-align:center;border-bottom:1px solid var(--border)}
+.page-title{font-size:28px;font-weight:300;font-style:italic;margin-bottom:4px}
+.page-title-vn{font-size:11px;letter-spacing:.2em;color:var(--text3)}
+
+.category-section{padding:28px 20px 0;border-bottom:1px solid var(--border)}
+.category-section:last-of-type{border-bottom:none;padding-bottom:28px}
+.category-title{font-size:11px;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+.product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:0}
+@media(min-width:600px){.product-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:900px){.product-grid{grid-template-columns:repeat(4,1fr)}}
+
+.product-card{background:#fff;border:1px solid var(--border);display:flex;flex-direction:column;transition:box-shadow .2s,border-color .2s}
+.product-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);border-color:#C4BAA8}
+.product-card-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--cream2);display:block}
+.product-card-no-img{width:100%;aspect-ratio:1;background:var(--cream2);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:28px}
+.product-card-body{padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;gap:5px}
+.product-card-name{font-size:15px;font-style:italic;color:var(--text);line-height:1.3}
+.product-card-desc{font-size:12px;color:var(--text3);line-height:1.6;flex:1}
+.product-card-price{font-size:16px;font-style:italic;color:var(--green)}
+.contact-btn{display:block;width:100%;background:var(--green);color:var(--cream);border:none;padding:10px;font-size:11px;letter-spacing:.12em;cursor:pointer;font-family:inherit;text-decoration:none;text-align:center;transition:background .2s;margin-top:4px}
+.contact-btn:hover{background:var(--green2)}
+
+.empty-state{text-align:center;padding:80px 20px;color:var(--text3);font-style:italic;font-size:16px}
+.loading-state{text-align:center;padding:80px 20px}
+.loading-dots{display:inline-flex;gap:6px}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:blink 1.2s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* ── 後台觸發 ── */
+.admin-trigger{position:fixed;bottom:20px;right:20px;z-index:90;background:var(--dark2);color:var(--text3);border:1px solid rgba(255,255,255,.1);padding:8px 14px;font-size:10px;letter-spacing:.12em;cursor:pointer;font-family:inherit;transition:all .2s}
+.admin-trigger:hover{color:var(--cream);border-color:rgba(255,255,255,.25)}
+
+/* ── 後台 Overlay ── */
+.admin-overlay{display:none;position:fixed;inset:0;z-index:500;background:var(--cream);overflow-y:auto;padding-bottom:60px}
+.admin-overlay.open{display:block}
+.admin-header{position:sticky;top:0;background:rgba(245,240,232,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10}
+.admin-header-title{font-size:12px;letter-spacing:.16em;color:var(--text2);text-transform:uppercase}
+.admin-close{background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:4px 8px}
+.admin-close:hover{color:var(--text)}
+
+.auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:16px;padding:24px}
+.auth-logo{font-size:22px;font-style:italic;color:var(--green);letter-spacing:.1em}
+.auth-sub{font-size:12px;color:var(--text3);letter-spacing:.1em}
+.pwd-row{display:flex;gap:0;border:1px solid var(--border);width:100%;max-width:280px}
+.pwd-input{flex:1;border:none;background:transparent;padding:12px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none}
+.pwd-btn{background:var(--green);color:var(--cream);border:none;padding:12px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.pwd-btn:hover{background:var(--green2)}
+.pwd-error{font-size:11px;color:var(--red);font-style:italic;height:16px}
+
+.admin-panel{display:none;padding:20px}
+.admin-section-title{font-size:11px;letter-spacing:.16em;color:var(--text3);text-transform:uppercase;margin-bottom:16px;margin-top:24px}
+.admin-section-title:first-child{margin-top:0}
+
+.add-form{border:1px solid var(--border);padding:20px;background:var(--cream2)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.form-grid{grid-template-columns:1fr}}
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-row.full{grid-column:1/-1}
+.form-label{font-size:10px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase}
+.form-input,.form-textarea{width:100%;border:1px solid var(--border);background:#fff;padding:9px 11px;font-size:14px;font-family:inherit;color:var(--text);outline:none;-webkit-appearance:none}
+.form-input:focus,.form-textarea:focus{border-color:var(--green)}
+.form-textarea{resize:vertical;min-height:72px}
+.upload-area{border:1px dashed var(--border);padding:16px;text-align:center;cursor:pointer;background:#fff;transition:border-color .2s}
+.upload-area:hover{border-color:var(--green)}
+.upload-area input[type=file]{display:none}
+.upload-label{font-size:12px;color:var(--text3);letter-spacing:.06em;cursor:pointer}
+.upload-preview{max-width:100px;max-height:100px;object-fit:cover;margin:8px auto 0;display:block;border:1px solid var(--border)}
+.form-actions{display:flex;gap:10px;margin-top:16px}
+.btn-save{background:var(--green);color:var(--cream);border:none;padding:11px 24px;font-size:11px;letter-spacing:.12em;cursor:pointer;font-family:inherit;flex:1;transition:background .2s}
+.btn-save:hover{background:var(--green2)}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-cancel{background:none;border:1px solid var(--border);color:var(--text3);padding:11px 16px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.btn-cancel:hover{border-color:var(--text2);color:var(--text2)}
+
+.admin-product-list{display:flex;flex-direction:column;gap:8px}
+.admin-product-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);background:#fff}
+.admin-product-row.hidden-item{opacity:.5}
+.aprod-thumb{width:46px;height:46px;object-fit:cover;flex-shrink:0;background:var(--cream2)}
+.aprod-thumb-empty{width:46px;height:46px;background:var(--cream2);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px}
+.aprod-info{flex:1;min-width:0}
+.aprod-name{font-size:14px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aprod-cat{font-size:10px;color:var(--text3);letter-spacing:.06em;margin-top:2px}
+.aprod-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.aprod-btn{padding:5px 10px;font-size:10px;letter-spacing:.08em;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:none;color:var(--text3);transition:all .2s;white-space:nowrap}
+.aprod-btn:hover{border-color:var(--text2);color:var(--text2)}
+.aprod-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.aprod-btn.toggle-on{background:var(--green);color:var(--cream);border-color:var(--green)}
+
+.save-toast{position:fixed;bottom:70px;right:20px;background:var(--green);color:var(--cream);padding:8px 16px;font-size:11px;letter-spacing:.1em;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
+.save-toast.show{opacity:1}
 </style>
 </head>
 <body>
+
 <nav>
   <a class="nav-back" href="/index.html">← 首頁</a>
   <div class="nav-logo">rễ , thân , lá studio</div>
-  <div style="width:60px"></div>
+  <div class="nav-spacer"></div>
 </nav>
-<div class="placeholder">
-  <div>🛒 其他商品 / Sản phẩm</div>
-  <div class="placeholder-sub">即將推出 · Sắp ra mắt</div>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">其他商品</div>
+    <div class="page-title-vn">SẢN PHẨM KHÁC</div>
+  </div>
+  <div id="loading-state" class="loading-state">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+  </div>
+  <div id="product-container"></div>
+  <div id="empty-state" class="empty-state" style="display:none">目前尚無商品 / Chưa có sản phẩm</div>
+</main>
+
+<button class="admin-trigger" id="admin-trigger">⚙ 管理</button>
+
+<div class="admin-overlay" id="admin-overlay">
+  <div class="admin-header">
+    <div class="admin-header-title">商品管理 / Quản Lý Sản Phẩm</div>
+    <button class="admin-close" id="admin-close">✕</button>
+  </div>
+
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-logo">rễ , thân , lá</div>
+    <div class="auth-sub">商品管理 · Quản lý sản phẩm</div>
+    <div class="pwd-row">
+      <input class="pwd-input" id="pwd-input" type="password" placeholder="輸入密碼" autocomplete="current-password">
+      <button class="pwd-btn" id="pwd-btn">進入</button>
+    </div>
+    <div class="pwd-error" id="pwd-error"></div>
+  </div>
+
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-section-title" id="form-title">新增商品 / Thêm Sản Phẩm</div>
+    <div class="add-form">
+      <input type="hidden" id="edit-id">
+      <div class="form-grid">
+        <div class="form-row">
+          <div class="form-label">商品名稱 *</div>
+          <input class="form-input" id="f-name" placeholder="例：精品板材">
+        </div>
+        <div class="form-row">
+          <div class="form-label">分類名稱</div>
+          <input class="form-input" id="f-category" placeholder="例：板材、配件…">
+        </div>
+        <div class="form-row">
+          <div class="form-label">價格（NT$）</div>
+          <input class="form-input" id="f-price" type="text" inputmode="numeric" placeholder="例：350">
+        </div>
+        <div class="form-row">
+          <div class="form-label">照片</div>
+          <div class="upload-area" onclick="document.getElementById('f-photo').click()">
+            <input type="file" id="f-photo" accept="image/*" onchange="onPhoto(this)">
+            <div class="upload-label" id="upload-label">點擊上傳照片</div>
+            <img id="upload-preview" class="upload-preview" style="display:none" alt="">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-label">描述</div>
+          <textarea class="form-textarea" id="f-desc" placeholder="商品描述、材質、尺寸等…"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" id="save-btn" onclick="saveProduct()">儲存商品 / Lưu</button>
+        <button class="btn-cancel" id="cancel-btn" style="display:none" onclick="cancelEdit()">取消編輯</button>
+      </div>
+    </div>
+
+    <div class="admin-section-title">所有商品 / Tất Cả Sản Phẩm</div>
+    <div class="admin-product-list" id="admin-list">
+      <div style="color:var(--text3);font-style:italic;font-size:13px;text-align:center;padding:20px">尚無商品</div>
+    </div>
+  </div>
 </div>
+
+<div class="save-toast" id="save-toast"></div>
+
+<script>
+const SB_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const ADMIN_PWD = 'roots';
+const FB = 'https://www.facebook.com/profile.php?id=61574898618832';
+const BUCKET = 'plant-media';
+
+async function dbGet(q){const r=await fetch(SB_URL+'/rest/v1/products'+q,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});return r.json();}
+function toast(m){const t=document.getElementById('save-toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── 公開展示 ──────────────────────────────────────────────
+async function loadProducts(){
+  const rows=await dbGet('?is_displayed=eq.true&order=sort_order.asc,created_at.asc');
+  document.getElementById('loading-state').style.display='none';
+  if(!Array.isArray(rows)||!rows.length){document.getElementById('empty-state').style.display='block';return;}
+  const cats={};
+  rows.forEach(p=>{const c=p.category||'其他';if(!cats[c])cats[c]=[];cats[c].push(p);});
+  document.getElementById('product-container').innerHTML=Object.entries(cats).map(([cat,items])=>`
+    <div class="category-section">
+      <div class="category-title">${cat}</div>
+      <div class="product-grid">
+        ${items.map(p=>`
+          <div class="product-card">
+            ${p.photo_url?`<img class="product-card-img" src="${p.photo_url}" alt="${p.name}" loading="lazy">`:`<div class="product-card-no-img">🌿</div>`}
+            <div class="product-card-body">
+              <div class="product-card-name">${p.name}</div>
+              ${p.description?`<div class="product-card-desc">${p.description}</div>`:''}
+              ${p.price?`<div class="product-card-price">NT$ ${Number(p.price).toLocaleString()}</div>`:''}
+              <a class="contact-btn" href="${FB}" target="_blank">聯繫購買 / Liên hệ</a>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── 後台登入 ──────────────────────────────────────────────
+document.getElementById('admin-trigger').onclick=()=>{document.getElementById('admin-overlay').classList.add('open');document.body.style.overflow='hidden';};
+document.getElementById('admin-close').onclick=()=>{document.getElementById('admin-overlay').classList.remove('open');document.body.style.overflow='';};
+document.getElementById('pwd-btn').onclick=tryLogin;
+document.getElementById('pwd-input').addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+function tryLogin(){
+  if(document.getElementById('pwd-input').value===ADMIN_PWD){
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    loadAdminList();
+  }else{
+    const err=document.getElementById('pwd-error');
+    err.textContent='密碼錯誤 / Sai mật khẩu';
+    setTimeout(()=>err.textContent='',2500);
+    document.getElementById('pwd-input').value='';
+  }
+}
+
+// ── 後台列表 ──────────────────────────────────────────────
+let adminRows=[];
+async function loadAdminList(){
+  const rows=await dbGet('?order=sort_order.asc,created_at.asc');
+  adminRows=Array.isArray(rows)?rows:[];
+  renderAdminList();
+}
+function renderAdminList(){
+  const list=document.getElementById('admin-list');
+  if(!adminRows.length){list.innerHTML='<div style="color:var(--text3);font-style:italic;font-size:13px;text-align:center;padding:20px">尚無商品</div>';return;}
+  list.innerHTML=adminRows.map(p=>`
+    <div class="admin-product-row ${p.is_displayed?'':'hidden-item'}">
+      ${p.photo_url?`<img class="aprod-thumb" src="${p.photo_url}" alt="" loading="lazy">`:`<div class="aprod-thumb-empty">🌿</div>`}
+      <div class="aprod-info">
+        <div class="aprod-name">${p.name}</div>
+        <div class="aprod-cat">${p.category||'未分類'}${p.price?' · NT$'+Number(p.price).toLocaleString():''}</div>
+      </div>
+      <div class="aprod-actions">
+        <button class="aprod-btn ${p.is_displayed?'toggle-on':''}" onclick="toggleDisplay(${p.id})">${p.is_displayed?'展示中':'已隱藏'}</button>
+        <button class="aprod-btn" onclick="startEdit(${p.id})">編輯</button>
+        <button class="aprod-btn danger" onclick="deleteProduct(${p.id})">刪除</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── 表單 ──────────────────────────────────────────────────
+let pendingFile=null,editPhotoUrl=null,editStoragePath=null;
+
+function onPhoto(input){
+  if(!input.files||!input.files[0])return;
+  pendingFile=input.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('upload-preview');
+    prev.src=e.target.result;prev.style.display='block';
+    document.getElementById('upload-label').textContent=pendingFile.name;
+  };
+  reader.readAsDataURL(pendingFile);
+}
+
+function startEdit(id){
+  const p=adminRows.find(x=>x.id===id);if(!p)return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('f-name').value=p.name||'';
+  document.getElementById('f-category').value=p.category||'';
+  document.getElementById('f-price').value=p.price||'';
+  document.getElementById('f-desc').value=p.description||'';
+  document.getElementById('form-title').textContent='編輯商品 / Chỉnh Sửa';
+  document.getElementById('cancel-btn').style.display='block';
+  editPhotoUrl=p.photo_url||null;editStoragePath=p.storage_path||null;
+  if(p.photo_url){const prev=document.getElementById('upload-preview');prev.src=p.photo_url;prev.style.display='block';document.getElementById('upload-label').textContent='點擊更換照片';}
+  pendingFile=null;
+  document.querySelector('.add-form').scrollIntoView({behavior:'smooth'});
+}
+
+function cancelEdit(){
+  document.getElementById('edit-id').value='';
+  ['f-name','f-category','f-price','f-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('upload-label').textContent='點擊上傳照片';
+  document.getElementById('f-photo').value='';
+  document.getElementById('form-title').textContent='新增商品 / Thêm Sản Phẩm';
+  document.getElementById('cancel-btn').style.display='none';
+  pendingFile=null;editPhotoUrl=null;editStoragePath=null;
+}
+
+async function uploadPhoto(file){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      canvas.toBlob(async blob=>{
+        if(!blob){reject(new Error('compress failed'));return;}
+        const path=`products/${Date.now()}.webp`;
+        const r=await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`,{
+          method:'POST',
+          headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'image/webp','Cache-Control':'3600'},
+          body:blob
+        });
+        if(!r.ok){reject(new Error('upload failed'));return;}
+        resolve({url:`${SB_URL}/storage/v1/object/public/${BUCKET}/${path}`,path});
+      },'image/webp',0.85);
+    };
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
+  });
+}
+
+async function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){toast('請填寫商品名稱');return;}
+  const editId=document.getElementById('edit-id').value;
+  const btn=document.getElementById('save-btn');
+  btn.textContent='儲存中...';btn.disabled=true;
+  let photoUrl=editPhotoUrl,storagePath=editStoragePath;
+  if(pendingFile){
+    try{const res=await uploadPhoto(pendingFile);photoUrl=res.url;storagePath=res.path;}
+    catch{toast('照片上傳失敗');btn.textContent='儲存商品 / Lưu';btn.disabled=false;return;}
+  }
+  const priceRaw=document.getElementById('f-price').value.replace(/[^0-9]/g,'');
+  const data={
+    name,
+    category:document.getElementById('f-category').value.trim()||'其他',
+    price:priceRaw?parseInt(priceRaw):null,
+    description:document.getElementById('f-desc').value.trim()||null,
+    photo_url:photoUrl,storage_path:storagePath
+  };
+  const url=editId?`${SB_URL}/rest/v1/products?id=eq.${editId}`:`${SB_URL}/rest/v1/products`;
+  const r=await fetch(url,{
+    method:editId?'PATCH':'POST',
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify(data)
+  });
+  btn.textContent='儲存商品 / Lưu';btn.disabled=false;
+  if(r.ok){toast(editId?'已更新 ✓':'商品已新增 ✓');cancelEdit();await loadAdminList();await loadProducts();}
+  else toast('儲存失敗');
+}
+
+async function toggleDisplay(id){
+  const p=adminRows.find(x=>x.id===id);if(!p)return;
+  p.is_displayed=!p.is_displayed;
+  const r=await fetch(`${SB_URL}/rest/v1/products?id=eq.${id}`,{
+    method:'PATCH',
+    headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({is_displayed:p.is_displayed})
+  });
+  if(r.ok){toast(p.is_displayed?'已顯示':'已隱藏');renderAdminList();loadProducts();}
+  else toast('操作失敗');
+}
+
+async function deleteProduct(id){
+  const p=adminRows.find(x=>x.id===id);
+  if(!confirm('確定刪除「'+(p?p.name:id)+'」？\n此操作無法復原。'))return;
+  if(p&&p.storage_path){
+    await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${p.storage_path}`,{
+      method:'DELETE',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}
+    }).catch(()=>{});
+  }
+  const r=await fetch(`${SB_URL}/rest/v1/products?id=eq.${id}`,{
+    method:'DELETE',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,Prefer:'return=minimal'}
+  });
+  if(r.ok){toast('已刪除');await loadAdminList();await loadProducts();}
+  else toast('刪除失敗');
+}
+
+loadProducts();
+</script>
 </body>
 </html>
