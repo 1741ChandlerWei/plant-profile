@@ -231,6 +231,24 @@ main{padding-top:56px}
 .form-save-btn{background:var(--green);color:var(--cream);border:none;padding:14px;font-size:12px;letter-spacing:.15em;cursor:pointer;font-family:inherit;transition:background .2s}
 .form-save-btn:hover{background:var(--green2)}
 
+/* ── 客人登入列 ── */
+.customer-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:rgba(184,146,42,.07);border-bottom:1px solid rgba(184,146,42,.2)}
+.customer-bar-name{font-size:12px;color:var(--gold);letter-spacing:.08em}
+.customer-logout-btn{background:none;border:none;font-size:10px;color:var(--text3);cursor:pointer;letter-spacing:.08em;padding:0}
+.customer-logout-btn:hover{color:var(--text)}
+
+/* ── 客人登入 Modal ── */
+.cust-modal{position:fixed;inset:0;background:rgba(13,13,10,.7);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px}
+.cust-modal-box{background:var(--cream);padding:32px 28px;width:100%;max-width:300px;display:flex;flex-direction:column;gap:12px;text-align:center}
+.cust-modal-title{font-size:20px;font-style:italic;color:var(--green)}
+.cust-modal-sub{font-size:12px;color:var(--text3);letter-spacing:.06em}
+.cust-pwd-input{border:1px solid var(--border);background:#fff;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;width:100%}
+.cust-pwd-input:focus{border-color:var(--green)}
+.cust-pwd-btn{background:var(--green);color:var(--cream);border:none;padding:12px;font-size:12px;letter-spacing:.12em;cursor:pointer;font-family:inherit;width:100%}
+.cust-pwd-btn:hover{background:var(--green2)}
+.cust-pwd-error{font-size:11px;color:var(--red);font-style:italic;min-height:16px}
+.cust-modal-close{background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;letter-spacing:.08em}
+
 /* ── 縮時合成進度 ── */
 .tl-progress-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(13,13,10,.88);align-items:center;justify-content:center;flex-direction:column;gap:20px}
 .tl-progress-overlay.open{display:flex}
@@ -310,6 +328,12 @@ main{padding-top:56px}
     <div class="stat"><div class="stat-val" id="stat-days">—</div><div class="stat-label">生長天數<br><span style="font-size:9px;opacity:.6">Ngày sinh trưởng</span></div></div>
     <div class="stat"><div class="stat-val" id="stat-weight">—</div><div class="stat-label">目前重量<br><span style="font-size:9px;opacity:.6">Cân nặng</span></div></div>
     <div class="stat"><div class="stat-val" id="stat-photos">—</div><div class="stat-label">照片紀錄<br><span style="font-size:9px;opacity:.6">Số ảnh</span></div></div>
+  </div>
+
+  <!-- 客人登入列 -->
+  <div class="customer-bar" id="customer-bar" style="display:none">
+    <span class="customer-bar-name" id="customer-bar-name"></span>
+    <button class="customer-logout-btn" id="customer-logout-btn">登出</button>
   </div>
 
   <!-- 生長階段 -->
@@ -466,6 +490,18 @@ main{padding-top:56px}
   </div>
 </div>
 
+<!-- 客人登入 Modal -->
+<div class="cust-modal" id="cust-modal" style="display:none">
+  <div class="cust-modal-box">
+    <div class="cust-modal-title">客人登入 / Đăng Nhập</div>
+    <div class="cust-modal-sub">輸入您的植物密碼</div>
+    <input class="cust-pwd-input" id="cust-pwd" type="password" placeholder="密碼">
+    <button class="cust-pwd-btn" id="cust-pwd-btn">登入</button>
+    <div class="cust-pwd-error" id="cust-pwd-error"></div>
+    <button class="cust-modal-close" id="cust-modal-close">取消</button>
+  </div>
+</div>
+
 <!-- 影片燈箱 -->
 <div class="video-modal" id="video-modal">
   <div class="video-modal-inner">
@@ -501,6 +537,19 @@ main{padding-top:56px}
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const ADMIN_PWD = 'roots';
+const SB_URL = SUPABASE_URL;
+const SB_KEY = SUPABASE_KEY;
+
+// ─── Customer session ────────────────────────────────────
+function getCustomerSession() {
+  try { return JSON.parse(sessionStorage.getItem('cust_session') || 'null'); } catch { return null; }
+}
+function setCustomerSession(data) {
+  sessionStorage.setItem('cust_session', JSON.stringify(data));
+}
+function clearCustomerSession() {
+  sessionStorage.removeItem('cust_session');
+}
 
 // ─── Supabase helpers ───────────────────────────────────
 async function dbGet(table, q) {
@@ -975,7 +1024,15 @@ async function init() {
     return;
   }
   document.getElementById('nav-rid').textContent = rid;
-  document.getElementById('nav-upload-btn').href = 'https://plant-pos.vercel.app/upload.html?rid=' + rid;
+
+  // Auto-login via ?key= URL param
+  const urlKey = new URLSearchParams(location.search).get('key');
+  if (urlKey) {
+    const custRows = await dbGet('customers', '?password=eq.' + encodeURIComponent(urlKey) + '&limit=1');
+    if (Array.isArray(custRows) && custRows.length) {
+      setCustomerSession({ id: custRows[0].id, name: custRows[0].name, password: urlKey });
+    }
+  }
 
   // 同時取得 rehab 基本資料 + plant_web 網頁狀態
   const [rehabRows, webRows] = await Promise.all([
@@ -997,6 +1054,7 @@ async function init() {
   // 網頁狀態優先用 plant_web，沒有就不顯示 badge（private 預設）
   let webStatus = webRec ? (webRec.web_status || 'private') : 'private';
   let webOwner  = webRec ? webRec.web_owner : null;
+  let ownerLabel = webRec ? webRec.owner_label : null;
 
   if (rehab.plant_id) {
     const plantRows = await dbGet('plants', '?id=eq.' + rehab.plant_id + '&limit=1');
@@ -1059,10 +1117,13 @@ async function init() {
     if (Array.isArray(vids)) buildFeaturedVideos(vids);
   } catch(_) {}
 
-  // 顯示擁有者（來自 plant_web.web_owner）
+  // 顯示擁有者（來自 plant_web.web_owner 或 owner_label）
   const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
-  if (webOwner) {
-    document.getElementById('plant-owner').textContent = '📍 ' + (LOC_LABEL[webOwner] || webOwner);
+  const ownerEl = document.getElementById('plant-owner');
+  if (ownerLabel) {
+    ownerEl.textContent = '🌿 ' + ownerLabel;
+  } else if (webOwner) {
+    ownerEl.textContent = '📍 ' + (LOC_LABEL[webOwner] || webOwner);
   }
 
   // 初始化按讚
@@ -1073,6 +1134,33 @@ async function init() {
   const mgmtOwner = document.getElementById('mgmt-owner');
   if (mgmtStatus) mgmtStatus.value = webStatus;
   if (mgmtOwner && webOwner) mgmtOwner.value = webOwner;
+
+  // ── 客人登入狀態 ──────────────────────────────────────
+  const custSession = getCustomerSession();
+  const isOwner = custSession && webRec && webRec.customer_id === custSession.id;
+
+  // 更新上傳按鈕連結（加入 key 參數讓上傳頁知道是誰）
+  const uploadBase = 'https://plant-pos.vercel.app/upload.html?rid=' + rid;
+  document.getElementById('nav-upload-btn').href =
+    isOwner ? uploadBase + '&key=' + encodeURIComponent(custSession.password) : uploadBase;
+
+  if (isOwner) {
+    // 已登入且為此植物擁有者 → 顯示客人列
+    const bar = document.getElementById('customer-bar');
+    bar.style.display = 'flex';
+    const displayName = ownerLabel || custSession.name;
+    document.getElementById('customer-bar-name').textContent = '👤 ' + displayName + ' 的植物';
+  } else if (webStatus === 'sold' && !custSession) {
+    // 已售出但未登入 → 顯示登入提示（插入 owner 區域旁）
+    const ownerArea = document.getElementById('plant-owner');
+    const loginLink = document.createElement('a');
+    loginLink.href = '#';
+    loginLink.id = 'cust-login-link';
+    loginLink.style.cssText = 'font-size:11px;color:var(--gold);letter-spacing:.08em;text-decoration:none;border-bottom:1px solid rgba(184,146,42,.4);margin-left:8px;';
+    loginLink.textContent = '客人登入';
+    loginLink.onclick = e => { e.preventDefault(); openCustModal(); };
+    ownerArea.parentNode.insertBefore(loginLink, ownerArea.nextSibling);
+  }
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('main-content').style.display = 'block';
@@ -1227,7 +1315,7 @@ function drawCover(ctx, img, W, H) {
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
 }
 
-function drawWatermark(ctx, W, H) {
+function drawWatermark(ctx, W, H, customerName) {
   const line1 = 'rễ , thân , lá studio';
   const line2 = '根莖葉工作室';
 
@@ -1267,6 +1355,14 @@ function drawWatermark(ctx, W, H) {
   ctx.fillStyle = 'rgba(184,146,42,0.85)';
   ctx.fillText(line2, bx + pad, by + pad + size1 + gap + size2);
 
+  // 客人名稱（選填）
+  if (customerName) {
+    const custSize = Math.round(W * 0.018);
+    ctx.font = `${custSize}px "DM Mono", monospace`;
+    ctx.fillStyle = 'rgba(245,240,232,0.7)';
+    ctx.fillText('♥ ' + customerName, bx + pad, by + boxH + custSize + 4);
+  }
+
   ctx.restore();
 }
 
@@ -1277,6 +1373,10 @@ async function startTimelapse() {
     : src.slice(-60);
 
   if (!pool.length) { toast('沒有可用的照片素材'); return; }
+
+  // 取得客人名稱（若為此植物擁有者）
+  const _custSession = getCustomerSession();
+  const _tlCustomerName = _custSession ? _custSession.name : null;
 
   const overlay = document.getElementById('tl-progress-overlay');
   overlay.classList.add('open');
@@ -1313,11 +1413,11 @@ async function startTimelapse() {
       const img = await loadImg(p.photo_url);
       ctx.clearRect(0, 0, W, H);
       drawCover(ctx, img, W, H);
-      drawWatermark(ctx, W, H);
+      drawWatermark(ctx, W, H, _tlCustomerName);
     } catch(_) {
       ctx.fillStyle = '#1A1A14';
       ctx.fillRect(0, 0, W, H);
-      drawWatermark(ctx, W, H);
+      drawWatermark(ctx, W, H, _tlCustomerName);
     }
     await new Promise(r => setTimeout(r, FRAME_MS));
   }
@@ -1347,6 +1447,65 @@ function downloadTlVideo() {
   a.href = URL.createObjectURL(tlVideoBlob);
   a.download = `${rid}_timelapse_${ts}.webm`;
   a.click();
+}
+
+// ─── 客人登入 ────────────────────────────────────────────
+async function customerLogin(password) {
+  const rows = await dbGet('customers', '?password=eq.' + encodeURIComponent(password) + '&limit=1');
+  if (!Array.isArray(rows) || !rows.length) return null;
+  return rows[0];
+}
+
+function openCustModal() {
+  document.getElementById('cust-modal').style.display = 'flex';
+  document.getElementById('cust-pwd').value = '';
+  document.getElementById('cust-pwd-error').textContent = '';
+  document.getElementById('cust-pwd').focus();
+}
+
+function closeCustModal() {
+  document.getElementById('cust-modal').style.display = 'none';
+}
+
+document.getElementById('cust-modal-close').onclick = closeCustModal;
+document.getElementById('cust-modal').onclick = e => { if (e.target === e.currentTarget) closeCustModal(); };
+
+document.getElementById('cust-pwd-btn').onclick = async () => {
+  const pwd = document.getElementById('cust-pwd').value.trim();
+  if (!pwd) return;
+  const btn = document.getElementById('cust-pwd-btn');
+  btn.textContent = '登入中...'; btn.disabled = true;
+  const cust = await customerLogin(pwd);
+  btn.textContent = '登入'; btn.disabled = false;
+  if (!cust) {
+    document.getElementById('cust-pwd-error').textContent = '密碼錯誤，請再試一次';
+    document.getElementById('cust-pwd').value = '';
+    document.getElementById('cust-pwd').focus();
+    return;
+  }
+  setCustomerSession({ id: cust.id, name: cust.name, password: pwd });
+  closeCustModal();
+  // 重新載入頁面以套用擁有者權限
+  location.reload();
+};
+
+document.getElementById('cust-pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('cust-pwd-btn').click();
+});
+
+document.getElementById('customer-logout-btn').onclick = () => {
+  clearCustomerSession();
+  location.reload();
+};
+
+// ─── 編輯 owner_label ────────────────────────────────────
+async function saveOwnerLabel(newLabel) {
+  const rid = getRid();
+  await fetch(SB_URL + '/rest/v1/plant_web?rid=eq.' + rid, {
+    method: 'PATCH',
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({ owner_label: newLabel, updated_at: new Date().toISOString() })
+  });
 }
 
 async function uploadTlVideo() {

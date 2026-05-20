@@ -28,6 +28,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 /* 主面板 */
 .main-panel{display:none;padding-top:56px}
 
+/* 主分頁 */
+.main-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--cream2)}
+.main-tab{flex:1;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;padding:14px 8px;font-size:13px;letter-spacing:.1em;color:var(--text3);cursor:pointer;font-family:inherit;transition:all .2s}
+.main-tab.active{color:var(--green);border-bottom-color:var(--green);background:var(--cream)}
+.main-tab:hover:not(.active){color:var(--text2)}
+.main-tab-content{display:none}
+.main-tab-content.active{display:block}
+
 .page-header{padding:28px 20px 0;border-bottom:1px solid var(--border);padding-bottom:20px}
 .page-title{font-size:24px;font-weight:300;font-style:italic;margin-bottom:4px}
 .page-title-sub{font-size:11px;letter-spacing:.14em;color:var(--text3)}
@@ -80,6 +88,47 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 .stat-item:last-child{border-right:none}
 .stat-num{font-size:22px;font-style:italic;color:var(--text)}
 .stat-lbl{font-size:9.5px;letter-spacing:.1em;color:var(--text3)}
+
+/* ── 客戶管理 ── */
+.cust-layout{display:flex;flex-direction:column;gap:0}
+.cust-section{padding:20px;border-bottom:1px solid var(--border)}
+.cust-section-title{font-size:13px;letter-spacing:.12em;color:var(--text3);margin-bottom:14px;font-style:italic}
+.cust-table{width:100%;border-collapse:collapse;font-size:13px}
+.cust-table th{text-align:left;font-size:10px;letter-spacing:.12em;color:var(--text3);font-weight:400;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--cream2)}
+.cust-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.cust-table tr:hover td{background:rgba(237,230,214,.4)}
+.cust-table tr.selected td{background:rgba(45,74,45,.06);border-left:3px solid var(--green)}
+.cust-pwd-url{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);word-break:break-all;cursor:pointer;text-decoration:underline dotted}
+.cust-pwd-url:hover{color:var(--green2)}
+.cust-action-btn{background:none;border:1px solid var(--border);padding:4px 10px;font-size:10px;letter-spacing:.08em;cursor:pointer;font-family:inherit;color:var(--text2);transition:all .2s}
+.cust-action-btn:hover{border-color:var(--green);color:var(--green)}
+.cust-action-btn.danger{color:var(--red);border-color:var(--red)}
+.cust-action-btn.danger:hover{background:var(--red);color:var(--cream)}
+.cust-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.cust-form{grid-template-columns:1fr}}
+.cust-form-row{display:flex;flex-direction:column;gap:4px}
+.cust-form-row.full{grid-column:1/-1}
+.cust-form label{font-size:10px;letter-spacing:.1em;color:var(--text3)}
+.cust-form input,.cust-form textarea{border:1px solid var(--border);background:var(--cream);padding:8px 10px;font-size:13px;font-family:inherit;color:var(--text);outline:none;width:100%;resize:vertical}
+.cust-form input:focus,.cust-form textarea:focus{border-color:var(--green)}
+.cust-form-actions{grid-column:1/-1;display:flex;gap:8px;align-items:center}
+.cust-save-btn{background:var(--green);color:var(--cream);border:none;padding:8px 20px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit;transition:background .2s}
+.cust-save-btn:hover{background:var(--green2)}
+.cust-cancel-btn{background:none;border:1px solid var(--border);padding:8px 14px;font-size:11px;letter-spacing:.08em;cursor:pointer;font-family:inherit;color:var(--text2)}
+.cust-badge{display:inline-block;padding:2px 7px;font-size:10px;letter-spacing:.06em;border:1px solid var(--border);color:var(--text3)}
+.assign-panel{padding:20px;border-bottom:1px solid var(--border);background:rgba(45,74,45,.03)}
+.assign-panel-title{font-size:12px;letter-spacing:.1em;color:var(--green);margin-bottom:12px;font-style:italic}
+.assign-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:220px;overflow-y:auto}
+.assign-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);background:#fff;font-size:12px}
+.assign-item-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold)}
+.assign-item-name{flex:1;font-style:italic}
+.assign-remove-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:0 4px}
+.assign-remove-btn:hover{color:var(--red)}
+.assign-add-row{display:flex;gap:8px}
+.assign-select{flex:1;border:1px solid var(--border);background:var(--cream);padding:7px 10px;font-size:12px;font-family:inherit;color:var(--text);outline:none}
+.assign-add-btn{background:var(--green);color:var(--cream);border:none;padding:7px 14px;font-size:11px;letter-spacing:.08em;cursor:pointer;font-family:inherit}
+.assign-add-btn:hover{background:var(--green2)}
+.assign-empty{font-size:12px;color:var(--text3);font-style:italic;padding:8px 0}
 </style>
 </head>
 <body>
@@ -105,31 +154,99 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <div class="main-panel" id="main-panel">
 
   <div class="page-header">
-    <div class="page-title">植物網頁狀態管理</div>
-    <div class="page-title-sub">QUẢN LÝ TRẠNG THÁI HIỂN THỊ WEB</div>
+    <div class="page-title">後台管理</div>
+    <div class="page-title-sub">QUẢN LÝ NỘI BỘ</div>
   </div>
 
-  <!-- 統計 -->
-  <div class="stats-bar" id="stats-bar">
-    <div class="stat-item"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">總植物數</div></div>
-    <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">公開展示</div></div>
-    <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">未公開</div></div>
-    <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">已售出</div></div>
+  <!-- 主分頁切換 -->
+  <div class="main-tabs">
+    <button class="main-tab active" data-main-tab="plants">植物狀態</button>
+    <button class="main-tab" data-main-tab="customers">客戶管理</button>
   </div>
 
-  <!-- 篩選 -->
-  <div class="filter-row">
-    <span class="filter-label">篩選：</span>
-    <button class="filter-btn active" data-filter="all">全部</button>
-    <button class="filter-btn" data-filter="private">未公開</button>
-    <button class="filter-btn" data-filter="available">可販售</button>
-    <button class="filter-btn" data-filter="tracking">展示中</button>
-    <button class="filter-btn" data-filter="pup_sale">側芽販售</button>
-    <button class="filter-btn" data-filter="sold">已售出</button>
+  <!-- ── TAB 1: 植物狀態 ── -->
+  <div class="main-tab-content active" id="main-tab-plants">
+    <!-- 統計 -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-item"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">總植物數</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">公開展示</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">未公開</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">已售出</div></div>
+    </div>
+    <!-- 篩選 -->
+    <div class="filter-row">
+      <span class="filter-label">篩選：</span>
+      <button class="filter-btn active" data-filter="all">全部</button>
+      <button class="filter-btn" data-filter="private">未公開</button>
+      <button class="filter-btn" data-filter="available">可販售</button>
+      <button class="filter-btn" data-filter="tracking">展示中</button>
+      <button class="filter-btn" data-filter="pup_sale">側芽販售</button>
+      <button class="filter-btn" data-filter="sold">已售出</button>
+    </div>
+    <div id="loading-state" class="loading-state">載入中...</div>
+    <div class="plant-list" id="plant-list"></div>
   </div>
 
-  <div id="loading-state" class="loading-state">載入中...</div>
-  <div class="plant-list" id="plant-list"></div>
+  <!-- ── TAB 2: 客戶管理 ── -->
+  <div class="main-tab-content" id="main-tab-customers">
+
+    <!-- Section A: 客戶列表 -->
+    <div class="cust-section">
+      <div class="cust-section-title">客戶列表 / Danh sách khách hàng</div>
+      <div id="cust-loading" class="loading-state" style="padding:20px;font-size:12px">載入中...</div>
+      <table class="cust-table" id="cust-table" style="display:none">
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>密碼</th>
+            <th>連結</th>
+            <th>備註</th>
+            <th>植物數</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="cust-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Section C: 分配植物 (顯示於選中客戶後) -->
+    <div class="assign-panel" id="assign-panel" style="display:none">
+      <div class="assign-panel-title" id="assign-panel-title">指定植物給客戶</div>
+      <div class="assign-list" id="assign-list"></div>
+      <div class="assign-add-row">
+        <select class="assign-select" id="assign-select">
+          <option value="">— 選擇已售出未分配的植物 —</option>
+        </select>
+        <button class="assign-add-btn" onclick="addAssignment()">新增</button>
+      </div>
+    </div>
+
+    <!-- Section B: 新增/編輯表單 -->
+    <div class="cust-section">
+      <div class="cust-section-title" id="cust-form-title">新增客戶 / Thêm khách hàng</div>
+      <div class="cust-form">
+        <input type="hidden" id="cust-edit-id">
+        <div class="cust-form-row">
+          <label>姓名 / Tên</label>
+          <input type="text" id="cust-name" placeholder="客戶姓名">
+        </div>
+        <div class="cust-form-row">
+          <label>密碼 / Mật khẩu</label>
+          <input type="text" id="cust-password" placeholder="自訂密碼">
+        </div>
+        <div class="cust-form-row full">
+          <label>備註 / Ghi chú</label>
+          <textarea id="cust-notes" rows="3" placeholder="備註..."></textarea>
+        </div>
+        <div class="cust-form-actions">
+          <button class="cust-save-btn" onclick="saveCustomer()">儲存客戶</button>
+          <button class="cust-cancel-btn" id="cust-cancel-btn" onclick="cancelEditCustomer()" style="display:none">取消</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-tab-customers -->
+
 </div>
 
 <div class="save-toast" id="save-toast"></div>
@@ -332,6 +449,296 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     renderList();
   };
 });
+
+// ── 主分頁切換 ──────────────────────────────────────────────
+document.querySelectorAll('.main-tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.main-tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('main-tab-' + tab.dataset.mainTab).classList.add('active');
+    if (tab.dataset.mainTab === 'customers' && !custLoaded) loadCustomers();
+  };
+});
+
+// ══════════════════════════════════════════════════════════
+// 客戶管理
+// ══════════════════════════════════════════════════════════
+let custLoaded = false;
+let allCustomers = [];
+let soldUnassigned = []; // sold plants with no customer_id
+let selectedCustId = null;
+let assignedPlants = []; // plant_web rows for selected customer
+
+async function dbPatch(table, q, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
+    method: 'PATCH',
+    headers: {
+      apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json', Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  });
+}
+async function dbPost(table, body, prefer) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      Prefer: prefer || 'return=representation'
+    },
+    body: JSON.stringify(body)
+  });
+}
+async function dbDelete(table, q) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
+    method: 'DELETE',
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  });
+}
+
+async function loadCustomers() {
+  document.getElementById('cust-loading').style.display = 'block';
+  document.getElementById('cust-table').style.display = 'none';
+
+  // Fetch customers + plant_web (to count per customer)
+  const [customers, plantWebRows] = await Promise.all([
+    dbGet('customers', '?order=id.asc&select=id,name,password,notes'),
+    dbGet('plant_web', '?web_status=eq.sold&select=rid,customer_id,web_status'),
+  ]);
+
+  allCustomers = Array.isArray(customers) ? customers : [];
+  const webRows = Array.isArray(plantWebRows) ? plantWebRows : [];
+
+  // Count plants per customer
+  const countMap = {};
+  soldUnassigned = [];
+  webRows.forEach(w => {
+    if (w.customer_id) {
+      countMap[w.customer_id] = (countMap[w.customer_id] || 0) + 1;
+    } else {
+      soldUnassigned.push(w);
+    }
+  });
+
+  custLoaded = true;
+  document.getElementById('cust-loading').style.display = 'none';
+  document.getElementById('cust-table').style.display = 'table';
+  renderCustomerTable(countMap);
+}
+
+function renderCustomerTable(countMap) {
+  const tbody = document.getElementById('cust-tbody');
+  if (!allCustomers.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);font-style:italic">尚無客戶資料</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allCustomers.map(c => {
+    const url = `plant-profile.vercel.app/plants.html?key=${encodeURIComponent(c.password || '')}`;
+    const count = countMap[c.id] || 0;
+    const isSelected = selectedCustId === c.id;
+    return `<tr class="${isSelected ? 'selected' : ''}" id="cust-row-${c.id}">
+      <td style="font-style:italic">${escHtml(c.name || '')}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px">${escHtml(c.password || '')}</td>
+      <td><span class="cust-pwd-url" title="點擊複製" onclick="copyUrl('${url}')">${url}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${escHtml(c.notes || '')}</td>
+      <td style="text-align:center"><span class="cust-badge">${count}</span></td>
+      <td style="white-space:nowrap">
+        <button class="cust-action-btn" onclick="selectCustomer(${c.id})" title="查看分配植物">🌿 指定</button>
+        <button class="cust-action-btn" onclick="editCustomer(${c.id})" style="margin-left:4px">編輯</button>
+        <button class="cust-action-btn danger" onclick="deleteCustomer(${c.id})" style="margin-left:4px">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function copyUrl(url) {
+  navigator.clipboard.writeText(url).then(() => toast('連結已複製 ✓')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('連結已複製 ✓');
+  });
+}
+
+async function selectCustomer(custId) {
+  selectedCustId = custId;
+  const cust = allCustomers.find(c => c.id === custId);
+  if (!cust) return;
+
+  // Highlight row
+  document.querySelectorAll('#cust-tbody tr').forEach(tr => tr.classList.remove('selected'));
+  const row = document.getElementById('cust-row-' + custId);
+  if (row) row.classList.add('selected');
+
+  // Show assign panel
+  const panel = document.getElementById('assign-panel');
+  panel.style.display = 'block';
+  document.getElementById('assign-panel-title').textContent = `「${cust.name}」的植物 / Cây của ${cust.name}`;
+
+  // Fetch this customer's assigned plants
+  const webRows = await dbGet('plant_web', `?customer_id=eq.${custId}&web_status=eq.sold&select=rid,customer_id`);
+  assignedPlants = Array.isArray(webRows) ? webRows : [];
+
+  // Rebuild soldUnassigned: fetch all sold with no customer_id
+  const allSold = await dbGet('plant_web', '?web_status=eq.sold&select=rid,customer_id');
+  const allSoldArr = Array.isArray(allSold) ? allSold : [];
+  soldUnassigned = allSoldArr.filter(w => !w.customer_id);
+
+  // Get plant names for assigned
+  const allRids = assignedPlants.map(w => w.rid);
+  let ridNameMap = {};
+  if (allRids.length) {
+    const rehabRows = await dbGet('rehab', `?rid=in.(${allRids.join(',')})&select=rid,plant_name`);
+    if (Array.isArray(rehabRows)) rehabRows.forEach(r => { ridNameMap[r.rid] = r.plant_name; });
+  }
+  // Get names for unassigned dropdown
+  const unassignedRids = soldUnassigned.map(w => w.rid);
+  let unassignedNameMap = {};
+  if (unassignedRids.length) {
+    const rehabRows2 = await dbGet('rehab', `?rid=in.(${unassignedRids.join(',')})&select=rid,plant_name`);
+    if (Array.isArray(rehabRows2)) rehabRows2.forEach(r => { unassignedNameMap[r.rid] = r.plant_name; });
+  }
+
+  renderAssignList(ridNameMap);
+  renderAssignDropdown(unassignedNameMap);
+}
+
+function renderAssignList(ridNameMap) {
+  const list = document.getElementById('assign-list');
+  if (!assignedPlants.length) {
+    list.innerHTML = '<div class="assign-empty">尚未分配植物</div>';
+    return;
+  }
+  list.innerHTML = assignedPlants.map(w => `
+    <div class="assign-item" id="aitem-${w.rid}">
+      <span class="assign-item-rid">${w.rid}</span>
+      <span class="assign-item-name">${escHtml(ridNameMap[w.rid] || w.rid)}</span>
+      <a href="/plant.html?rid=${w.rid}" target="_blank" style="font-size:10px;color:var(--text3);text-decoration:none">查看</a>
+      <button class="assign-remove-btn" onclick="removeAssignment('${w.rid}')" title="移除分配">✕</button>
+    </div>`).join('');
+}
+
+function renderAssignDropdown(unassignedNameMap) {
+  const sel = document.getElementById('assign-select');
+  sel.innerHTML = '<option value="">— 選擇已售出未分配的植物 —</option>' +
+    soldUnassigned.map(w =>
+      `<option value="${w.rid}">${w.rid}${unassignedNameMap[w.rid] ? ' — ' + escHtml(unassignedNameMap[w.rid]) : ''}</option>`
+    ).join('');
+}
+
+async function addAssignment() {
+  const sel = document.getElementById('assign-select');
+  const rid = sel.value;
+  if (!rid || !selectedCustId) return;
+
+  const r = await dbPatch('plant_web', `?rid=eq.${rid}`, { customer_id: selectedCustId });
+  if (r.ok) {
+    toast(`${rid} 已分配 ✓`);
+    await selectCustomer(selectedCustId);
+    // Refresh count in table
+    await refreshCountMap();
+  } else {
+    toast('分配失敗');
+  }
+}
+
+async function removeAssignment(rid) {
+  if (!confirm(`移除 ${rid} 的客戶分配？`)) return;
+  const r = await dbPatch('plant_web', `?rid=eq.${rid}`, { customer_id: null });
+  if (r.ok) {
+    toast(`${rid} 已移除分配 ✓`);
+    await selectCustomer(selectedCustId);
+    await refreshCountMap();
+  } else {
+    toast('移除失敗');
+  }
+}
+
+async function refreshCountMap() {
+  const plantWebRows = await dbGet('plant_web', '?web_status=eq.sold&select=rid,customer_id');
+  const webRows = Array.isArray(plantWebRows) ? plantWebRows : [];
+  const countMap = {};
+  webRows.forEach(w => {
+    if (w.customer_id) countMap[w.customer_id] = (countMap[w.customer_id] || 0) + 1;
+  });
+  renderCustomerTable(countMap);
+}
+
+function editCustomer(custId) {
+  const cust = allCustomers.find(c => c.id === custId);
+  if (!cust) return;
+  document.getElementById('cust-edit-id').value = custId;
+  document.getElementById('cust-name').value = cust.name || '';
+  document.getElementById('cust-password').value = cust.password || '';
+  document.getElementById('cust-notes').value = cust.notes || '';
+  document.getElementById('cust-form-title').textContent = `編輯客戶：${cust.name}`;
+  document.getElementById('cust-cancel-btn').style.display = 'inline-block';
+  document.getElementById('cust-name').focus();
+  // Scroll to form
+  document.getElementById('cust-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function cancelEditCustomer() {
+  document.getElementById('cust-edit-id').value = '';
+  document.getElementById('cust-name').value = '';
+  document.getElementById('cust-password').value = '';
+  document.getElementById('cust-notes').value = '';
+  document.getElementById('cust-form-title').textContent = '新增客戶 / Thêm khách hàng';
+  document.getElementById('cust-cancel-btn').style.display = 'none';
+}
+
+async function saveCustomer() {
+  const id = document.getElementById('cust-edit-id').value;
+  const name = document.getElementById('cust-name').value.trim();
+  const password = document.getElementById('cust-password').value.trim();
+  const notes = document.getElementById('cust-notes').value.trim();
+  if (!name) { toast('請填寫客戶姓名'); return; }
+
+  const body = { name, password: password || null, notes: notes || null };
+  let r;
+  if (id) {
+    r = await dbPatch('customers', `?id=eq.${id}`, body);
+  } else {
+    r = await dbPost('customers', body, 'return=minimal');
+  }
+
+  if (r.ok) {
+    toast(id ? '客戶已更新 ✓' : '客戶已新增 ✓');
+    cancelEditCustomer();
+    custLoaded = false;
+    await loadCustomers();
+    if (selectedCustId) selectCustomer(selectedCustId);
+  } else {
+    toast('儲存失敗');
+  }
+}
+
+async function deleteCustomer(custId) {
+  const cust = allCustomers.find(c => c.id === custId);
+  if (!cust) return;
+  if (!confirm(`確定刪除客戶「${cust.name}」？\n（其植物分配將被清除）`)) return;
+
+  // Unassign all plants first
+  await dbPatch('plant_web', `?customer_id=eq.${custId}`, { customer_id: null });
+  const r = await dbDelete('customers', `?id=eq.${custId}`);
+  if (r.ok) {
+    toast('客戶已刪除 ✓');
+    if (selectedCustId === custId) {
+      selectedCustId = null;
+      document.getElementById('assign-panel').style.display = 'none';
+    }
+    custLoaded = false;
+    await loadCustomers();
+  } else {
+    toast('刪除失敗');
+  }
+}
 </script>
 </body>
 </html>

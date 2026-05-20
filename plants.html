@@ -57,6 +57,29 @@ main{padding-top:56px}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* 我的植物 */
+.my-plants-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 0 16px;flex-wrap:wrap;gap:8px}
+.my-plants-btn{background:var(--green);color:var(--cream);border:none;padding:9px 18px;font-size:12px;letter-spacing:.1em;cursor:pointer;font-family:inherit;transition:background .2s}
+.my-plants-btn:hover{background:#3D6B3D}
+.my-plants-logout{background:none;border:1px solid var(--border);padding:7px 14px;font-size:11px;letter-spacing:.08em;color:var(--text3);cursor:pointer;font-family:inherit}
+.my-plants-logout:hover{border-color:var(--text2);color:var(--text2)}
+.my-plants-section{margin-bottom:28px}
+.my-plants-heading{font-size:18px;font-style:italic;color:var(--green);margin-bottom:4px}
+.my-plants-sub{font-size:11px;letter-spacing:.1em;color:var(--text3);margin-bottom:14px}
+
+/* modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(26,26,20,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:var(--cream);border:1px solid var(--border);padding:32px 28px;width:100%;max-width:340px;display:flex;flex-direction:column;gap:16px}
+.modal-title{font-size:20px;font-style:italic;color:var(--green)}
+.modal-sub{font-size:11px;letter-spacing:.1em;color:var(--text3);margin-top:-8px}
+.modal-input-row{display:flex;border:1px solid var(--border)}
+.modal-input{flex:1;border:none;background:transparent;padding:11px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none}
+.modal-submit{background:var(--green);color:var(--cream);border:none;padding:11px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.modal-submit:hover{background:#3D6B3D}
+.modal-error{font-size:11px;color:#8B1A1A;font-style:italic;min-height:16px}
+.modal-cancel{background:none;border:none;font-size:11px;letter-spacing:.08em;color:var(--text3);cursor:pointer;font-family:inherit;align-self:flex-start;padding:0}
+.modal-cancel:hover{color:var(--text2)}
 </style>
 </head>
 <body>
@@ -87,10 +110,38 @@ main{padding-top:56px}
   </div>
 
   <div class="tab-content" id="tab-sold">
+    <!-- 我的植物 bar -->
+    <div class="my-plants-bar">
+      <button class="my-plants-btn" id="my-plants-btn" onclick="openMyPlantsModal()">🔑 我的植物 / Cây của tôi</button>
+      <button class="my-plants-logout" id="my-plants-logout" style="display:none" onclick="logoutCustomer()">登出 / Đăng xuất</button>
+    </div>
+
+    <!-- 我的植物區塊 (登入後顯示) -->
+    <div class="my-plants-section" id="my-plants-section" style="display:none">
+      <div class="my-plants-heading" id="my-plants-heading">我的植物</div>
+      <div class="my-plants-sub">CÂY CỦA TÔI</div>
+      <div class="plant-grid" id="grid-my-plants"></div>
+      <div class="empty-state" id="empty-my-plants" style="display:none">尚未分配植物</div>
+    </div>
+
     <div class="plant-grid" id="grid-sold"></div>
     <div class="empty-state" id="empty-sold" style="display:none">尚無已售出紀錄</div>
   </div>
 </main>
+
+<!-- 我的植物 modal -->
+<div class="modal-backdrop" id="my-plants-modal" style="display:none" onclick="handleModalBackdropClick(event)">
+  <div class="modal-box">
+    <div class="modal-title">我的植物</div>
+    <div class="modal-sub">CÂY CỦA TÔI · 輸入您的密碼</div>
+    <div class="modal-input-row">
+      <input class="modal-input" id="modal-pwd-input" type="text" placeholder="輸入密碼 / Nhập mật khẩu" autocomplete="off">
+      <button class="modal-submit" onclick="submitMyPlants()">進入</button>
+    </div>
+    <div class="modal-error" id="modal-error"></div>
+    <button class="modal-cancel" onclick="closeMyPlantsModal()">取消 / Huỷ</button>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
@@ -228,7 +279,182 @@ document.querySelectorAll('.tab').forEach(tab => {
   };
 });
 
-init();
+// ══════════════════════════════════════════════════════════
+// 我的植物 / Customer login
+// ══════════════════════════════════════════════════════════
+let currentCustomer = null;
+
+function openMyPlantsModal() {
+  document.getElementById('my-plants-modal').style.display = 'flex';
+  document.getElementById('modal-pwd-input').value = '';
+  document.getElementById('modal-error').textContent = '';
+  setTimeout(() => document.getElementById('modal-pwd-input').focus(), 50);
+}
+function closeMyPlantsModal() {
+  document.getElementById('my-plants-modal').style.display = 'none';
+}
+function handleModalBackdropClick(e) {
+  if (e.target === document.getElementById('my-plants-modal')) closeMyPlantsModal();
+}
+document.getElementById('modal-pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitMyPlants();
+});
+
+async function submitMyPlants() {
+  const pwd = document.getElementById('modal-pwd-input').value.trim();
+  if (!pwd) return;
+  document.getElementById('modal-error').textContent = '';
+
+  const rows = await dbGet('customers', `?password=eq.${encodeURIComponent(pwd)}&limit=1`);
+  if (!Array.isArray(rows) || !rows.length) {
+    document.getElementById('modal-error').textContent = '密碼錯誤 / Sai mật khẩu';
+    return;
+  }
+  const cust = rows[0];
+  sessionStorage.setItem('customer_session', JSON.stringify({ id: cust.id, name: cust.name, password: cust.password }));
+  closeMyPlantsModal();
+  await loginCustomer(cust);
+}
+
+async function loginCustomer(cust) {
+  currentCustomer = cust;
+  document.getElementById('my-plants-btn').style.display = 'none';
+  document.getElementById('my-plants-logout').style.display = 'inline-block';
+  document.getElementById('my-plants-section').style.display = 'block';
+  document.getElementById('my-plants-heading').textContent = `${cust.name} 的植物`;
+
+  // Switch to sold tab if not already
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelector('.tab[data-tab="sold"]').classList.add('active');
+  document.getElementById('tab-sold').classList.add('active');
+
+  // Fetch their plant_web records
+  const webRows = await dbGet('plant_web', `?customer_id=eq.${cust.id}&select=rid,web_status,web_owner`);
+  if (!Array.isArray(webRows) || !webRows.length) {
+    document.getElementById('grid-my-plants').innerHTML = '';
+    document.getElementById('empty-my-plants').style.display = 'block';
+    return;
+  }
+
+  const rids = webRows.map(w => w.rid);
+  const webMap = {};
+  webRows.forEach(w => { webMap[w.rid] = w; });
+
+  // Fetch rehab + plants + photos for these rids
+  const [rehabRows, plantsRows, photoRows] = await Promise.all([
+    dbGet('rehab', `?rid=in.(${rids.join(',')})&select=rid,plant_id,plant_name`),
+    dbGet('plants', '?select=id,name,price'),
+    dbGet('photos', `?rid=in.(${rids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured`),
+  ]);
+
+  const rehabMap = {};
+  if (Array.isArray(rehabRows)) rehabRows.forEach(r => { rehabMap[r.rid] = r; });
+  const plantsMap = {};
+  if (Array.isArray(plantsRows)) plantsRows.forEach(p => { plantsMap[p.id] = p; });
+  const photosMap = {};
+  if (Array.isArray(photoRows)) {
+    photoRows.forEach(ph => {
+      if (!photosMap[ph.rid]) photosMap[ph.rid] = ph;
+      else if (ph.is_featured && !photosMap[ph.rid].is_featured) photosMap[ph.rid] = ph;
+      else if (!photosMap[ph.rid].is_featured && !ph.is_featured) photosMap[ph.rid] = ph;
+    });
+  }
+
+  const myPlants = rids.map(rid => {
+    const w = webMap[rid];
+    const r = rehabMap[rid] || {};
+    const plant = r.plant_id ? plantsMap[r.plant_id] : null;
+    return {
+      rid,
+      web_status: w.web_status,
+      web_owner: w.web_owner,
+      plant_name: (plant && plant.name) || r.plant_name || rid,
+      price: plant ? plant.price : null,
+      photo_url: photosMap[rid] ? photosMap[rid].photo_url : null,
+    };
+  });
+
+  const grid = document.getElementById('grid-my-plants');
+  const empty = document.getElementById('empty-my-plants');
+  if (!myPlants.length) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'block';
+  } else {
+    grid.innerHTML = myPlants.map(p => renderMyPlantCard(p, cust.password)).join('');
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+  }
+}
+
+function renderMyPlantCard(p, password) {
+  const imgHtml = p.photo_url
+    ? `<img class="plant-card-img" src="${p.photo_url}" alt="${p.plant_name||''}" loading="lazy">`
+    : `<div class="plant-card-no-img"><span>尚無照片</span></div>`;
+  const ws = p.web_status || 'sold';
+  const ownerText = p.web_owner ? (LOC_LABEL[p.web_owner] || p.web_owner) : '';
+  const viewUrl = `/plant.html?rid=${p.rid}&key=${encodeURIComponent(password)}`;
+
+  return `
+    <a class="plant-card" href="${viewUrl}">
+      ${imgHtml}
+      <div class="plant-card-body">
+        <div class="plant-card-name">${p.plant_name || p.rid}</div>
+        <div class="plant-card-rid">${p.rid}</div>
+        <div class="plant-card-badges">
+          <span class="badge ${ws}">${WEB_STATUS_LABEL[ws] || ws}</span>
+        </div>
+        ${ownerText ? `<div class="plant-card-loc">📍 ${ownerText}</div>` : ''}
+        <div style="margin-top:4px;font-size:11px;color:var(--green);letter-spacing:.06em">查看 →</div>
+      </div>
+    </a>`;
+}
+
+function logoutCustomer() {
+  sessionStorage.removeItem('customer_session');
+  currentCustomer = null;
+  document.getElementById('my-plants-btn').style.display = 'inline-block';
+  document.getElementById('my-plants-logout').style.display = 'none';
+  document.getElementById('my-plants-section').style.display = 'none';
+  document.getElementById('grid-my-plants').innerHTML = '';
+}
+
+// Auto-login from ?key=PASSWORD in URL
+async function checkUrlKey() {
+  const params = new URLSearchParams(window.location.search);
+  const key = params.get('key');
+  if (key) {
+    // Try session first
+    const stored = sessionStorage.getItem('customer_session');
+    if (stored) {
+      try {
+        const s = JSON.parse(stored);
+        if (s.password === key) { await loginCustomer(s); return; }
+      } catch(e) {}
+    }
+    // Look up by password
+    const rows = await dbGet('customers', `?password=eq.${encodeURIComponent(key)}&limit=1`);
+    if (Array.isArray(rows) && rows.length) {
+      const cust = rows[0];
+      sessionStorage.setItem('customer_session', JSON.stringify({ id: cust.id, name: cust.name, password: cust.password }));
+      await loginCustomer(cust);
+    }
+  } else {
+    // Restore from sessionStorage if present
+    const stored = sessionStorage.getItem('customer_session');
+    if (stored) {
+      try { await loginCustomer(JSON.parse(stored)); } catch(e) {}
+    }
+  }
+}
+
+async function initAll() {
+  await init();
+  await checkUrlKey();
+}
+
+initAll();
 </script>
 </body>
 </html>
