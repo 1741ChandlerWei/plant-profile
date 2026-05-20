@@ -161,8 +161,8 @@ function showPhoto(idx) {
   img.style.opacity = '0';
   img.src = p.photo_url;
   img.onload = () => { img.style.transition = 'opacity .2s'; img.style.opacity = '1'; };
-  document.getElementById('photo-date').textContent = p.taken_at ? p.taken_at.slice(0,10) : (p.created_at ? p.created_at.slice(0,10) : '');
-  document.getElementById('photo-weight').textContent = p.weight ? p.weight + ' g' : '';
+  document.getElementById('photo-date').textContent = ( p.taken_at || p.created_at || '').slice(0,10);
+  document.getElementById('photo-weight').textContent = p.weight_g ? p.weight_g + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
   document.getElementById('photo-info').style.display = 'block';
   document.getElementById('photo-counter').textContent = (idx+1) + ' / ' + photos.length;
@@ -241,12 +241,12 @@ async function init() {
     rehab.notes || rehab.description || '這株植物正在悄悄生長，每一天都是新的故事。';
 
   // 查 photos 表（先試有哪些欄位）
-  const photoData = await db('photos', '?rid=eq.' + rid + '&is_public=eq.true&select=*');
+  const photoData = await db('photos', '?rid=eq.' + rid + '&approved=eq.true&order=taken_at.asc&select=*');
   photos = Array.isArray(photoData) ? photoData : [];
   document.getElementById('stat-photos').textContent = photos.length + ' 張';
 
   if (photos.length) {
-    const lastW = [...photos].reverse().find(p => p.weight);
+    const lastW = [...photos].reverse().find(p => p.weight_g);
     if (lastW) document.getElementById('stat-weight').textContent = lastW.weight + ' g';
     buildThumbnails();
     showPhoto(photos.length - 1);
