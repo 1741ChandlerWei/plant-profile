@@ -204,6 +204,29 @@ main{padding-top:56px}
 /* ── 儲存提示 ── */
 .save-toast{position:fixed;bottom:70px;right:20px;background:var(--green);color:var(--cream);padding:8px 16px;font-size:11px;letter-spacing:.1em;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
 .save-toast.show{opacity:1}
+
+/* ── 縮時合成進度 ── */
+.tl-progress-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(13,13,10,.88);align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.tl-progress-overlay.open{display:flex}
+.tl-progress-box{background:var(--cream);padding:32px 40px;text-align:center;min-width:280px}
+.tl-progress-title{font-size:14px;letter-spacing:.14em;color:var(--text2);margin-bottom:16px;text-transform:uppercase}
+.tl-progress-bar-wrap{height:2px;background:var(--border);position:relative;overflow:hidden;margin-bottom:10px}
+.tl-progress-bar-fill{height:100%;background:var(--green);width:0%;transition:width .15s}
+.tl-progress-pct{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)}
+.tl-progress-sub{font-size:11px;color:var(--text3);font-style:italic;margin-top:8px}
+.tl-cancel-btn{margin-top:14px;background:none;border:1px solid var(--border);color:var(--text3);padding:6px 16px;font-size:10px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.tl-cancel-btn:hover{border-color:var(--text2);color:var(--text2)}
+
+/* 完成彈窗 */
+.tl-done-box{background:var(--cream);padding:32px 32px;text-align:center;min-width:300px}
+.tl-done-title{font-size:18px;font-style:italic;color:var(--green);margin-bottom:8px}
+.tl-done-sub{font-size:12px;color:var(--text3);margin-bottom:20px}
+.tl-done-btns{display:flex;gap:10px;justify-content:center}
+.tl-done-btn{padding:10px 20px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit;border:none;transition:all .2s}
+.tl-done-btn.primary{background:var(--green);color:var(--cream)}
+.tl-done-btn.primary:hover{background:var(--green2)}
+.tl-done-btn.secondary{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.tl-done-btn.secondary:hover{border-color:var(--text2)}
 </style>
 </head>
 <body>
@@ -316,7 +339,7 @@ main{padding-top:56px}
       <div class="ai-meta" id="ai-meta"></div>
     </div>
 
-    <button class="timelapse-cta" disabled>🎬 合成縮時影片 / Video Timelapse（即將推出）</button>
+    <button class="timelapse-cta" id="btn-timelapse">🎬 合成縮時影片 / Tổng Hợp Video Timelapse</button>
 
   </div>
 
@@ -389,6 +412,26 @@ main{padding-top:56px}
 
 <!-- 儲存提示 -->
 <div class="save-toast" id="save-toast">已儲存 ✓</div>
+
+<!-- 縮時合成進度 overlay -->
+<div class="tl-progress-overlay" id="tl-progress-overlay">
+  <div class="tl-progress-box" id="tl-progress-box">
+    <div class="tl-progress-title">合成縮時影片中 / Đang tổng hợp video</div>
+    <div class="tl-progress-bar-wrap"><div class="tl-progress-bar-fill" id="tl-bar"></div></div>
+    <div class="tl-progress-pct" id="tl-pct">0%</div>
+    <div class="tl-progress-sub" id="tl-sub">正在載入照片...</div>
+    <button class="tl-cancel-btn" id="tl-cancel">取消</button>
+  </div>
+  <div class="tl-done-box" id="tl-done-box" style="display:none">
+    <div class="tl-done-title">✓ 合成完成</div>
+    <div class="tl-done-sub" id="tl-done-info"></div>
+    <div class="tl-done-btns">
+      <button class="tl-done-btn primary" id="tl-download-btn">⬇ 下載影片</button>
+      <button class="tl-done-btn secondary" id="tl-upload-btn">☁ 上傳到雲端</button>
+      <button class="tl-done-btn secondary" id="tl-close-btn">關閉</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
@@ -903,6 +946,215 @@ async function init() {
 }
 
 init();
+
+// ─── 縮時影片合成 ──────────────────────────────────────
+let tlCancelled = false;
+let tlVideoBlob = null;
+
+document.getElementById('btn-timelapse').onclick = startTimelapse;
+document.getElementById('tl-cancel').onclick = () => { tlCancelled = true; closeTlOverlay(); };
+document.getElementById('tl-close-btn').onclick = closeTlOverlay;
+document.getElementById('tl-download-btn').onclick = downloadTlVideo;
+document.getElementById('tl-upload-btn').onclick = uploadTlVideo;
+
+function closeTlOverlay() {
+  document.getElementById('tl-progress-overlay').classList.remove('open');
+  document.getElementById('tl-progress-box').style.display = 'block';
+  document.getElementById('tl-done-box').style.display = 'none';
+  tlCancelled = false;
+}
+
+function setTlProgress(pct, sub) {
+  document.getElementById('tl-bar').style.width = pct + '%';
+  document.getElementById('tl-pct').textContent = Math.round(pct) + '%';
+  if (sub) document.getElementById('tl-sub').textContent = sub;
+}
+
+function loadImg(url) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = url;
+  });
+}
+
+function drawCover(ctx, img, W, H) {
+  const ir = img.naturalWidth / img.naturalHeight;
+  const cr = W / H;
+  let sw, sh, sx, sy;
+  if (ir > cr) { sh = img.naturalHeight; sw = sh * cr; sx = (img.naturalWidth - sw) / 2; sy = 0; }
+  else          { sw = img.naturalWidth; sh = sw / cr; sx = 0; sy = (img.naturalHeight - sh) / 2; }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+}
+
+function drawWatermark(ctx, W, H) {
+  const line1 = 'rễ , thân , lá studio';
+  const line2 = '根莖葉工作室';
+
+  ctx.save();
+  // 字型設定
+  const size1 = Math.round(W * 0.028);   // ~30px on 1080
+  const size2 = Math.round(W * 0.022);
+  const pad   = Math.round(W * 0.018);
+  const gap   = Math.round(size1 * 0.35);
+  const margin = Math.round(W * 0.022);
+
+  ctx.font = `italic ${size1}px "Cormorant Garamond", Georgia, serif`;
+  const w1 = ctx.measureText(line1).width;
+  ctx.font = `${size2}px "DM Mono", monospace`;
+  const w2 = ctx.measureText(line2).width;
+
+  const boxW = Math.max(w1, w2) + pad * 2;
+  const boxH = size1 + gap + size2 + pad * 1.6;
+  const bx = W - boxW - margin;
+  const by = H - boxH - margin;
+
+  // 背景
+  ctx.fillStyle = 'rgba(13,13,10,0.55)';
+  ctx.fillRect(bx, by, boxW, boxH);
+
+  // 細金色上邊線
+  ctx.fillStyle = 'rgba(184,146,42,0.7)';
+  ctx.fillRect(bx, by, boxW, 1.5);
+
+  // Line 1 越南文
+  ctx.font = `italic ${size1}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = 'rgba(245,240,232,0.92)';
+  ctx.fillText(line1, bx + pad, by + pad + size1);
+
+  // Line 2 中文
+  ctx.font = `${size2}px "DM Mono", monospace`;
+  ctx.fillStyle = 'rgba(184,146,42,0.85)';
+  ctx.fillText(line2, bx + pad, by + pad + size1 + gap + size2);
+
+  ctx.restore();
+}
+
+async function startTimelapse() {
+  const src = timelinePhotos.length ? timelinePhotos : photos;
+  const pool = src.filter(p => p.zone === 'timelapse').length
+    ? src.filter(p => p.zone === 'timelapse')
+    : src.slice(-60);
+
+  if (!pool.length) { toast('沒有可用的照片素材'); return; }
+
+  const overlay = document.getElementById('tl-progress-overlay');
+  overlay.classList.add('open');
+  document.getElementById('tl-progress-box').style.display = 'block';
+  document.getElementById('tl-done-box').style.display = 'none';
+  tlCancelled = false; tlVideoBlob = null;
+
+  // 決定輸出尺寸（1080x1080 正方形）
+  const W = 1080, H = 1080;
+  const FPS = 10;
+  const FRAME_MS = 1000 / FPS;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 嘗試取得 MediaRecorder
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+  const stream = canvas.captureStream(FPS);
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+
+  const recDone = new Promise(res => { recorder.onstop = res; });
+  recorder.start();
+
+  for (let i = 0; i < pool.length; i++) {
+    if (tlCancelled) break;
+    const p = pool[i];
+    setTlProgress((i / pool.length) * 90, `載入照片 ${i+1} / ${pool.length}`);
+    try {
+      const img = await loadImg(p.photo_url);
+      ctx.clearRect(0, 0, W, H);
+      drawCover(ctx, img, W, H);
+      drawWatermark(ctx, W, H);
+    } catch(_) {
+      ctx.fillStyle = '#1A1A14';
+      ctx.fillRect(0, 0, W, H);
+      drawWatermark(ctx, W, H);
+    }
+    await new Promise(r => setTimeout(r, FRAME_MS));
+  }
+
+  // 最後一幀多停留 1.5 秒
+  if (!tlCancelled) await new Promise(r => setTimeout(r, 1500));
+
+  recorder.stop();
+  await recDone;
+
+  if (tlCancelled) return;
+
+  setTlProgress(100, '完成！');
+  tlVideoBlob = new Blob(chunks, { type: mimeType });
+  const sec = Math.round(pool.length / FPS);
+  document.getElementById('tl-done-info').textContent =
+    `${pool.length} 張照片 · ${sec} 秒 · ${(tlVideoBlob.size/1024/1024).toFixed(1)} MB`;
+  document.getElementById('tl-progress-box').style.display = 'none';
+  document.getElementById('tl-done-box').style.display = 'block';
+}
+
+function downloadTlVideo() {
+  if (!tlVideoBlob) return;
+  const rid = getRid() || 'plant';
+  const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(tlVideoBlob);
+  a.download = `${rid}_timelapse_${ts}.webm`;
+  a.click();
+}
+
+async function uploadTlVideo() {
+  if (!tlVideoBlob) return;
+  const rid = getRid();
+  const ts = Date.now();
+  const path = `timelapse/${rid}/${rid}_timelapse_${ts}.webm`;
+  const btn = document.getElementById('tl-upload-btn');
+  btn.textContent = '上傳中...'; btn.disabled = true;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/plant-media/${path}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'video/webm',
+        'x-upsert': 'true'
+      },
+      body: tlVideoBlob
+    });
+    if (res.ok) {
+      const url = `${SUPABASE_URL}/storage/v1/object/public/plant-media/${path}`;
+      // 寫入 videos 表
+      await fetch(SUPABASE_URL + '/rest/v1/videos', {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json', Prefer: 'return=minimal'
+        },
+        body: JSON.stringify({
+          rid, title: '縮時影片 ' + new Date().toLocaleDateString('zh-TW'),
+          video_url: url, storage_path: path,
+          video_type: 'auto', is_displayed: false,
+          period_start: timelinePhotos[0] ? (timelinePhotos[0].taken_at||'').slice(0,10) : null,
+          period_end: timelinePhotos[timelinePhotos.length-1]
+            ? (timelinePhotos[timelinePhotos.length-1].taken_at||'').slice(0,10) : null
+        })
+      });
+      btn.textContent = '✓ 已上傳';
+      toast('影片已上傳，可在後台開啟展示');
+    } else {
+      btn.textContent = '上傳失敗'; btn.disabled = false;
+    }
+  } catch(e) {
+    btn.textContent = '上傳失敗'; btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
