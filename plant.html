@@ -257,6 +257,13 @@ main{padding-top:82px}
 .cust-pwd-error{font-size:11px;color:var(--red);font-style:italic;min-height:16px}
 .cust-modal-close{background:none;border:none;font-size:11px;color:var(--text3);cursor:pointer;letter-spacing:.08em}
 
+/* ── 角度切換按鈕 ── */
+.angle-toggle-btn{position:absolute;top:16px;left:16px;background:rgba(13,13,10,.5);backdrop-filter:blur(8px);border:1px solid rgba(245,240,232,.25);color:var(--cream);padding:6px 14px;font-size:10px;letter-spacing:.12em;cursor:pointer;z-index:10;font-family:inherit;transition:all .2s;white-space:nowrap}
+.angle-toggle-btn:hover{background:rgba(13,13,10,.8);border-color:rgba(245,240,232,.45)}
+.photo-angle{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;color:rgba(245,240,232,.45);margin-left:2px}
+/* 時間軸雙角度標示 */
+.tl-angle-dot{font-family:'DM Mono',monospace;font-size:7px;color:var(--gold);text-align:center;letter-spacing:.04em;opacity:.9}
+
 /* ── 縮時合成進度 ── */
 .tl-progress-overlay{display:none;position:fixed;inset:0;z-index:700;background:rgba(13,13,10,.88);align-items:center;justify-content:center;flex-direction:column;gap:20px}
 .tl-progress-overlay.open{display:flex}
@@ -313,6 +320,8 @@ main{padding-top:82px}
     <div class="photo-nav next disabled" id="btn-next">&#8594;</div>
     <div class="photo-counter" id="photo-counter"></div>
     <div class="featured-badge" id="featured-badge" style="display:none">★ 精選</div>
+    <!-- 角度切換按鈕（左上） -->
+    <button class="angle-toggle-btn" id="angle-toggle-btn" style="display:none" onclick="toggleAngle()">🔄 細節角度</button>
     <!-- 播放按鈕（大圖上方中間） -->
     <button class="hero-play-btn" id="btn-play" style="display:none">▶ 連續播放</button>
     <!-- 浮動縮略圖帶（大圖下方） -->
@@ -321,6 +330,7 @@ main{padding-top:82px}
       <div class="photo-meta">
         <div class="photo-date" id="photo-date"></div>
         <div class="photo-weight" id="photo-weight"></div>
+        <div class="photo-angle" id="photo-angle"></div>
       </div>
       <div class="photo-note" id="photo-note"></div>
     </div>
@@ -613,6 +623,33 @@ function toast(msg) {
 // ─── 展示區（主照片瀏覽） ───────────────────────────────
 let photos = [];
 let currentIdx = 0;
+let sessionMap = {}; // { 'YYYY-MM-DD': { front: idx, detail: idx } }
+
+function buildSessionMap() {
+  sessionMap = {};
+  photos.forEach((p, i) => {
+    const key = p.session_date || (p.taken_at || p.created_at || '').slice(0, 10);
+    if (!key) return;
+    if (!sessionMap[key]) sessionMap[key] = {};
+    const angle = p.angle || 'front';
+    sessionMap[key][angle] = i; // same-day same-angle → keep latest
+  });
+}
+
+function getCompanionIdx(idx) {
+  const p = photos[idx];
+  if (!p) return -1;
+  const key = p.session_date || (p.taken_at || p.created_at || '').slice(0, 10);
+  if (!key || !sessionMap[key]) return -1;
+  const angle = p.angle || 'front';
+  const other = angle === 'front' ? 'detail' : 'front';
+  return sessionMap[key][other] !== undefined ? sessionMap[key][other] : -1;
+}
+
+function toggleAngle() {
+  const ci = getCompanionIdx(currentIdx);
+  if (ci >= 0) showPhoto(ci);
+}
 
 function showPhoto(idx) {
   if (!photos.length) return;
@@ -627,8 +664,19 @@ function showPhoto(idx) {
   document.getElementById('photo-date').textContent = (p.taken_at || p.created_at || '').slice(0,10);
   document.getElementById('photo-weight').textContent = p.weight_g ? p.weight_g + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
+  const myAngle = p.angle || 'front';
+  document.getElementById('photo-angle').textContent = myAngle === 'detail' ? '· 細節' : '';
   document.getElementById('photo-info').style.display = 'block';
   document.getElementById('photo-counter').textContent = (idx+1) + ' / ' + photos.length;
+  // 同日角度切換按鈕
+  const compIdx = getCompanionIdx(idx);
+  const toggleBtn = document.getElementById('angle-toggle-btn');
+  if (compIdx >= 0) {
+    toggleBtn.textContent = myAngle === 'front' ? '🔄 細節角度' : '← 正面角度';
+    toggleBtn.style.display = 'block';
+  } else {
+    toggleBtn.style.display = 'none';
+  }
   const badge = document.getElementById('featured-badge');
   badge.style.display = p.is_featured ? 'block' : 'none';
   // 更新浮動縮略圖（在大圖內橫向捲動，不跳頁）
@@ -645,13 +693,23 @@ function buildThumbnails() {
   const c = document.getElementById('hero-thumbs');
   c.innerHTML = '';
   photos.forEach((p,i) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;flex-shrink:0;width:46px';
     const img = document.createElement('img');
     img.className = 'hero-thumb' + (p.is_featured ? ' featured-t' : '');
     img.src = p.photo_url;
-    img.title = p.is_featured ? '★ 精選' : '';
+    img.title = p.is_featured ? '★ 精選' : (p.angle === 'detail' ? '細節' : '正面');
     img.loading = 'lazy';
     img.onclick = () => showPhoto(i);
-    c.appendChild(img);
+    wrap.appendChild(img);
+    // 細節角度標示
+    if ((p.angle || 'front') === 'detail') {
+      const badge = document.createElement('div');
+      badge.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;background:rgba(184,146,42,.75);color:#fff;font-size:7px;text-align:center;letter-spacing:.04em;font-family:"DM Mono",monospace;pointer-events:none';
+      badge.textContent = '細節';
+      wrap.appendChild(badge);
+    }
+    c.appendChild(wrap);
   });
   if (photos.length > 0) document.getElementById('btn-play').style.display = 'block';
 }
@@ -705,6 +763,14 @@ function buildTimeline() {
     }
     if (isWatering(p.note)) {
       const dot = document.createElement('div'); dot.className = 'tl-water-dot'; item.appendChild(dot);
+    }
+    // 雙角度標示
+    const sessKey = p.session_date || (p.taken_at || p.created_at || '').slice(0, 10);
+    const hasDual = sessKey && sessionMap[sessKey] && sessionMap[sessKey].front !== undefined && sessionMap[sessKey].detail !== undefined;
+    if (hasDual) {
+      const adot = document.createElement('div'); adot.className = 'tl-angle-dot';
+      adot.textContent = (p.angle || 'front') === 'detail' ? '細節' : '正+細';
+      item.appendChild(adot);
     }
     item.onclick = () => {
       const gi = photos.findIndex(ph => ph.id === p.id);
@@ -1109,6 +1175,7 @@ async function init() {
   // 照片
   const photoData = await dbGet('photos', '?rid=eq.' + rid + '&approved=eq.true&order=taken_at.asc&select=*');
   photos = Array.isArray(photoData) ? photoData : [];
+  buildSessionMap();
   document.getElementById('stat-photos').textContent = photos.length + ' 張';
 
   if (photos.length) {
