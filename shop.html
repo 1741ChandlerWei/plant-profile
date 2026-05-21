@@ -10,11 +10,17 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh}
 
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
-.nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em;flex-shrink:0}
-.nav-logo{flex:1;text-align:center;font-size:13px;letter-spacing:.15em;color:var(--text3);font-style:italic}
-.nav-spacer{width:60px;flex-shrink:0}
-main{padding-top:56px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;flex-direction:column}
+.nav-top{padding:12px 20px;display:flex;justify-content:center;align-items:center}
+.nav-logo{font-size:13px;letter-spacing:.15em;color:var(--green);font-style:italic;text-decoration:none}
+.nav-logo:hover{color:var(--green2)}
+.nav-links{display:flex;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{flex:1;min-width:fit-content;padding:7px 12px;text-align:center;font-size:10px;letter-spacing:.1em;color:var(--text3);text-decoration:none;border-right:1px solid var(--border);transition:all .15s;white-space:nowrap}
+.nav-link:last-child{border-right:none}
+.nav-link:hover{background:var(--cream2);color:var(--green)}
+.nav-link.active{color:var(--green);background:rgba(45,74,45,.06)}
+main{padding-top:80px}
 
 .page-header{padding:36px 20px 24px;text-align:center;border-bottom:1px solid var(--border)}
 .page-title{font-size:28px;font-weight:300;font-style:italic;margin-bottom:4px}
@@ -114,9 +120,16 @@ main{padding-top:56px}
 <body>
 
 <nav>
-  <a class="nav-back" href="/index.html">← 首頁</a>
-  <div class="nav-logo">rễ , thân , lá studio</div>
-  <div class="nav-spacer"></div>
+  <div class="nav-top">
+    <a class="nav-logo" href="/index.html">rễ , thân , lá studio</a>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">首頁</a>
+    <a class="nav-link" href="/plants.html">植物展示</a>
+    <a class="nav-link active" href="/shop.html">其他商品</a>
+    <a class="nav-link" href="/collection.html">我的收藏</a>
+    <a class="nav-link" href="/admin.html">後台</a>
+  </div>
 </nav>
 
 <main>

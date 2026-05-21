@@ -12,11 +12,19 @@
 body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden}
 
 /* ── Nav ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:8px}
-.nav-logo{font-size:13px;letter-spacing:.15em;color:var(--green);font-style:italic;flex-shrink:0}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;flex-direction:column}
+.nav-top{padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nav-logo{font-size:13px;letter-spacing:.15em;color:var(--green);font-style:italic;flex-shrink:0;text-decoration:none}
+.nav-logo:hover{color:var(--green2)}
 .nav-rid{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);flex:1;text-align:center}
-.nav-upload{background:var(--green);color:var(--cream);border:none;padding:7px 18px;font-size:11px;letter-spacing:.12em;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .2s;flex-shrink:0}
+.nav-upload{background:var(--green);color:var(--cream);border:none;padding:7px 14px;font-size:11px;letter-spacing:.12em;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .2s;flex-shrink:0}
 .nav-upload:hover{background:var(--green2)}
+.nav-links{display:flex;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{flex:1;min-width:fit-content;padding:7px 12px;text-align:center;font-size:10px;letter-spacing:.1em;color:var(--text3);text-decoration:none;border-right:1px solid var(--border);transition:all .15s;white-space:nowrap}
+.nav-link:last-child{border-right:none}
+.nav-link:hover{background:var(--cream2);color:var(--green)}
+.nav-link.active{color:var(--green);background:rgba(45,74,45,.06)}
 
 /* ── Loading ── */
 .loading{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200}
@@ -25,7 +33,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 .loading-bar::after{content:'';position:absolute;left:-40%;top:0;width:40%;height:100%;background:var(--green);animation:load 1.2s ease-in-out infinite}
 @keyframes load{to{left:140%}}
 
-main{padding-top:56px}
+main{padding-top:82px}
 
 /* ── 區域 1：展示區 ── */
 .photo-hero{position:relative;width:100%;background:var(--dark2);display:flex;align-items:center;justify-content:center;overflow:hidden;height:calc(100vh - 56px);max-height:700px}
@@ -281,9 +289,18 @@ main{padding-top:56px}
 </div>
 
 <nav>
-  <div class="nav-logo">rễ , thân , lá studio</div>
-  <div class="nav-rid" id="nav-rid"></div>
-  <a class="nav-upload" id="nav-upload-btn" href="#">&#128247; 上傳</a>
+  <div class="nav-top">
+    <a class="nav-logo" href="/index.html">rễ , thân , lá</a>
+    <div class="nav-rid" id="nav-rid"></div>
+    <a class="nav-upload" id="nav-upload-btn" href="#">&#128247; 上傳</a>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="/index.html">首頁</a>
+    <a class="nav-link active" href="/plants.html">植物展示</a>
+    <a class="nav-link" href="/shop.html">其他商品</a>
+    <a class="nav-link" href="/collection.html">我的收藏</a>
+    <a class="nav-link" href="/admin.html">後台</a>
+  </div>
 </nav>
 
 <main id="main-content" style="display:none">
