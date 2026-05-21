@@ -1367,10 +1367,10 @@ function drawWatermark(ctx, W, H, customerName) {
 }
 
 async function startTimelapse() {
-  const src = timelinePhotos.length ? timelinePhotos : photos;
-  const pool = src.filter(p => p.zone === 'timelapse').length
-    ? src.filter(p => p.zone === 'timelapse')
-    : src.slice(-60);
+  const tlMarked = photos.filter(p => p.zone === 'timelapse');
+  const pool = tlMarked.length ? tlMarked
+    : timelinePhotos.length ? timelinePhotos.slice(-60)
+    : photos.slice(-60);
 
   if (!pool.length) { toast('沒有可用的照片素材'); return; }
 
