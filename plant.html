@@ -6,6 +6,7 @@
 <title>rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
 <style>
 :root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--green-pale:#C8DBC8;--gold:#B8922A;--water:#4A90D9;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1360,6 +1361,7 @@ async function saveStatusMgmt() {
 // ─── 縮時影片合成 ──────────────────────────────────────
 let tlCancelled = false;
 let tlVideoBlob = null;
+let tlVideoMime = 'video/mp4';
 
 document.getElementById('btn-timelapse').onclick = startTimelapse;
 document.getElementById('tl-cancel').onclick = () => { tlCancelled = true; closeTlOverlay(); };
@@ -1455,70 +1457,136 @@ async function startTimelapse() {
   const pool = tlMarked.length ? tlMarked
     : timelinePhotos.length ? timelinePhotos.slice(-60)
     : photos.slice(-60);
-
   if (!pool.length) { toast('沒有可用的照片素材'); return; }
 
-  // 取得客人名稱（若為此植物擁有者）
   const _custSession = getCustomerSession();
   const _tlCustomerName = _custSession ? _custSession.name : null;
 
-  const overlay = document.getElementById('tl-progress-overlay');
-  overlay.classList.add('open');
+  document.getElementById('tl-progress-overlay').classList.add('open');
   document.getElementById('tl-progress-box').style.display = 'block';
   document.getElementById('tl-done-box').style.display = 'none';
   tlCancelled = false; tlVideoBlob = null;
 
-  // 決定輸出尺寸（1080x1080 正方形）
-  const W = 1080, H = 1080;
-  const FPS = 10;
-  const FRAME_MS = 1000 / FPS;
-
+  const W = 1080, H = 1080, FPS = 10;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // 嘗試取得 MediaRecorder
-  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-    ? 'video/webm;codecs=vp9'
-    : 'video/webm';
-  const stream = canvas.captureStream(FPS);
-  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
-  const chunks = [];
-  recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  // 判斷是否支援 Web Codecs + mp4-muxer → MP4
+  const canMP4 = typeof VideoEncoder !== 'undefined' && typeof Mp4Muxer !== 'undefined';
 
-  const recDone = new Promise(res => { recorder.onstop = res; });
+  if (canMP4) {
+    setTlProgress(0, 'MP4 模式啟動...');
+    await encodeMP4(pool, canvas, ctx, W, H, FPS, _tlCustomerName);
+  } else {
+    setTlProgress(0, 'WebM 模式（建議用 Chrome）...');
+    await encodeWebM(pool, canvas, ctx, W, H, FPS, _tlCustomerName);
+  }
+}
+
+// ── MP4 編碼（Web Codecs + mp4-muxer） ─────────────────
+async function encodeMP4(pool, canvas, ctx, W, H, FPS, customerName) {
+  const target  = new Mp4Muxer.ArrayBufferTarget();
+  const muxer   = new Mp4Muxer.Muxer({
+    target,
+    video: { codec: 'avc', width: W, height: H },
+    fastStart: 'in-memory',
+  });
+
+  let encodeError = null;
+  const encoder = new VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    error:  e => { encodeError = e; },
+  });
+  encoder.configure({
+    codec:     'avc1.4d0028', // H.264 Main Profile Level 4.0
+    width: W, height: H,
+    bitrate:   6_000_000,
+    framerate: FPS,
+  });
+
+  const frameUs = Math.round(1_000_000 / FPS);
+
+  for (let i = 0; i < pool.length; i++) {
+    if (tlCancelled || encodeError) break;
+    setTlProgress((i / pool.length) * 92, `H.264 編碼 ${i+1} / ${pool.length}`);
+    try {
+      const img = await loadImg(pool[i].photo_url);
+      ctx.clearRect(0, 0, W, H);
+      drawCover(ctx, img, W, H);
+    } catch(_) {
+      ctx.fillStyle = '#1A1A14'; ctx.fillRect(0, 0, W, H);
+    }
+    drawWatermark(ctx, W, H, customerName);
+    const frame = new VideoFrame(canvas, { timestamp: i * frameUs, duration: frameUs });
+    encoder.encode(frame, { keyFrame: i % 30 === 0 });
+    frame.close();
+    await new Promise(r => setTimeout(r, 0)); // 讓 UI 呼吸
+  }
+
+  // 最後一幀停留 1.5 秒
+  if (!tlCancelled && !encodeError) {
+    const holdN = Math.round(1.5 * FPS);
+    for (let j = 0; j < holdN; j++) {
+      const frame = new VideoFrame(canvas, {
+        timestamp: (pool.length + j) * frameUs, duration: frameUs
+      });
+      encoder.encode(frame, { keyFrame: false });
+      frame.close();
+    }
+  }
+
+  setTlProgress(96, '封裝 MP4 中...');
+  await encoder.flush();
+  muxer.finalize();
+  if (tlCancelled || encodeError) return;
+
+  const { buffer } = target;
+  tlVideoMime = 'video/mp4';
+  tlVideoBlob  = new Blob([buffer], { type: 'video/mp4' });
+  finishTimelapse(pool.length, FPS, '🎬 MP4');
+}
+
+// ── WebM 編碼（舊版 fallback） ──────────────────────────
+async function encodeWebM(pool, canvas, ctx, W, H, FPS, customerName) {
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9' : 'video/webm';
+  const stream   = canvas.captureStream(FPS);
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
+  const chunks   = [];
+  recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const recDone  = new Promise(res => recorder.onstop = res);
   recorder.start();
 
   for (let i = 0; i < pool.length; i++) {
     if (tlCancelled) break;
-    const p = pool[i];
     setTlProgress((i / pool.length) * 90, `載入照片 ${i+1} / ${pool.length}`);
     try {
-      const img = await loadImg(p.photo_url);
+      const img = await loadImg(pool[i].photo_url);
       ctx.clearRect(0, 0, W, H);
       drawCover(ctx, img, W, H);
-      drawWatermark(ctx, W, H, _tlCustomerName);
     } catch(_) {
-      ctx.fillStyle = '#1A1A14';
-      ctx.fillRect(0, 0, W, H);
-      drawWatermark(ctx, W, H, _tlCustomerName);
+      ctx.fillStyle = '#1A1A14'; ctx.fillRect(0, 0, W, H);
     }
-    await new Promise(r => setTimeout(r, FRAME_MS));
+    drawWatermark(ctx, W, H, customerName);
+    await new Promise(r => setTimeout(r, 1000 / FPS));
   }
-
-  // 最後一幀多停留 1.5 秒
   if (!tlCancelled) await new Promise(r => setTimeout(r, 1500));
-
   recorder.stop();
   await recDone;
-
   if (tlCancelled) return;
 
+  tlVideoMime = 'video/webm';
+  tlVideoBlob  = new Blob(chunks, { type: mimeType });
+  finishTimelapse(pool.length, FPS, 'WebM');
+}
+
+// ── 完成共用 ─────────────────────────────────────────
+function finishTimelapse(frameCount, FPS, label) {
   setTlProgress(100, '完成！');
-  tlVideoBlob = new Blob(chunks, { type: mimeType });
-  const sec = Math.round(pool.length / FPS);
+  const sec = Math.round(frameCount / FPS);
   document.getElementById('tl-done-info').textContent =
-    `${pool.length} 張照片 · ${sec} 秒 · ${(tlVideoBlob.size/1024/1024).toFixed(1)} MB`;
+    `${frameCount} 張 · ${sec} 秒 · ${(tlVideoBlob.size/1024/1024).toFixed(1)} MB · ${label}`;
   document.getElementById('tl-progress-box').style.display = 'none';
   document.getElementById('tl-done-box').style.display = 'block';
 }
@@ -1526,10 +1594,11 @@ async function startTimelapse() {
 function downloadTlVideo() {
   if (!tlVideoBlob) return;
   const rid = getRid() || 'plant';
-  const ts = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  const a = document.createElement('a');
+  const ts  = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const ext = tlVideoMime === 'video/mp4' ? 'mp4' : 'webm';
+  const a   = document.createElement('a');
   a.href = URL.createObjectURL(tlVideoBlob);
-  a.download = `${rid}_timelapse_${ts}.webm`;
+  a.download = `${rid}_timelapse_${ts}.${ext}`;
   a.click();
 }
 
@@ -1596,7 +1665,8 @@ async function uploadTlVideo() {
   if (!tlVideoBlob) return;
   const rid = getRid();
   const ts = Date.now();
-  const path = `timelapse/${rid}/${rid}_timelapse_${ts}.webm`;
+  const ext  = tlVideoMime === 'video/mp4' ? 'mp4' : 'webm';
+  const path = `timelapse/${rid}/${rid}_timelapse_${ts}.${ext}`;
   const btn = document.getElementById('tl-upload-btn');
   btn.textContent = '上傳中...'; btn.disabled = true;
   try {
@@ -1604,7 +1674,7 @@ async function uploadTlVideo() {
       method: 'POST',
       headers: {
         apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'video/webm',
+        'Content-Type': tlVideoMime,
         'x-upsert': 'true'
       },
       body: tlVideoBlob
