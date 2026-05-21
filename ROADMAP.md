@@ -4,6 +4,9 @@
 > 核心目標：**用任何手段達到預測並控制生長**
 > 展覽截止：2026 年 10 月
 
+> ⚠️ **給 Claude 的指令：context 快滿時主動提醒 Chandler 更新這份 ROADMAP 再繼續**
+> 提醒話術：「Context 快滿了，我先幫你更新 ROADMAP.md 再繼續，下次開新對話把這個給我：github.com/1741ChandlerWei/plant-profile/blob/main/ROADMAP.md」
+
 ---
 
 ## 系統架構
