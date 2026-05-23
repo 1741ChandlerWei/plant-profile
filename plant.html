@@ -26,6 +26,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 .nav-link:last-child{border-right:none}
 .nav-link:hover{background:var(--cream2);color:var(--green)}
 .nav-link.active{color:var(--green);background:rgba(45,74,45,.06)}
+.lang-sw{display:flex;align-items:stretch;border-right:1px solid var(--border);flex-shrink:0}
+.lang-btn{background:none;border:none;padding:7px 10px;font-size:10px;letter-spacing:.08em;color:var(--text3);cursor:pointer;font-family:inherit;border-right:1px solid var(--border);transition:all .15s}
+.lang-btn:last-child{border-right:none}
+.lang-btn.active{color:var(--green);background:rgba(45,74,45,.06);font-weight:700}
+.lang-btn:hover{background:var(--cream2);color:var(--green)}
 
 /* ── Loading ── */
 .loading{position:fixed;inset:0;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:200}
@@ -313,14 +318,18 @@ main{padding-top:82px}
   <div class="nav-top">
     <a class="nav-logo" href="/index.html">rễ , thân , lá</a>
     <div class="nav-rid" id="nav-rid"></div>
-    <a class="nav-upload" id="nav-upload-btn" href="#">&#128247; 上傳</a>
+    <a class="nav-upload" id="nav-upload-btn" href="#" data-i18n="nav.upload">📷 上傳</a>
   </div>
   <div class="nav-links">
-    <a class="nav-link" href="/index.html">首頁</a>
-    <a class="nav-link active" href="/plants.html">植物展示</a>
-    <a class="nav-link" href="/shop.html">其他商品</a>
-    <a class="nav-link" href="/collection.html">我的收藏</a>
-    <a class="nav-link" href="/admin.html">後台</a>
+    <div class="lang-sw">
+      <button class="lang-btn active" data-lang="zh" onclick="setLang('zh')">中</button>
+      <button class="lang-btn" data-lang="vn" onclick="setLang('vn')">VN</button>
+    </div>
+    <a class="nav-link" href="/index.html" data-i18n="nav.home">首頁</a>
+    <a class="nav-link active" href="/plants.html" data-i18n="nav.plants">植物展示</a>
+    <a class="nav-link" href="/shop.html" data-i18n="nav.shop">其他商品</a>
+    <a class="nav-link" href="/collection.html" data-i18n="nav.collection">我的收藏</a>
+    <a class="nav-link" href="/admin.html" data-i18n="nav.admin">後台</a>
   </div>
 </nav>
 
@@ -337,7 +346,7 @@ main{padding-top:82px}
     <!-- 角度切換按鈕（左上） -->
     <button class="angle-toggle-btn" id="angle-toggle-btn" style="display:none" onclick="toggleAngle()">🔄 細節角度</button>
     <!-- 播放按鈕（大圖上方中間） -->
-    <button class="hero-play-btn" id="btn-play" style="display:none">▶ 連續播放</button>
+    <button class="hero-play-btn" id="btn-play" style="display:none" data-i18n="photo.play">▶ 連續播放</button>
     <!-- 浮動縮略圖帶（大圖下方） -->
     <div class="hero-thumbs" id="hero-thumbs"></div>
     <div class="photo-info" id="photo-info" style="display:none">
@@ -366,41 +375,39 @@ main{padding-top:82px}
 
   <!-- 統計列 -->
   <div class="stats-row">
-    <div class="stat"><div class="stat-val" id="stat-days">—</div><div class="stat-label">生長天數<br><span style="font-size:9px;opacity:.6">Ngày sinh trưởng</span></div></div>
-    <div class="stat"><div class="stat-val" id="stat-weight">—</div><div class="stat-label">目前重量<br><span style="font-size:9px;opacity:.6">Cân nặng</span></div></div>
-    <div class="stat"><div class="stat-val" id="stat-photos">—</div><div class="stat-label">照片紀錄<br><span style="font-size:9px;opacity:.6">Số ảnh</span></div></div>
+    <div class="stat"><div class="stat-val" id="stat-days">—</div><div class="stat-label" data-i18n="stat.days">生長天數</div></div>
+    <div class="stat"><div class="stat-val" id="stat-weight">—</div><div class="stat-label" data-i18n="stat.weight">目前重量</div></div>
+    <div class="stat"><div class="stat-val" id="stat-photos">—</div><div class="stat-label" data-i18n="stat.photos">照片紀錄</div></div>
   </div>
 
   <!-- 客人登入列 -->
   <div class="customer-bar" id="customer-bar" style="display:none">
     <span class="customer-bar-name" id="customer-bar-name"></span>
-    <button class="customer-logout-btn" id="customer-logout-btn">登出</button>
+    <button class="customer-logout-btn" id="customer-logout-btn" data-i18n="ui.logout">登出</button>
   </div>
 
   <!-- 生長階段 -->
   <div class="section">
-    <div class="section-title">生長階段 / Giai Đoạn Sinh Trưởng</div>
+    <div class="section-title" data-i18n="section.stages">生長階段</div>
     <div class="phases">
-      <div class="phase" id="phase-0">突破期</div>
-      <div class="phase" id="phase-1">換葉期</div>
-      <div class="phase" id="phase-2">強健期</div>
-      <div class="phase" id="phase-3">調適期</div>
-      <div class="phase" id="phase-4">巔峰期</div>
+      <div class="phase" id="phase-0" data-i18n="phase.0">突破期</div>
+      <div class="phase" id="phase-1" data-i18n="phase.1">換葉期</div>
+      <div class="phase" id="phase-2" data-i18n="phase.2">強健期</div>
+      <div class="phase" id="phase-3" data-i18n="phase.3">調適期</div>
+      <div class="phase" id="phase-4" data-i18n="phase.4">巔峰期</div>
     </div>
   </div>
 
   <!-- 植物故事 -->
   <div class="section">
-    <div class="section-title">植物故事 / Câu Chuyện Cây</div>
+    <div class="section-title" data-i18n="section.story">植物故事</div>
     <div class="description" id="plant-description">正在載入...</div>
     <div class="action-row">
       <button class="like-btn" id="like-btn" onclick="toggleLike()">
         <span class="heart" id="like-heart">♡</span>
         <span id="like-count">0</span>
       </button>
-      <button class="share-btn" id="share-btn" onclick="shareUrl()">
-        ↗ 分享
-      </button>
+      <button class="share-btn" id="share-btn" onclick="shareUrl()" data-i18n="ui.share">↗ 分享</button>
     </div>
     <a class="contact-btn" id="contact-btn" href="https://www.facebook.com/profile.php?id=61574898618832" target="_blank">聯繫我們了解這株植物 / Liên hệ để biết thêm</a>
   </div>
@@ -410,48 +417,47 @@ main{padding-top:82px}
 
     <div class="diary-top">
       <div>
-        <div class="diary-title-zh">生長日記</div>
-        <div class="diary-title-vn">Nhật Ký Sinh Trưởng</div>
+        <div class="diary-title-zh" data-i18n="section.diary">生長日記</div>
       </div>
     </div>
 
     <!-- 重量折線圖 -->
     <div class="chart-wrap" id="chart-wrap" style="display:none">
-      <div class="chart-hint">點擊曲線上的點可查看對應照片 · Nhấp vào điểm để xem ảnh</div>
+      <div class="chart-hint" data-i18n="chart.hint">點擊曲線上的點可查看對應照片</div>
       <div class="chart-canvas-box"><canvas id="weight-chart"></canvas></div>
       <div class="chart-legend">
-        <span class="legend-dot" style="background:var(--gold)"></span>&nbsp;照片
+        <span class="legend-dot" style="background:var(--gold)"></span>&nbsp;<span data-i18n="chart.photo">照片</span>
         <span class="legend-sep">|</span>
-        <span class="legend-dot" style="background:var(--water)"></span>&nbsp;澆水 / Tưới nước
+        <span class="legend-dot" style="background:var(--water)"></span>&nbsp;<span data-i18n="chart.water">澆水</span>
       </div>
     </div>
 
     <!-- 時間軸照片 -->
     <div class="timeline-wrap">
-      <div class="timeline-label">時間軸 / Dòng Thời Gian</div>
+      <div class="timeline-label" data-i18n="timeline.label">時間軸</div>
       <div class="timeline-strip" id="timeline-strip"></div>
     </div>
 
     <!-- AI 提示視窗 -->
     <div class="ai-hints" id="ai-hints-wrap" style="display:none">
-      <div class="ai-hints-title">提示 / Gợi Ý</div>
-      <div class="hint-row"><span class="hint-icon">💊</span><span class="hint-label">上次給肥</span><span class="hint-val" id="hint-fertilizer">—</span></div>
-      <div class="hint-row"><span class="hint-icon">📋</span><span class="hint-label">上次狀態</span><span class="hint-val" id="hint-status">—</span></div>
-      <div class="hint-row"><span class="hint-icon">💧</span><span class="hint-label">上次飽和</span><span class="hint-val" id="hint-last-a">—</span></div>
+      <div class="ai-hints-title" data-i18n="hints.title">提示</div>
+      <div class="hint-row"><span class="hint-icon">💊</span><span class="hint-label" data-i18n="hints.fertilizer">上次給肥</span><span class="hint-val" id="hint-fertilizer">—</span></div>
+      <div class="hint-row"><span class="hint-icon">📋</span><span class="hint-label" data-i18n="hints.status">上次狀態</span><span class="hint-val" id="hint-status">—</span></div>
+      <div class="hint-row"><span class="hint-icon">💧</span><span class="hint-label" data-i18n="hints.lastA">上次飽和</span><span class="hint-val" id="hint-last-a">—</span></div>
       <div class="ai-predict-box" id="hint-ai-predict">
-        🤖 AI 預警<br><span style="font-size:11px">數據累積中，預警功能開啟後將顯示於此</span>
+        🤖 <span data-i18n="hints.predict">AI 預警</span><br><span class="hint-predict-sub" data-i18n="hints.predict.sub">數據累積中，預警功能開啟後將顯示於此</span>
       </div>
     </div>
 
     <!-- AI 分析 -->
     <div class="ai-wrap" id="ai-wrap" style="display:none">
-      <div class="subsection-title">AI 分析 / Phân Tích AI</div>
+      <div class="subsection-title" data-i18n="ai.title">AI 分析</div>
       <div class="ai-scores-row" id="ai-scores-row"></div>
       <div class="ai-summary-text" id="ai-summary-text"></div>
       <div class="ai-meta" id="ai-meta"></div>
     </div>
 
-    <button class="timelapse-cta" id="btn-timelapse">🎬 合成縮時影片 / Tổng Hợp Video Timelapse</button>
+    <button class="timelapse-cta" id="btn-timelapse" data-i18n="ui.timelapse">🎬 合成縮時影片</button>
 
   </div>
 
@@ -460,13 +466,13 @@ main{padding-top:82px}
 <!-- 錯誤狀態 -->
 <div id="error-state" style="display:none">
   <div class="error-state">
-    <h2>找不到這株植物</h2>
-    <p>請確認植物編號是否正確</p>
+    <h2 data-i18n="error.title">找不到這株植物</h2>
+    <p data-i18n="error.sub">請確認植物編號是否正確</p>
   </div>
 </div>
 
 <!-- 後台觸發按鈕 -->
-<button class="admin-trigger" id="admin-trigger">⚙ 後台</button>
+<button class="admin-trigger" id="admin-trigger" data-i18n="admin.btn">⚙ 後台</button>
 
 <!-- ══ 區域 3：後台 Overlay ══ -->
 <div class="admin-overlay" id="admin-overlay">
@@ -489,10 +495,10 @@ main{padding-top:82px}
   <!-- 管理面板（通過驗證後顯示） -->
   <div class="admin-panel" id="admin-panel" style="display:none">
     <div class="admin-tabs">
-      <button class="atab active" data-tab="featured">精選照片</button>
-      <button class="atab" data-tab="videos">影片管理</button>
-      <button class="atab" data-tab="timelapse">縮時素材</button>
-      <button class="atab" data-tab="statusmgmt">狀態管理</button>
+      <button class="atab active" data-tab="featured" data-i18n="admin.tab.featured">精選照片</button>
+      <button class="atab" data-tab="videos" data-i18n="admin.tab.videos">影片管理</button>
+      <button class="atab" data-tab="timelapse" data-i18n="admin.tab.timelapse">縮時素材</button>
+      <button class="atab" data-tab="statusmgmt" data-i18n="admin.tab.status">狀態管理</button>
     </div>
 
     <!-- 精選照片 -->
@@ -586,6 +592,89 @@ main{padding-top:82px}
 </div>
 
 <script>
+// ─── i18n ────────────────────────────────────────────────
+const T = {
+  zh: {
+    'nav.home':'首頁','nav.plants':'植物展示','nav.shop':'其他商品',
+    'nav.collection':'我的收藏','nav.admin':'後台','nav.upload':'📷 上傳',
+    'ui.logout':'登出','ui.share':'↗ 分享','ui.timelapse':'🎬 合成縮時影片',
+    'section.stages':'生長階段','section.story':'植物故事','section.diary':'生長日記',
+    'phase.0':'突破期','phase.1':'換葉期','phase.2':'強健期','phase.3':'調適期','phase.4':'巔峰期',
+    'stat.days':'生長天數','stat.weight':'目前重量','stat.photos':'照片紀錄',
+    'chart.hint':'點擊曲線上的點可查看對應照片',
+    'chart.photo':'照片','chart.water':'澆水',
+    'timeline.label':'時間軸',
+    'hints.title':'提示','hints.fertilizer':'上次給肥','hints.status':'上次狀態','hints.lastA':'上次飽和',
+    'hints.predict':'AI 預警','hints.predict.sub':'數據累積中，預警功能開啟後將顯示於此',
+    'ai.title':'AI 分析','ai.health':'健康','ai.growth':'生長','ai.beauty':'美感',
+    'ai.date':'分析日期',
+    'error.title':'找不到這株植物','error.sub':'請確認植物編號是否正確',
+    'admin.btn':'⚙ 後台',
+    'admin.tab.featured':'精選照片','admin.tab.videos':'影片管理',
+    'admin.tab.timelapse':'縮時素材','admin.tab.status':'狀態管理',
+    'photo.detail.toggle':'🔄 細節角度','photo.front.toggle':'← 正面角度',
+    'photo.play':'▶ 連續播放','photo.pause':'⏸ 暫停',
+    'photo.featured':'★ 精選','photo.no.photos':'尚無照片',
+    'photo.angle.detail':'· 細節',
+    'tl.detail':'細節','tl.front':'正面',
+    'time.today':'今天','time.days.ago':' 天前',
+    'unit.days':' 天','unit.photos':' 張',
+    'status.available':'可購買','status.sold':'已售出',
+    'status.reserved':'已保留','status.tracking':'展示中',
+    'status.pup_sale':'側芽販售','status.unlisted':'已下架',
+    'plant.loading':'正在載入...',
+    'saved':'已儲存 ✓',
+  },
+  vn: {
+    'nav.home':'Trang chủ','nav.plants':'Triển lãm','nav.shop':'Sản phẩm',
+    'nav.collection':'Bộ sưu tập','nav.admin':'Quản lý','nav.upload':'📷 Tải lên',
+    'ui.logout':'Đăng xuất','ui.share':'↗ Chia sẻ','ui.timelapse':'🎬 Tổng hợp Timelapse',
+    'section.stages':'Giai Đoạn Sinh Trưởng','section.story':'Câu Chuyện Cây','section.diary':'Nhật Ký Sinh Trưởng',
+    'phase.0':'Đột Phá','phase.1':'Thay Lá','phase.2':'Mạnh Khỏe','phase.3':'Thích Nghi','phase.4':'Đỉnh Cao',
+    'stat.days':'Ngày sinh trưởng','stat.weight':'Cân nặng','stat.photos':'Số ảnh',
+    'chart.hint':'Nhấp vào điểm trên biểu đồ để xem ảnh',
+    'chart.photo':'Ảnh','chart.water':'Tưới nước',
+    'timeline.label':'Dòng thời gian',
+    'hints.title':'Gợi Ý','hints.fertilizer':'Bón phân lần cuối','hints.status':'Tình trạng gần nhất','hints.lastA':'Bão hòa lần cuối',
+    'hints.predict':'AI Cảnh báo','hints.predict.sub':'Đang tích lũy dữ liệu, cảnh báo sẽ hiển thị tại đây',
+    'ai.title':'Phân Tích AI','ai.health':'Sức khỏe','ai.growth':'Sinh trưởng','ai.beauty':'Vẻ đẹp',
+    'ai.date':'Ngày phân tích',
+    'error.title':'Không tìm thấy cây này','error.sub':'Vui lòng kiểm tra lại mã cây',
+    'admin.btn':'⚙ Quản lý',
+    'admin.tab.featured':'Ảnh nổi bật','admin.tab.videos':'Quản lý video',
+    'admin.tab.timelapse':'Timelapse','admin.tab.status':'Trạng thái',
+    'photo.detail.toggle':'🔄 Góc chi tiết','photo.front.toggle':'← Góc chính',
+    'photo.play':'▶ Phát liên tục','photo.pause':'⏸ Dừng',
+    'photo.featured':'★ Nổi bật','photo.no.photos':'Chưa có ảnh',
+    'photo.angle.detail':'· Chi tiết',
+    'tl.detail':'Chi tiết','tl.front':'Chính diện',
+    'time.today':'Hôm nay','time.days.ago':' ngày trước',
+    'unit.days':' ngày','unit.photos':' ảnh',
+    'status.available':'Có thể mua','status.sold':'Đã bán',
+    'status.reserved':'Đã đặt cọc','status.tracking':'Đang triển lãm',
+    'status.pup_sale':'Bán chồi','status.unlisted':'Ngừng bán',
+    'plant.loading':'Đang tải...',
+    'saved':'Đã lưu ✓',
+  }
+};
+
+let lang = localStorage.getItem('plant_lang') || 'zh';
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('plant_lang', l);
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    if (T[l][k] !== undefined) el.textContent = T[l][k];
+  });
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.lang === l)
+  );
+}
+
+function t(key) { return T[lang][key] || T['zh'][key] || key; }
+
+// ─────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const ADMIN_PWD = 'roots';
@@ -690,14 +779,14 @@ function showPhoto(idx) {
   document.getElementById('photo-weight').textContent = p.weight_g ? p.weight_g + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
   const myAngle = p.angle || 'front';
-  document.getElementById('photo-angle').textContent = myAngle === 'detail' ? '· 細節' : '';
+  document.getElementById('photo-angle').textContent = myAngle === 'detail' ? t('photo.angle.detail') : '';
   document.getElementById('photo-info').style.display = 'block';
   document.getElementById('photo-counter').textContent = (idx+1) + ' / ' + photos.length;
   // 同日角度切換按鈕
   const compIdx = getCompanionIdx(idx);
   const toggleBtn = document.getElementById('angle-toggle-btn');
   if (compIdx >= 0) {
-    toggleBtn.textContent = myAngle === 'front' ? '🔄 細節角度' : '← 正面角度';
+    toggleBtn.textContent = myAngle === 'front' ? t('photo.detail.toggle') : t('photo.front.toggle');
     toggleBtn.style.display = 'block';
   } else {
     toggleBtn.style.display = 'none';
@@ -723,7 +812,7 @@ function buildThumbnails() {
     const img = document.createElement('img');
     img.className = 'hero-thumb' + (p.is_featured ? ' featured-t' : '');
     img.src = p.photo_url;
-    img.title = p.is_featured ? '★ 精選' : (p.angle === 'detail' ? '細節' : '正面');
+    img.title = p.is_featured ? t('photo.featured') : (p.angle === 'detail' ? t('tl.detail') : t('tl.front'));
     img.loading = 'lazy';
     img.onclick = () => showPhoto(i);
     wrap.appendChild(img);
@@ -731,7 +820,7 @@ function buildThumbnails() {
     if ((p.angle || 'front') === 'detail') {
       const badge = document.createElement('div');
       badge.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;background:rgba(184,146,42,.75);color:#fff;font-size:7px;text-align:center;letter-spacing:.04em;font-family:"DM Mono",monospace;pointer-events:none';
-      badge.textContent = '細節';
+      badge.textContent = t('tl.detail');
       wrap.appendChild(badge);
     }
     c.appendChild(wrap);
@@ -873,10 +962,10 @@ function buildWeightChart() {
 document.getElementById('btn-play').onclick = () => {
   if (slideshowTimer) {
     clearInterval(slideshowTimer); slideshowTimer = null;
-    const b = document.getElementById('btn-play'); b.textContent = '▶ 連續播放'; b.classList.remove('playing');
+    const b = document.getElementById('btn-play'); b.textContent = t('photo.play'); b.classList.remove('playing');
   } else {
     if (!timelinePhotos.length) return;
-    const b = document.getElementById('btn-play'); b.textContent = '⏸ 暫停'; b.classList.add('playing');
+    const b = document.getElementById('btn-play'); b.textContent = t('photo.pause'); b.classList.add('playing');
     let ti = 0;
     function adv() {
       const p = timelinePhotos[ti]; const gi = photos.findIndex(ph => ph.id === p.id);
@@ -905,7 +994,7 @@ async function loadAI(rid) {
         <div class="ai-score-label">${s.label}</div>
       </div>`).join('');
     if (a.summary) document.getElementById('ai-summary-text').textContent = a.summary;
-    if (a.analysis_date) document.getElementById('ai-meta').textContent = '分析日期 ' + a.analysis_date;
+    if (a.analysis_date) document.getElementById('ai-meta').textContent = t('ai.date') + ' ' + a.analysis_date;
   } catch(_) {}
 }
 
@@ -924,7 +1013,7 @@ async function loadHints(rid) {
     if (fertRows && fertRows.length) {
       const f = fertRows[0];
       const days = Math.floor((Date.now() - new Date(f.taken_at)) / 86400000);
-      const label = days === 0 ? '今天' : days + ' 天前';
+      const label = days === 0 ? t('time.today') : days + t('time.days.ago');
       const type = f.fertilizer_type ? `（${f.fertilizer_type}）` : '';
       const el = document.getElementById('hint-fertilizer');
       el.textContent = label + type;
@@ -938,7 +1027,7 @@ async function loadHints(rid) {
       const days = Math.floor((Date.now() - new Date(s.taken_at)) / 86400000);
       const label = STATUS_LABEL[s.plant_status] || s.status_note || s.plant_status;
       const el = document.getElementById('hint-status');
-      el.textContent = label + '　·　' + (days === 0 ? '今天' : days + ' 天前');
+      el.textContent = label + '　·　' + (days === 0 ? t('time.today') : days + t('time.days.ago'));
       el.className = 'hint-val' + (['dehydrated','moss_dry','growth_concern','frond_poor'].includes(s.plant_status) ? ' warn' : '');
     }
     // 上次達到飽和（A點）
@@ -947,7 +1036,7 @@ async function loadHints(rid) {
     if (aRows && aRows.length) {
       const a = aRows[0];
       const days = Math.floor((Date.now() - new Date(a.taken_at)) / 86400000);
-      const label = days === 0 ? '今天' : days + ' 天前';
+      const label = days === 0 ? t('time.today') : days + t('time.days.ago');
       document.getElementById('hint-last-a').textContent = label + `（${a.weight_g}g）`;
     }
     document.getElementById('ai-hints-wrap').style.display = 'block';
@@ -1054,7 +1143,7 @@ async function deletePhoto(id, storagePath, e) {
     if (photos.length) showPhoto(currentIdx);
     buildAdminPhotoGrid();
     buildAdminTlGrid();
-    document.getElementById('stat-photos').textContent = photos.length + ' 張';
+    document.getElementById('stat-photos').textContent = photos.length + t('unit.photos');
     toast('照片已刪除 / Đã xóa ảnh');
   } else {
     toast('刪除失敗，請檢查 RLS 設定');
@@ -1224,21 +1313,21 @@ async function init() {
   const badge = document.getElementById('status-badge');
   const priceEl = document.getElementById('plant-price');
   const statusMap = {
-    available: { text: '可購買 / Có thể mua', cls: 'available', showPrice: true, showContact: true },
-    tracking:  { text: '展示中 / Đang trưng bày', cls: 'available', showPrice: false, showContact: true },
-    pup_sale:  { text: '側芽販售 / Bán chồi', cls: 'available', showPrice: true, showContact: true },
-    sold:      { text: '已售出 / Đã bán', cls: 'sold', showPrice: false, showContact: false },
-    private:   { text: '暫不販售', cls: 'sold', showPrice: false, showContact: false },
+    available: { key: 'status.available', cls: 'available', showPrice: true, showContact: true },
+    tracking:  { key: 'status.tracking',  cls: 'available', showPrice: false, showContact: true },
+    pup_sale:  { key: 'status.pup_sale',  cls: 'available', showPrice: true, showContact: true },
+    sold:      { key: 'status.sold',      cls: 'sold', showPrice: false, showContact: false },
+    private:   { key: 'status.unlisted',  cls: 'sold', showPrice: false, showContact: false },
   };
   const sm = statusMap[webStatus] || statusMap['private'];
-  badge.textContent = sm.text;
+  badge.textContent = t(sm.key);
   badge.className = 'status-badge ' + sm.cls;
   priceEl.textContent = sm.showPrice ? plantPrice : '';
   if (!sm.showContact) document.getElementById('contact-btn').style.display = 'none';
 
   if (rehab.purchase_date) {
     const days = Math.floor((Date.now() - new Date(rehab.purchase_date)) / 86400000);
-    document.getElementById('stat-days').textContent = days + ' 天';
+    document.getElementById('stat-days').textContent = days + t('unit.days');
   }
   document.getElementById('plant-description').textContent =
     rehab.notes || rehab.description || '這株植物正在悄悄生長，每一天都是新的故事。';
@@ -1247,7 +1336,7 @@ async function init() {
   const photoData = await dbGet('photos', '?rid=eq.' + rid + '&approved=eq.true&order=taken_at.asc&select=*');
   photos = Array.isArray(photoData) ? photoData : [];
   buildSessionMap();
-  document.getElementById('stat-photos').textContent = photos.length + ' 張';
+  document.getElementById('stat-photos').textContent = photos.length + t('unit.photos');
 
   if (photos.length) {
     const lastW = [...photos].reverse().find(p => p.weight_g);
@@ -1259,7 +1348,7 @@ async function init() {
     buildDiary(photos, rid);
   } else {
     document.getElementById('no-photo').style.display = 'flex';
-    document.getElementById('photo-counter').textContent = '尚無照片';
+    document.getElementById('photo-counter').textContent = t('photo.no.photos');
     document.getElementById('btn-prev').style.display = 'none';
     document.getElementById('btn-next').style.display = 'none';
   }
@@ -1407,15 +1496,15 @@ async function saveStatusMgmt() {
     // 即時更新頁面顯示
     const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
     const STATUS_MAP = {
-      available: { text: '可購買 / Có thể mua', cls: 'available' },
-      tracking:  { text: '展示中 / Đang trưng bày', cls: 'available' },
-      pup_sale:  { text: '側芽販售 / Bán chồi', cls: 'available' },
-      sold:      { text: '已售出 / Đã bán', cls: 'sold' },
-      private:   { text: '暫不販售', cls: 'sold' },
+      available: { key: 'status.available', cls: 'available' },
+      tracking:  { key: 'status.tracking',  cls: 'available' },
+      pup_sale:  { key: 'status.pup_sale',  cls: 'available' },
+      sold:      { key: 'status.sold',      cls: 'sold' },
+      private:   { key: 'status.unlisted',  cls: 'sold' },
     };
     const badge = document.getElementById('status-badge');
     const sm = STATUS_MAP[newStatus] || STATUS_MAP['private'];
-    badge.textContent = sm.text;
+    badge.textContent = t(sm.key);
     badge.className = 'status-badge ' + sm.cls;
     document.getElementById('plant-owner').textContent = newOwner ? '📍 ' + (LOC_LABEL[newOwner] || newOwner) : '';
     // 隱藏聯繫按鈕（已售出 / 私密）
@@ -1692,6 +1781,9 @@ function closeCustModal() {
 
 document.getElementById('cust-modal-close').onclick = closeCustModal;
 document.getElementById('cust-modal').onclick = e => { if (e.target === e.currentTarget) closeCustModal(); };
+
+// 初始化語言
+setLang(lang);
 
 document.getElementById('cust-pwd-btn').onclick = async () => {
   const pwd = document.getElementById('cust-pwd').value.trim();
