@@ -259,8 +259,8 @@ async function loadAll() {
   if (emptyP) emptyP.style.display = 'none';
 
   try {
-    // 1. 所有植物
-    const plants = await sbGet('plants?select=id,rid,plant_name,loc&order=rid');
+    // 1. 所有植物（存在 rehab 表）
+    const plants = await sbGet('rehab?select=id,rid,plant_name,loc&order=rid');
 
     // 2. 待補登
     const pending = await sbGet(
