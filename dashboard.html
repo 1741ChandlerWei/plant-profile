@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>維護看板 — rễ , thân , lá</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--green:#2D4A2D;--green2:#3D6B3D;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--border2:#C8C0B0;--amber:#F59E0B;--red:#991B1B;--red-bg:rgba(153,27,27,.07);--yellow-bg:rgba(245,158,11,.07);--r:6px;--rl:10px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh}
+
+/* ── Auth ── */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:40px}
+.auth-logo{font-size:14px;letter-spacing:.2em;color:var(--green);font-style:italic}
+.auth-title{font-size:22px;font-weight:300;color:var(--text)}
+.auth-sub{font-size:11px;letter-spacing:.12em;color:var(--text3)}
+.auth-row{display:flex;gap:0;border:1px solid var(--border);width:100%;max-width:280px}
+.auth-input{flex:1;background:none;border:none;padding:12px 14px;font-size:13px;font-family:inherit;color:var(--text);outline:none}
+.auth-btn{background:var(--green);color:var(--cream);border:none;padding:12px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit}
+.auth-btn:hover{background:var(--green2)}
+.auth-error{font-size:12px;color:var(--red);min-height:16px}
+
+/* ── Header ── */
+#dashboard{display:none}
+.dash-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dash-logo{font-size:12px;letter-spacing:.18em;color:var(--green);font-style:italic;text-decoration:none}
+.dash-title{font-size:15px;font-weight:300;letter-spacing:.08em;color:var(--text2)}
+.dash-refresh{background:none;border:1px solid var(--border);padding:6px 12px;font-size:11px;color:var(--text3);cursor:pointer;font-family:inherit;border-radius:var(--r)}
+.dash-refresh:hover{border-color:var(--green);color:var(--green)}
+
+/* ── Tabs ── */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--cream)}
+.tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;padding:14px 8px;font-size:11px;letter-spacing:.1em;color:var(--text3);cursor:pointer;font-family:inherit;text-transform:uppercase;transition:all .2s;position:relative}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;border-radius:9px;font-size:9px;min-width:16px;height:16px;padding:0 4px;margin-left:4px;font-family:'DM Mono',monospace;vertical-align:middle}
+.tab-badge.zero{display:none}
+
+/* ── Tab Content ── */
+.tab-content{display:none;padding:16px}
+.tab-content.active{display:block}
+
+/* ── Sort bar ── */
+.sort-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:11px;color:var(--text3)}
+.sort-bar strong{color:var(--text2)}
+
+/* ── Plant Cards ── */
+.cards-grid{display:flex;flex-direction:column;gap:10px}
+.plant-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px}
+.plant-card.urgent{border-color:rgba(153,27,27,.35);background:var(--red-bg)}
+.plant-card.warn{border-color:rgba(245,158,11,.35);background:var(--yellow-bg)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.card-left{}
+.card-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:2px}
+.card-name{font-size:15px;font-weight:400;color:var(--text)}
+.card-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.card-days{font-family:'DM Mono',monospace;font-size:13px;font-weight:400}
+.card-days.urgent{color:var(--red)}
+.card-days.warn{color:var(--amber)}
+.card-days.ok{color:var(--text3)}
+.card-days-label{font-size:9px;color:var(--text3);text-align:right}
+.card-detail{font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6}
+.card-detail span{margin-right:10px}
+.card-op{display:inline-block;font-size:10px;background:rgba(245,158,11,.15);color:#92400E;border-radius:4px;padding:2px 7px;margin-bottom:8px}
+.card-note-row{display:flex;gap:6px;margin-bottom:8px}
+.card-note-input{flex:1;background:var(--cream);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:12px;font-family:inherit;color:var(--text);outline:none}
+.card-note-input:focus{border-color:var(--green)}
+.card-note-save{background:var(--green);color:var(--cream);border:none;border-radius:var(--r);padding:7px 12px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.card-note-save:hover{background:var(--green2)}
+.card-actions{display:flex;gap:8px}
+.btn-complete{background:var(--amber);color:#fff;border:none;border-radius:var(--r);padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500}
+.btn-complete:hover{background:#D97706}
+.btn-view{background:none;border:1px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);text-decoration:none;display:inline-block}
+.btn-view:hover{border-color:var(--green);color:var(--green)}
+.btn-upload{background:none;border:1px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;color:var(--text2);text-decoration:none;display:inline-block}
+.btn-upload:hover{border-color:var(--green);color:var(--green)}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-text{font-size:14px;font-style:italic}
+
+/* ── Loading ── */
+.loading{text-align:center;padding:40px;color:var(--text3);font-size:13px;font-style:italic}
+
+/* ── 補登 Modal ── */
+.modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.85);align-items:center;justify-content:center;padding:24px}
+.modal.open{display:flex}
+.modal-box{background:var(--cream2);border:1px solid var(--border2);border-radius:var(--rl);padding:24px;max-width:360px;width:100%}
+.modal-title{font-size:15px;font-weight:400;color:var(--green);margin-bottom:4px;letter-spacing:.06em}
+.modal-meta{font-size:12px;color:var(--text3);background:var(--cream);border-radius:var(--r);padding:10px 12px;margin-bottom:16px;line-height:1.7}
+.modal-meta strong{color:var(--amber)}
+.modal-label{font-size:11px;letter-spacing:.08em;color:var(--text3);margin-bottom:6px;display:block}
+.modal-weight-wrap{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.modal-weight-inp{flex:1;background:none;border:none;padding:11px 12px;font-size:15px;font-family:'DM Mono',monospace;outline:none;color:var(--text)}
+.modal-weight-unit{padding:11px 12px;font-size:12px;color:var(--text3);background:var(--cream2);border-left:1px solid var(--border)}
+.modal-radio-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.modal-radio{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;padding:6px 0}
+.modal-radio input{accent-color:var(--green)}
+.modal-btns{display:flex;gap:10px}
+.modal-cancel{flex:1;background:none;border:1px solid var(--border);border-radius:var(--r);padding:11px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text2)}
+.modal-confirm{flex:1;background:var(--green);color:var(--cream);border:none;border-radius:var(--r);padding:11px;font-size:13px;cursor:pointer;font-family:inherit;letter-spacing:.06em}
+.modal-confirm:hover{background:var(--green2)}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:11px 22px;border-radius:var(--r);font-size:13px;z-index:999;display:none;white-space:nowrap}
+.toast.success{background:var(--green);color:var(--cream)}
+.toast.error{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<!-- ── 密碼屏 ── -->
+<div id="auth-screen">
+  <div class="auth-logo">rễ , thân , lá</div>
+  <div class="auth-title">維護看板</div>
+  <div class="auth-sub">BẢNG BẢO TRÌ / MAINTENANCE</div>
+  <div class="auth-row">
+    <input class="auth-input" id="auth-pwd" type="password" placeholder="密碼 / Mật khẩu" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()">
+    <button class="auth-btn" onclick="doAuth()">進入</button>
+  </div>
+  <div class="auth-error" id="auth-error"></div>
+</div>
+
+<!-- ── 主面板 ── -->
+<div id="dashboard">
+  <div class="dash-header">
+    <a class="dash-logo" href="/plants.html">rễ , thân , lá</a>
+    <div class="dash-title">維護看板</div>
+    <button class="dash-refresh" onclick="loadAll()">↻ 刷新</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="pending" onclick="switchTab('pending')">
+      ⚠️ 待補登<span class="tab-badge zero" id="badge-pending">0</span>
+    </button>
+    <button class="tab" data-tab="water" onclick="switchTab('water')">
+      💧 澆水<span class="tab-badge zero" id="badge-water">0</span>
+    </button>
+    <button class="tab" data-tab="maintain" onclick="switchTab('maintain')">
+      🔧 維護<span class="tab-badge zero" id="badge-maintain">0</span>
+    </button>
+  </div>
+
+  <!-- 待補登 -->
+  <div class="tab-content active" id="tab-pending">
+    <div class="loading" id="loading-pending">載入中...</div>
+    <div class="cards-grid" id="cards-pending"></div>
+    <div class="empty-state" id="empty-pending" style="display:none">
+      <div class="empty-icon">✅</div>
+      <div class="empty-text">目前沒有待補登紀錄</div>
+    </div>
+  </div>
+
+  <!-- 澆水 -->
+  <div class="tab-content" id="tab-water">
+    <div class="loading" id="loading-water">載入中...</div>
+    <div class="sort-bar" id="sort-bar-water" style="display:none">依最後澆水時間排序，<strong>最久</strong>排最前</div>
+    <div class="cards-grid" id="cards-water"></div>
+  </div>
+
+  <!-- 維護 -->
+  <div class="tab-content" id="tab-maintain">
+    <div class="loading" id="loading-maintain">載入中...</div>
+    <div class="sort-bar" id="sort-bar-maintain" style="display:none">依最後維護時間排序，<strong>最久</strong>排最前</div>
+    <div class="cards-grid" id="cards-maintain"></div>
+  </div>
+</div>
+
+<!-- ── 補登 Modal ── -->
+<div class="modal" id="pending-modal">
+  <div class="modal-box">
+    <div class="modal-title">補登操作後重量 / Cập nhật cân sau thao tác</div>
+    <div class="modal-meta" id="modal-meta"></div>
+    <label class="modal-label">操作後重量（g）</label>
+    <div class="modal-weight-wrap">
+      <input class="modal-weight-inp" id="modal-weight" type="text" inputmode="numeric" placeholder="操作後秤到的重量">
+      <div class="modal-weight-unit">g</div>
+    </div>
+    <div id="modal-water-section">
+      <label class="modal-label">給水結果 / Kết quả tưới</label>
+      <div class="modal-radio-group">
+        <label class="modal-radio"><input type="radio" name="modal_water" value="mist"> 一般噴葉 / Phun lá</label>
+        <label class="modal-radio"><input type="radio" name="modal_water" value="partial"> 給了一些水（未飽和）/ Tưới một phần</label>
+        <label class="modal-radio"><input type="radio" name="modal_water" value="saturated" checked> 水滿飽和 ← 記為 A 點 / Bão hòa ← Điểm A</label>
+        <label class="modal-radio"><input type="radio" name="modal_water" value="overwatered"> 過濕 / Quá ẩm</label>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">取消 / Huỷ</button>
+      <button class="modal-confirm" onclick="completePending()">確認補登</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB   = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SK   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const HDR  = { apikey: SK, Authorization: 'Bearer ' + SK };
+const ADMIN_PWD = 'roots';
+const POS_API   = 'https://plant-pos.vercel.app/api/complete-pending';
+
+// ── 水 / 肥 operation labels
+const OP_LABEL = {
+  water: '給水', fertilizer: '給肥', trim: '修剪葉片',
+  add_substrate: '補充水苔', wire: '銅線矯正',
+  pest: '除蟲噴藥', remove_pup: '側芽分株', remount: '換板'
+};
+
+let currentPendingId = null;
+let currentPendingIsLiquid = false;
+
+// ─────────────────────────────────────────
+// Auth
+// ─────────────────────────────────────────
+function doAuth() {
+  const val = document.getElementById('auth-pwd').value;
+  if (val === ADMIN_PWD) {
+    sessionStorage.setItem('dash_auth', '1');
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadAll();
+  } else {
+    document.getElementById('auth-error').textContent = '密碼錯誤 / Sai mật khẩu';
+    setTimeout(() => document.getElementById('auth-error').textContent = '', 2000);
+  }
+}
+
+if (sessionStorage.getItem('dash_auth') === '1') {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+}
+
+// ─────────────────────────────────────────
+// Tabs
+// ─────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tab));
+}
+
+// ─────────────────────────────────────────
+// Data Loading
+// ─────────────────────────────────────────
+async function sbGet(path) {
+  const r = await fetch(SB + '/rest/v1/' + path, { headers: HDR });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function loadAll() {
+  ['pending','water','maintain'].forEach(t => {
+    document.getElementById('loading-' + t).style.display = 'block';
+    document.getElementById('cards-' + t).innerHTML = '';
+  });
+  const emptyP = document.getElementById('empty-pending');
+  if (emptyP) emptyP.style.display = 'none';
+
+  try {
+    // 1. 所有植物
+    const plants = await sbGet('plants?select=id,rid,plant_name,loc&order=rid');
+
+    // 2. 待補登
+    const pending = await sbGet(
+      'photos?is_pending=eq.true&completed_at=is.null' +
+      '&select=id,rid,plant_name,weight_g,liquid_action,physical_op,taken_at&order=taken_at.desc'
+    );
+
+    // 3. 最近 600 筆照片（找每株最後維護 & 最後澆水）
+    const recent = await sbGet(
+      'photos?select=rid,taken_at,liquid_action,weight_g&order=taken_at.desc&limit=600'
+    );
+
+    // 整理：每株最後維護時間、最後澆水時間
+    const lastMaint  = {}; // rid → { taken_at, weight_g }
+    const lastWater  = {}; // rid → taken_at
+    recent.forEach(p => {
+      if (!lastMaint[p.rid])  lastMaint[p.rid]  = { taken_at: p.taken_at, weight_g: p.weight_g };
+      const liq = p.liquid_action;
+      if (!lastWater[p.rid] && (liq === 'water' || liq === 'fertilizer')) {
+        lastWater[p.rid] = p.taken_at;
+      }
+    });
+
+    // 4. 讀備注（localStorage）
+    const notes = JSON.parse(localStorage.getItem('dash_notes') || '{}');
+
+    renderPending(pending, notes);
+    renderWater(plants, lastWater, lastMaint, notes);
+    renderMaintain(plants, lastMaint, notes);
+
+  } catch(e) {
+    showToast('載入失敗：' + e.message, 'error');
+  } finally {
+    ['pending','water','maintain'].forEach(t => {
+      document.getElementById('loading-' + t).style.display = 'none';
+    });
+  }
+}
+
+// ─────────────────────────────────────────
+// Render helpers
+// ─────────────────────────────────────────
+function daysAgo(isoStr) {
+  if (!isoStr) return null;
+  const diff = Date.now() - new Date(isoStr).getTime();
+  return Math.floor(diff / 86400000);
+}
+
+function daysLabel(days) {
+  if (days === null) return '—';
+  if (days === 0) return '今天';
+  if (days === 1) return '昨天';
+  return days + ' 天前';
+}
+
+function urgencyClass(days) {
+  if (days === null || days >= 7) return 'urgent';
+  if (days >= 4) return 'warn';
+  return 'ok';
+}
+
+function daysColorClass(days) {
+  if (days === null || days >= 7) return 'urgent';
+  if (days >= 4) return 'warn';
+  return 'ok';
+}
+
+function noteHtml(rid, notes, placeholder) {
+  const val = (notes[rid] || '').replace(/"/g, '&quot;');
+  return `
+    <div class="card-note-row">
+      <input class="card-note-input" id="note-${rid}" value="${val}" placeholder="${placeholder || '備注...'}">
+      <button class="card-note-save" onclick="saveNote('${rid}')">儲存</button>
+    </div>`;
+}
+
+function saveNote(rid) {
+  const val = document.getElementById('note-' + rid)?.value || '';
+  const notes = JSON.parse(localStorage.getItem('dash_notes') || '{}');
+  notes[rid] = val;
+  localStorage.setItem('dash_notes', JSON.stringify(notes));
+  showToast('備注已儲存', 'success');
+}
+
+// ─────────────────────────────────────────
+// Tab 1 — 待補登
+// ─────────────────────────────────────────
+function renderPending(pending, notes) {
+  const badge = document.getElementById('badge-pending');
+  badge.textContent = pending.length;
+  badge.classList.toggle('zero', pending.length === 0);
+
+  const empty = document.getElementById('empty-pending');
+  const grid  = document.getElementById('cards-pending');
+
+  if (!pending.length) { empty.style.display = 'block'; grid.innerHTML = ''; return; }
+  empty.style.display = 'none';
+
+  const days = d => daysAgo(d);
+
+  grid.innerHTML = pending.map(row => {
+    const op = OP_LABEL[row.liquid_action] || OP_LABEL[row.physical_op] || '操作';
+    const isLiquid = ['water','fertilizer'].includes(row.liquid_action);
+    const d = daysAgo(row.taken_at);
+    const dClass = daysColorClass(d);
+    return `
+    <div class="plant-card urgent">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="card-rid">${row.rid}</div>
+          <div class="card-name">${row.plant_name || row.rid}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-days ${dClass}">${daysLabel(d)}</div>
+          <div class="card-days-label">操作時間</div>
+        </div>
+      </div>
+      <div class="card-op">${op}</div>
+      <div class="card-detail">
+        <span>操作前重量：${row.weight_g || '—'}g</span>
+      </div>
+      ${noteHtml(row.rid, notes)}
+      <div class="card-actions">
+        <button class="btn-complete" onclick="openModal('${row.id}','${row.rid}','${(row.plant_name||row.rid).replace(/'/g,"\\'")}',${row.weight_g||0},'${row.liquid_action||row.physical_op||''}',${isLiquid})">⚖ 補登</button>
+        <a class="btn-view" href="/plant/${row.rid}" target="_blank">查看</a>
+        <a class="btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">上傳</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// Tab 2 — 澆水
+// ─────────────────────────────────────────
+function renderWater(plants, lastWater, lastMaint, notes) {
+  const sorted = [...plants].sort((a, b) => {
+    const da = daysAgo(lastWater[a.rid]);
+    const db = daysAgo(lastWater[b.rid]);
+    const va = da === null ? 9999 : da;
+    const vb = db === null ? 9999 : db;
+    return vb - va;
+  });
+
+  const warnCount = sorted.filter(p => {
+    const d = daysAgo(lastWater[p.rid]);
+    return d === null || d >= 4;
+  }).length;
+  const badge = document.getElementById('badge-water');
+  badge.textContent = warnCount;
+  badge.classList.toggle('zero', warnCount === 0);
+
+  document.getElementById('sort-bar-water').style.display = 'flex';
+
+  const grid = document.getElementById('cards-water');
+  grid.innerHTML = sorted.map(plant => {
+    const dW = daysAgo(lastWater[plant.rid]);
+    const dM = daysAgo(lastMaint[plant.rid]?.taken_at);
+    const wt = lastMaint[plant.rid]?.weight_g;
+    const cardClass = dW === null || dW >= 7 ? 'urgent' : dW >= 4 ? 'warn' : '';
+    return `
+    <div class="plant-card ${cardClass}">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="card-rid">${plant.rid}</div>
+          <div class="card-name">${plant.plant_name}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-days ${daysColorClass(dW)}">${daysLabel(dW)}</div>
+          <div class="card-days-label">最後澆水</div>
+        </div>
+      </div>
+      <div class="card-detail">
+        ${wt ? `<span>重量：${wt}g</span>` : ''}
+        <span>最後維護：${daysLabel(dM)}</span>
+      </div>
+      ${noteHtml(plant.rid, notes)}
+      <div class="card-actions">
+        <a class="btn-view" href="/plant/${plant.rid}" target="_blank">查看</a>
+        <a class="btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">去上傳</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// Tab 3 — 維護
+// ─────────────────────────────────────────
+function renderMaintain(plants, lastMaint, notes) {
+  const sorted = [...plants].sort((a, b) => {
+    const da = daysAgo(lastMaint[a.rid]?.taken_at);
+    const db = daysAgo(lastMaint[b.rid]?.taken_at);
+    const va = da === null ? 9999 : da;
+    const vb = db === null ? 9999 : db;
+    return vb - va;
+  });
+
+  const warnCount = sorted.filter(p => {
+    const d = daysAgo(lastMaint[p.rid]?.taken_at);
+    return d === null || d >= 4;
+  }).length;
+  const badge = document.getElementById('badge-maintain');
+  badge.textContent = warnCount;
+  badge.classList.toggle('zero', warnCount === 0);
+
+  document.getElementById('sort-bar-maintain').style.display = 'flex';
+
+  const grid = document.getElementById('cards-maintain');
+  grid.innerHTML = sorted.map(plant => {
+    const dM = daysAgo(lastMaint[plant.rid]?.taken_at);
+    const wt = lastMaint[plant.rid]?.weight_g;
+    const cardClass = dM === null || dM >= 7 ? 'urgent' : dM >= 4 ? 'warn' : '';
+    return `
+    <div class="plant-card ${cardClass}">
+      <div class="card-top">
+        <div class="card-left">
+          <div class="card-rid">${plant.rid}</div>
+          <div class="card-name">${plant.plant_name}</div>
+        </div>
+        <div class="card-right">
+          <div class="card-days ${daysColorClass(dM)}">${daysLabel(dM)}</div>
+          <div class="card-days-label">最後維護</div>
+        </div>
+      </div>
+      <div class="card-detail">
+        ${wt ? `<span>重量：${wt}g</span>` : ''}
+      </div>
+      ${noteHtml(plant.rid, notes)}
+      <div class="card-actions">
+        <a class="btn-view" href="/plant/${plant.rid}" target="_blank">查看</a>
+        <a class="btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">去上傳</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────
+// 補登 Modal
+// ─────────────────────────────────────────
+function openModal(id, rid, plantName, weightBefore, op, isLiquid) {
+  currentPendingId = id;
+  currentPendingIsLiquid = isLiquid;
+  const opLabel = OP_LABEL[op] || op;
+  document.getElementById('modal-meta').innerHTML =
+    `<strong>${rid}</strong>　${plantName}<br>操作：${opLabel}<br>操作前重量：<strong>${weightBefore}g</strong>`;
+  document.getElementById('modal-water-section').style.display = isLiquid ? 'block' : 'none';
+  document.getElementById('modal-weight').value = '';
+  document.querySelector('input[name="modal_water"][value="saturated"]').checked = true;
+  document.getElementById('pending-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('pending-modal').classList.remove('open');
+  currentPendingId = null;
+}
+
+async function completePending() {
+  const wVal = document.getElementById('modal-weight').value.trim();
+  if (!wVal || isNaN(parseInt(wVal))) { showToast('請輸入操作後重量', 'error'); return; }
+  const waterStatus = currentPendingIsLiquid
+    ? document.querySelector('input[name="modal_water"]:checked')?.value
+    : null;
+  try {
+    const r = await fetch(POS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pendingId: currentPendingId, postWeightG: parseInt(wVal), postWaterStatus: waterStatus })
+    });
+    if (!r.ok) throw new Error(await r.text());
+    closeModal();
+    showToast('✅ 補登成功', 'success');
+    setTimeout(loadAll, 800);
+  } catch(e) {
+    showToast('❌ 補登失敗：' + e.message, 'error');
+  }
+}
+
+// ─────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+// ─────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────
+if (sessionStorage.getItem('dash_auth') === '1') loadAll();
+</script>
+</body>
+</html>
