@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上傳操作說明 / Hướng Dẫn Tải Ảnh</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F5F0E8;--cream2:#EDE6D6;--green:#2D4A2D;--green2:#3D6B3D;
+  --green-pale:#E8F0E8;--amber:#B8922A;--amber-pale:#FEF3C7;
+  --text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;
+  --border:#D8D0C0;--red:#991B1B;--red-pale:#FEF2F2;
+  --blue:#1D4ED8;--blue-pale:#EFF6FF;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;padding:0 0 60px}
+
+/* Header */
+.header{background:var(--green);color:var(--cream);padding:20px;text-align:center}
+.header-logo{font-size:11px;letter-spacing:.2em;opacity:.7;margin-bottom:6px}
+.header-title{font-size:22px;font-weight:300}
+.header-title-vn{font-size:13px;opacity:.75;margin-top:2px;font-style:italic}
+
+/* Section */
+.section{padding:20px 16px 0}
+.section-title{font-size:11px;letter-spacing:.18em;color:var(--text3);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Flow */
+.flow{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:12px;position:relative}
+.step-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:32px}
+.step-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;z-index:1}
+.step-dot.green{background:var(--green);color:var(--cream)}
+.step-dot.amber{background:var(--amber);color:#fff}
+.step-dot.red{background:var(--red);color:#fff}
+.step-dot.blue{background:var(--blue);color:#fff}
+.step-dot.gray{background:var(--text3);color:#fff}
+.step-connector{width:2px;flex:1;background:var(--border);min-height:12px}
+.step-body{flex:1;padding-bottom:20px}
+.step-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.step-zh{font-size:16px;font-weight:400;color:var(--text);margin-bottom:2px}
+.step-vn{font-size:12px;color:var(--text3);font-style:italic;margin-bottom:10px}
+.step-detail{font-size:13px;color:var(--text2);line-height:1.7}
+.step-detail-vn{font-size:11px;color:var(--text3);font-style:italic;line-height:1.7;margin-top:4px}
+
+/* Tag chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;flex-direction:column;background:var(--cream2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px}
+.chip-zh{color:var(--text2)}
+.chip-vn{font-size:10px;color:var(--text3);font-style:italic}
+.chip.green{background:var(--green-pale);border-color:rgba(45,74,45,.2)}
+.chip.amber{background:var(--amber-pale);border-color:rgba(184,146,42,.25)}
+.chip.red{background:var(--red-pale);border-color:rgba(153,27,27,.2)}
+
+/* Note box */
+.note{background:var(--amber-pale);border:1px solid rgba(184,146,42,.3);border-radius:8px;padding:12px 14px;margin-top:10px}
+.note-zh{font-size:13px;color:#92400E;line-height:1.6}
+.note-vn{font-size:11px;color:#B45309;font-style:italic;margin-top:3px;line-height:1.6}
+
+.alert{background:var(--red-pale);border:1px solid rgba(153,27,27,.25);border-radius:8px;padding:12px 14px;margin-top:10px}
+.alert-zh{font-size:13px;color:var(--red);line-height:1.6}
+.alert-vn{font-size:11px;color:#DC2626;font-style:italic;margin-top:3px;line-height:1.6}
+
+/* Branch */
+.branch{display:flex;gap:8px;margin-top:10px}
+.branch-item{flex:1;border-radius:8px;padding:10px 12px;font-size:12px}
+.branch-item.yes{background:#DCFCE7;border:1px solid #86EFAC}
+.branch-item.no{background:var(--cream2);border:1px solid var(--border)}
+.branch-label{font-size:10px;font-weight:700;letter-spacing:.08em;margin-bottom:3px}
+.branch-label.yes{color:#166534}
+.branch-label.no{color:var(--text3)}
+.branch-zh{color:var(--text2);line-height:1.5}
+.branch-vn{font-size:10px;color:var(--text3);font-style:italic;margin-top:2px}
+
+/* Pending section */
+.pending-section{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:16px;margin-top:12px}
+.pending-title{font-size:13px;font-weight:700;color:#92400E;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* Weight types */
+.wtype-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.wtype{border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.wtype.A{background:#DCFCE7;border-color:#86EFAC}
+.wtype.C{background:var(--blue-pale);border-color:#BFDBFE}
+.wtype.B{background:var(--cream2)}
+.wtype-label{font-size:11px;font-weight:700;letter-spacing:.1em;margin-bottom:2px}
+.wtype.A .wtype-label{color:#166534}
+.wtype.C .wtype-label{color:var(--blue)}
+.wtype.B .wtype-label{color:var(--text3)}
+.wtype-zh{font-size:12px;color:var(--text2)}
+.wtype-vn{font-size:10px;color:var(--text3);font-style:italic;margin-top:2px}
+
+/* Footer */
+.footer{text-align:center;padding:30px 20px 0;font-size:11px;color:var(--text3);font-style:italic}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">rễ , thân , lá studio</div>
+  <div class="header-title">上傳操作說明</div>
+  <div class="header-title-vn">Hướng Dẫn Tải Ảnh & Ghi Dữ Liệu</div>
+</div>
+
+<!-- ══ 主流程 ══ -->
+<div class="section">
+  <div class="section-title">主流程 / Quy Trình Chính</div>
+
+  <div class="flow">
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot green">1</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">打開上傳頁</div>
+          <div class="step-vn">Mở trang tải ảnh</div>
+          <div class="step-detail">plant-pos.vercel.app/upload.html</div>
+          <div class="step-detail-vn">Nhập địa chỉ trên vào trình duyệt, hoặc quét mã QR</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot green">2</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">選擇植物</div>
+          <div class="step-vn">Chọn cây</div>
+          <div class="step-detail">搜尋植物名稱或 R 編號，點選對應的卡片</div>
+          <div class="step-detail-vn">Tìm theo tên hoặc mã R, nhấn vào thẻ cây tương ứng</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot green">3</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">拍照</div>
+          <div class="step-vn">Chụp ảnh</div>
+          <div class="step-detail">正面照片（必拍）· 細節照片（選拍）</div>
+          <div class="step-detail-vn">Ảnh chính diện (bắt buộc) · Ảnh chi tiết (tuỳ chọn)</div>
+          <div class="chips">
+            <div class="chip green">
+              <span class="chip-zh">👻 Ghost — 透明疊圖對位，確保每次角度一致</span>
+              <span class="chip-vn">Ghost — chụp đè lên ảnh cũ, giữ góc nhìn nhất quán</span>
+            </div>
+            <div class="chip">
+              <span class="chip-zh">📷 普通 — 直接用相機拍</span>
+              <span class="chip-vn">Thường — chụp bình thường</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot amber">4</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">填入重量（操作前）</div>
+          <div class="step-vn">Nhập cân nặng (trước thao tác)</div>
+          <div class="step-detail">秤好後輸入克數（g）。<br>這是<strong>操作前</strong>的重量，非常重要。</div>
+          <div class="step-detail-vn">Cân xong rồi nhập số gam (g).<br>Đây là cân nặng <strong>trước khi thao tác</strong>, rất quan trọng.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot amber">5</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">① 液體輸入</div>
+          <div class="step-vn">① Tưới nước & Bón phân</div>
+          <div class="chips">
+            <div class="chip">
+              <span class="chip-zh">無 — 沒有澆水或施肥</span>
+              <span class="chip-vn">Không — không tưới, không bón</span>
+            </div>
+            <div class="chip green">
+              <span class="chip-zh">給水 — 澆水（泡盆或噴水）</span>
+              <span class="chip-vn">Tưới nước — tưới hoặc ngâm chậu</span>
+            </div>
+            <div class="chip amber">
+              <span class="chip-zh">給肥 — 施肥（填寫肥料種類）</span>
+              <span class="chip-vn">Bón phân — nhập loại phân bón</span>
+            </div>
+          </div>
+          <div class="note">
+            <div class="note-zh">⚠️ 選了「給水」或「給肥」→ 操作完成後需要<strong>補登</strong>操作後重量</div>
+            <div class="note-vn">⚠️ Chọn "Tưới" hoặc "Bón phân" → sau khi xong cần <strong>cập nhật</strong> cân nặng sau thao tác</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot amber">6</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">② 物理操作</div>
+          <div class="step-vn">② Thao tác vật lý</div>
+          <div class="chips">
+            <div class="chip"><span class="chip-zh">無</span><span class="chip-vn">Không</span></div>
+            <div class="chip"><span class="chip-zh">修剪葉片</span><span class="chip-vn">Tỉa lá</span></div>
+            <div class="chip"><span class="chip-zh">補充水苔</span><span class="chip-vn">Bổ sung rêu</span></div>
+            <div class="chip"><span class="chip-zh">銅線矯正</span><span class="chip-vn">Chỉnh dây đồng</span></div>
+            <div class="chip"><span class="chip-zh">除蟲噴藥</span><span class="chip-vn">Phun thuốc trừ sâu</span></div>
+            <div class="chip"><span class="chip-zh">側芽分株</span><span class="chip-vn">Tách chồi bên</span></div>
+            <div class="chip"><span class="chip-zh">換板</span><span class="chip-vn">Đổi giá thể</span></div>
+          </div>
+          <div class="note">
+            <div class="note-zh">⚠️ 有物理操作 → 同樣需要補登操作後重量</div>
+            <div class="note-vn">⚠️ Có thao tác vật lý → cũng cần cập nhật cân sau thao tác</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot amber">7</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">③ 狀態評估</div>
+          <div class="step-vn">③ Đánh giá tình trạng cây</div>
+          <div class="chips">
+            <div class="chip green"><span class="chip-zh">正常</span><span class="chip-vn">Bình thường</span></div>
+            <div class="chip green"><span class="chip-zh">芽頭健康，有活力</span><span class="chip-vn">Chồi khỏe, có sức sống</span></div>
+            <div class="chip green"><span class="chip-zh">看到新生長跡象</span><span class="chip-vn">Có dấu hiệu tăng trưởng mới</span></div>
+            <div class="chip amber"><span class="chip-zh">芽頭看起來不健康</span><span class="chip-vn">Chồi trông không khỏe</span></div>
+            <div class="chip amber"><span class="chip-zh">葉片狀態不好</span><span class="chip-vn">Lá không tốt</span></div>
+            <div class="chip amber"><span class="chip-zh">水苔過乾</span><span class="chip-vn">Rêu quá khô</span></div>
+            <div class="chip red"><span class="chip-zh">植物缺水（脫水症狀）→ 自動切換為給水</span><span class="chip-vn">Cây thiếu nước → tự động chuyển sang tưới nước</span></div>
+            <div class="chip"><span class="chip-zh">其他（填備注）</span><span class="chip-vn">Khác (nhập ghi chú)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 8 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot green">8</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">按下「上傳」</div>
+          <div class="step-vn">Nhấn nút "Tải lên"</div>
+          <div class="step-detail">確認植物、照片、重量都填好後，點綠色上傳按鈕</div>
+          <div class="step-detail-vn">Sau khi chọn cây, chụp ảnh và nhập cân nặng, nhấn nút tải lên màu xanh</div>
+          <div class="branch">
+            <div class="branch-item no">
+              <div class="branch-label no">無操作 / Không thao tác</div>
+              <div class="branch-zh">✅ 完成，不需補登</div>
+              <div class="branch-vn">✅ Xong, không cần cập nhật thêm</div>
+            </div>
+            <div class="branch-item yes">
+              <div class="branch-label yes">有操作 / Có thao tác</div>
+              <div class="branch-zh">⚠️ 操作後需要補登</div>
+              <div class="branch-vn">⚠️ Sau thao tác cần cập nhật</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 9 -->
+    <div class="step">
+      <div class="step-line">
+        <div class="step-dot red">9</div>
+      </div>
+      <div class="step-body">
+        <div class="step-card">
+          <div class="step-zh">補登（操作後重量）</div>
+          <div class="step-vn">Cập nhật cân sau thao tác</div>
+          <div class="step-detail">操作全部完成後，重新秤重，回到上傳頁點「補登」按鈕</div>
+          <div class="step-detail-vn">Sau khi hoàn tất thao tác, cân lại rồi vào trang tải lên, nhấn nút "Cập nhật"</div>
+          <div class="pending-section">
+            <div class="pending-title">⚠️ 補登流程 / Quy trình cập nhật</div>
+            <div class="step-detail">
+              1. 看到頁面頂部黃色橫幅「待補登 X 筆」<br>
+              2. 點「補登」按鈕<br>
+              3. 輸入操作後重量<br>
+              4. 若有給水：選擇給水結果（飽和 / 部分 / 噴葉 / 過濕）<br>
+              5. 確認送出
+            </div>
+            <div class="step-detail-vn" style="margin-top:8px">
+              1. Thấy banner vàng "Chờ cập nhật X mục" ở đầu trang<br>
+              2. Nhấn nút "Cập nhật"<br>
+              3. Nhập cân nặng sau thao tác<br>
+              4. Nếu có tưới: chọn kết quả tưới (bão hòa / một phần / phun lá / quá ẩm)<br>
+              5. Xác nhận và gửi
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ 情境範例 ══ -->
+<div class="section" style="margin-top:10px">
+  <div class="section-title">情境範例 / Ví Dụ Thực Tế</div>
+
+  <!-- 情境 A：今天要給水 -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px">
+    <div style="background:var(--green);color:var(--cream);padding:12px 16px">
+      <div style="font-size:14px;font-weight:400">情境 A：今天要給水</div>
+      <div style="font-size:11px;opacity:.75;font-style:italic;margin-top:2px">Tình huống A: Hôm nay cần tưới nước</div>
+    </div>
+    <div style="padding:14px 16px;display:flex;flex-direction:column;gap:0">
+
+      <div style="display:flex;gap:10px;padding-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">①</div>
+          <div style="width:2px;flex:1;background:var(--border);min-height:10px"></div>
+        </div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:14px;color:var(--text)">澆水前先秤重</div>
+          <div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">Cân trước khi tưới</div>
+          <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+            假設秤到 <strong style="font-family:'DM Mono',monospace">284g</strong><br>
+            <span style="font-size:10px;color:var(--text3);font-style:italic">Ví dụ cân được 284g</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;padding-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">②</div>
+          <div style="width:2px;flex:1;background:var(--border);min-height:10px"></div>
+        </div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:14px;color:var(--text)">上傳照片＋填資料</div>
+          <div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">Tải ảnh và nhập thông tin</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+              重量填 <strong style="font-family:'DM Mono',monospace">284g</strong>（操作前）<br>
+              <span style="font-size:10px;color:var(--text3);font-style:italic">Nhập 284g (trước thao tác)</span>
+            </div>
+            <div style="background:var(--green-pale);border:1px solid rgba(45,74,45,.2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+              液體輸入選 <strong>給水</strong><br>
+              <span style="font-size:10px;color:var(--text3);font-style:italic">Chọn "Tưới nước" ở mục Tưới & Phân</span>
+            </div>
+            <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+              點「上傳」→ 系統自動記錄待補登<br>
+              <span style="font-size:10px;color:var(--text3);font-style:italic">Nhấn "Tải lên" → hệ thống tự ghi nhớ cần cập nhật</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;padding-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">③</div>
+          <div style="width:2px;flex:1;background:var(--border);min-height:10px"></div>
+        </div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:14px;color:var(--text)">進行給水</div>
+          <div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">Tiến hành tưới nước</div>
+          <div style="background:var(--amber-pale);border:1px solid rgba(184,146,42,.25);border-radius:6px;padding:8px 12px;font-size:12px;color:#92400E">
+            泡盆至飽和後，靜置 5 分鐘讓水分滴完<br>
+            <span style="font-size:10px;font-style:italic;color:#B45309">Ngâm no nước, đợi 5 phút để nước thừa chảy hết</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;padding-bottom:14px">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">④</div>
+          <div style="width:2px;flex:1;background:var(--border);min-height:10px"></div>
+        </div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:14px;color:var(--text)">再秤一次重量</div>
+          <div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">Cân lại lần nữa</div>
+          <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+            假設現在是 <strong style="font-family:'DM Mono',monospace">412g</strong><br>
+            <span style="font-size:10px;color:var(--text3);font-style:italic">Ví dụ bây giờ là 412g</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">⑤</div>
+        </div>
+        <div style="flex:1;padding-top:4px">
+          <div style="font-size:14px;color:var(--text)">回上傳頁補登</div>
+          <div style="font-size:11px;color:var(--text3);font-style:italic;margin-bottom:6px">Quay lại trang tải ảnh để cập nhật</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+              點頂部黃色橫幅的「補登」按鈕<br>
+              <span style="font-size:10px;color:var(--text3);font-style:italic">Nhấn nút "Cập nhật" trên banner vàng ở đầu trang</span>
+            </div>
+            <div style="background:var(--cream2);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text2)">
+              填入 <strong style="font-family:'DM Mono',monospace">412g</strong>，選「水滿飽和 ← 記為 A 點」<br>
+              <span style="font-size:10px;color:var(--text3);font-style:italic">Nhập 412g, chọn "Bão hòa ← Điểm A"</span>
+            </div>
+            <div style="background:#DCFCE7;border:1px solid #86EFAC;border-radius:6px;padding:8px 12px;font-size:12px;color:#166534">
+              ✅ 完成！系統記錄：操作前 284g → 飽和後 412g（A 點）<br>
+              <span style="font-size:10px;font-style:italic;color:#15803D">✅ Xong! Hệ thống ghi: trước 284g → sau bão hòa 412g (Điểm A)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 情境 B：今天只拍照記錄 -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div style="background:var(--text2);color:var(--cream);padding:12px 16px">
+      <div style="font-size:14px;font-weight:400">情境 B：今天只拍照，不做任何操作</div>
+      <div style="font-size:11px;opacity:.75;font-style:italic;margin-top:2px">Tình huống B: Hôm nay chỉ chụp ảnh, không thao tác gì</div>
+    </div>
+    <div style="padding:14px 16px;font-size:13px;color:var(--text2);line-height:1.8">
+      拍照 → 填重量 → 三個區塊全選「無」→ 上傳 → <strong style="color:var(--green)">完成，不需補登</strong><br>
+      <span style="font-size:11px;color:var(--text3);font-style:italic">
+        Chụp ảnh → nhập cân → ba mục đều chọn "Không" → Tải lên → <strong>Xong, không cần cập nhật gì thêm</strong>
+      </span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ 重量類型說明 ══ -->
+<div class="section" style="margin-top:10px">
+  <div class="section-title">重量類型 / Loại Cân Nặng</div>
+  <div class="wtype-grid">
+    <div class="wtype A">
+      <div class="wtype-label">A 點</div>
+      <div class="wtype-zh">飽和後重量<br>澆水泡盆至飽和，5分鐘後秤</div>
+      <div class="wtype-vn">Cân sau khi bão hòa<br>Ngâm no nước, cân sau 5 phút</div>
+    </div>
+    <div class="wtype C">
+      <div class="wtype-label">C 點</div>
+      <div class="wtype-zh">需澆水臨界點<br>判斷「該澆水了」時的重量</div>
+      <div class="wtype-vn">Ngưỡng cần tưới<br>Cân khi thấy "cần tưới rồi"</div>
+    </div>
+    <div class="wtype B" style="grid-column:1/-1">
+      <div class="wtype-label">日常記錄</div>
+      <div class="wtype-zh">每次上傳時的當前重量，用於追蹤水分變化趨勢</div>
+      <div class="wtype-vn">Cân nặng hiện tại mỗi lần tải ảnh, dùng để theo dõi xu hướng thay đổi độ ẩm</div>
+    </div>
+  </div>
+  <div style="margin-top:10px;font-size:12px;color:var(--text3);font-style:italic;text-align:center">
+    含水率 = (當前重量 − C點) ÷ (A點 − C點) × 100%<br>
+    Độ ẩm = (Cân hiện tại − Điểm C) ÷ (Điểm A − Điểm C) × 100%
+  </div>
+</div>
+
+<!-- ══ 注意事項 ══ -->
+<div class="section" style="margin-top:10px">
+  <div class="section-title">注意事項 / Lưu Ý Quan Trọng</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="alert">
+      <div class="alert-zh">📸 重量要在操作前秤好再填，不要操作後才填</div>
+      <div class="alert-vn">Cân trước khi thao tác, không cân sau rồi mới nhập</div>
+    </div>
+    <div class="alert">
+      <div class="alert-zh">⚖️ 泡盆給水飽和後，等 5 分鐘讓多餘水分滴完再秤補登重量</div>
+      <div class="alert-vn">Sau khi ngâm no nước, đợi 5 phút để nước thừa chảy hết rồi mới cân</div>
+    </div>
+    <div class="note">
+      <div class="note-zh">💡 每株植物有唯一的 R 編號（如 R-000013），對不上就是選錯植物了</div>
+      <div class="note-vn">Mỗi cây có mã R riêng (ví dụ R-000013). Nếu không khớp là chọn nhầm cây rồi</div>
+    </div>
+    <div class="note">
+      <div class="note-zh">💡 Ghost 相機的透明度可以調整，讓前後照片對齊更容易</div>
+      <div class="note-vn">Có thể điều chỉnh độ trong suốt của Ghost để căn chỉnh ảnh dễ hơn</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  rễ , thân , lá studio · plant-pos.vercel.app
+</div>
+
+</body>
+</html>
