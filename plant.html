@@ -149,6 +149,19 @@ main{padding-top:82px}
 .ai-score-label{font-size:9.5px;letter-spacing:.08em;color:var(--text3)}
 .ai-summary-text{font-size:15px;line-height:1.85;color:var(--text2);font-style:italic;margin-bottom:6px}
 .ai-meta{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--text3)}
+/* ── AI 提示視窗 ── */
+.ai-hints{padding:20px 24px 0}
+.ai-hints-title{font-size:10px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;margin-bottom:12px}
+.hint-row{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border:1px solid var(--border);border-bottom:none;font-size:13px}
+.hint-row:first-of-type{border-radius:4px 4px 0 0}
+.hint-row:last-of-type{border-bottom:1px solid var(--border);border-radius:0 0 4px 4px;margin-bottom:14px}
+.hint-icon{font-size:14px;flex-shrink:0}
+.hint-label{color:var(--text3);font-size:11px;min-width:80px;flex-shrink:0}
+.hint-val{color:var(--text2);flex:1}
+.hint-val.warn{color:#f59e0b}
+.hint-val.danger{color:var(--red)}
+.hint-val.good{color:var(--green)}
+.ai-predict-box{border:1px dashed var(--border);padding:14px;border-radius:4px;font-size:12px;color:var(--text3);text-align:center;line-height:1.6}
 .timelapse-cta{display:block;width:calc(100% - 48px);margin:20px 24px 28px;background:transparent;color:var(--text3);border:1px dashed var(--border);padding:12px;font-size:11px;letter-spacing:.1em;cursor:not-allowed;font-family:inherit;text-align:center}
 .timelapse-cta:not(:disabled){background:var(--green);color:var(--cream);border:none;cursor:pointer}
 
@@ -417,6 +430,17 @@ main{padding-top:82px}
     <div class="timeline-wrap">
       <div class="timeline-label">時間軸 / Dòng Thời Gian</div>
       <div class="timeline-strip" id="timeline-strip"></div>
+    </div>
+
+    <!-- AI 提示視窗 -->
+    <div class="ai-hints" id="ai-hints-wrap" style="display:none">
+      <div class="ai-hints-title">提示 / Gợi Ý</div>
+      <div class="hint-row"><span class="hint-icon">💊</span><span class="hint-label">上次給肥</span><span class="hint-val" id="hint-fertilizer">—</span></div>
+      <div class="hint-row"><span class="hint-icon">📋</span><span class="hint-label">上次狀態</span><span class="hint-val" id="hint-status">—</span></div>
+      <div class="hint-row"><span class="hint-icon">💧</span><span class="hint-label">上次飽和</span><span class="hint-val" id="hint-last-a">—</span></div>
+      <div class="ai-predict-box" id="hint-ai-predict">
+        🤖 AI 預警<br><span style="font-size:11px">數據累積中，預警功能開啟後將顯示於此</span>
+      </div>
     </div>
 
     <!-- AI 分析 -->
@@ -745,6 +769,7 @@ function buildDiary(allPhotos, rid) {
   buildTimeline();
   buildWeightChart();
   loadAI(rid);
+  loadHints(rid);
 }
 
 function buildTimeline() {
@@ -881,6 +906,51 @@ async function loadAI(rid) {
       </div>`).join('');
     if (a.summary) document.getElementById('ai-summary-text').textContent = a.summary;
     if (a.analysis_date) document.getElementById('ai-meta').textContent = '分析日期 ' + a.analysis_date;
+  } catch(_) {}
+}
+
+// ─── AI 提示視窗 ──────────────────────────────────────────
+const STATUS_LABEL = {
+  normal:'正常', growth_healthy:'芽頭健康，有活力', growth_concern:'芽頭看起來不健康',
+  frond_poor:'葉片狀態不好', new_growth:'看到新生長跡象',
+  moss_dry:'水苔過乾', dehydrated:'植物缺水（脫水）'
+};
+
+async function loadHints(rid) {
+  try {
+    // 上次給肥
+    const fertRows = await dbGet('photos',
+      '?rid=eq.'+rid+'&liquid_action=eq.fertilizer&order=taken_at.desc&limit=1&select=taken_at,fertilizer_type');
+    if (fertRows && fertRows.length) {
+      const f = fertRows[0];
+      const days = Math.floor((Date.now() - new Date(f.taken_at)) / 86400000);
+      const label = days === 0 ? '今天' : days + ' 天前';
+      const type = f.fertilizer_type ? `（${f.fertilizer_type}）` : '';
+      const el = document.getElementById('hint-fertilizer');
+      el.textContent = label + type;
+      el.className = 'hint-val' + (days > 14 ? ' warn' : '');
+    }
+    // 上次狀態
+    const statusRows = await dbGet('photos',
+      '?rid=eq.'+rid+'&plant_status=not.is.null&order=taken_at.desc&limit=1&select=taken_at,plant_status,status_note');
+    if (statusRows && statusRows.length) {
+      const s = statusRows[0];
+      const days = Math.floor((Date.now() - new Date(s.taken_at)) / 86400000);
+      const label = STATUS_LABEL[s.plant_status] || s.status_note || s.plant_status;
+      const el = document.getElementById('hint-status');
+      el.textContent = label + '　·　' + (days === 0 ? '今天' : days + ' 天前');
+      el.className = 'hint-val' + (['dehydrated','moss_dry','growth_concern','frond_poor'].includes(s.plant_status) ? ' warn' : '');
+    }
+    // 上次達到飽和（A點）
+    const aRows = await dbGet('photos',
+      '?rid=eq.'+rid+'&weight_type=eq.A&order=taken_at.desc&limit=1&select=taken_at,weight_g');
+    if (aRows && aRows.length) {
+      const a = aRows[0];
+      const days = Math.floor((Date.now() - new Date(a.taken_at)) / 86400000);
+      const label = days === 0 ? '今天' : days + ' 天前';
+      document.getElementById('hint-last-a').textContent = label + `（${a.weight_g}g）`;
+    }
+    document.getElementById('ai-hints-wrap').style.display = 'block';
   } catch(_) {}
 }
 
