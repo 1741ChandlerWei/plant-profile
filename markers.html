@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ArUco 4x4 全部圖案</title>
+<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.1.2/dist/aruco.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#F5F0E8;font-family:monospace;padding:20px}
+h1{font-size:16px;font-weight:400;color:#2D4A2D;margin-bottom:6px;letter-spacing:.1em}
+p{font-size:12px;color:#9B9B85;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #D8D0C0;border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s}
+.card:hover{border-color:#2D4A2D;background:#E8F0E8}
+.card.current{border-color:#2D4A2D;border-width:2px;background:#E8F0E8}
+.card canvas{display:block;margin:0 auto 8px;image-rendering:pixelated}
+.card-id{font-size:11px;color:#6B6B55;letter-spacing:.08em}
+.card-current{font-size:9px;color:#2D4A2D;font-weight:700;margin-top:2px}
+.selected-info{position:fixed;bottom:0;left:0;right:0;background:#2D4A2D;color:#F5F0E8;padding:14px 20px;font-size:13px;display:none;align-items:center;justify-content:space-between}
+.selected-info.show{display:flex}
+</style>
+</head>
+<body>
+<h1>ArUco 4×4 全部圖案（ID 0–49）</h1>
+<p>點選任一個圖案查看，目前系統使用 ID=3（綠色框）</p>
+<div class="grid" id="grid"></div>
+
+<div class="selected-info" id="sel-info">
+  <span id="sel-text"></span>
+  <span style="font-size:11px;opacity:.7">目前系統用 ID=3，要換請告訴我</span>
+</div>
+
+<script>
+const CURRENT_ID = 3;
+
+// 4x4_50 marker bits (每個 marker 6x6 含border，內部 4x4 bits)
+// 用 js-aruco2 直接畫
+function drawMarker(canvas, id, size) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = size;
+  canvas.height = size;
+
+  try {
+    // js-aruco2 的 marker 字典
+    const dict = new AR.Dictionary('4X4_50');
+    const bits = dict.getBits(id); // 4x4 array of 0/1
+
+    if (!bits) { ctx.fillStyle='#eee'; ctx.fillRect(0,0,size,size); return; }
+
+    const cells = 6; // 4 + 2 border
+    const cell = size / cells;
+
+    // 白底
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, size, size);
+
+    // 黑色外框
+    ctx.fillStyle = '#000';
+    for (let r = 0; r < cells; r++) {
+      for (let c = 0; c < cells; c++) {
+        const isBorder = r === 0 || r === cells-1 || c === 0 || c === cells-1;
+        if (isBorder) {
+          ctx.fillRect(c*cell, r*cell, cell, cell);
+        } else {
+          // inner 4x4
+          const br = r - 1;
+          const bc = c - 1;
+          if (bits[br * 4 + bc] === 0) {
+            ctx.fillRect(c*cell, r*cell, cell, cell);
+          }
+        }
+      }
+    }
+  } catch(e) {
+    // fallback: 手動畫
+    drawMarkerManual(canvas, id, size);
+  }
+}
+
+function drawMarkerManual(canvas, id, size) {
+  // 用內建的 AR.Marker 或直接用字典
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ddd';
+  ctx.fillRect(0,0,size,size);
+  ctx.fillStyle = '#999';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('ID '+id, size/2, size/2+4);
+}
+
+// 嘗試用另一種方法
+function renderMarker(id, size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  try {
+    // js-aruco2 有 AR.utils.drawId 或類似方法
+    const marker = new AR.Marker(id, null);
+    // 試試看直接畫
+    drawMarker(canvas, id, size);
+  } catch(e) {
+    drawMarker(canvas, id, size);
+  }
+  return canvas;
+}
+
+window.addEventListener('load', () => {
+  const grid = document.getElementById('grid');
+
+  for (let id = 0; id < 50; id++) {
+    const card = document.createElement('div');
+    card.className = 'card' + (id === CURRENT_ID ? ' current' : '');
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 80;
+    canvas.height = 80;
+    canvas.style.cssText = 'width:80px;height:80px;image-rendering:pixelated';
+
+    drawMarker(canvas, id, 80);
+
+    const label = document.createElement('div');
+    label.className = 'card-id';
+    label.textContent = 'ID = ' + id;
+
+    if (id === CURRENT_ID) {
+      const cur = document.createElement('div');
+      cur.className = 'card-current';
+      cur.textContent = '← 目前使用';
+      card.appendChild(canvas);
+      card.appendChild(label);
+      card.appendChild(cur);
+    } else {
+      card.appendChild(canvas);
+      card.appendChild(label);
+    }
+
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const info = document.getElementById('sel-info');
+      info.classList.add('show');
+      document.getElementById('sel-text').textContent = '你選了 ID = ' + id + '　要換的話告訴 Claude';
+    });
+
+    grid.appendChild(card);
+  }
+});
+</script>
+</body>
+</html>
