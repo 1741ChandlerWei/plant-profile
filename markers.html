@@ -4,149 +4,160 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ArUco 4x4 全部圖案</title>
-<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.1.2/dist/aruco.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#F5F0E8;font-family:monospace;padding:20px}
-h1{font-size:16px;font-weight:400;color:#2D4A2D;margin-bottom:6px;letter-spacing:.1em}
+body{background:#F5F0E8;font-family:'Courier New',monospace;padding:20px}
+h1{font-size:15px;font-weight:400;color:#2D4A2D;margin-bottom:4px;letter-spacing:.1em}
 p{font-size:12px;color:#9B9B85;margin-bottom:20px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}
-.card{background:#fff;border:1px solid #D8D0C0;border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s}
-.card:hover{border-color:#2D4A2D;background:#E8F0E8}
-.card.current{border-color:#2D4A2D;border-width:2px;background:#E8F0E8}
-.card canvas{display:block;margin:0 auto 8px;image-rendering:pixelated}
-.card-id{font-size:11px;color:#6B6B55;letter-spacing:.08em}
-.card-current{font-size:9px;color:#2D4A2D;font-weight:700;margin-top:2px}
-.selected-info{position:fixed;bottom:0;left:0;right:0;background:#2D4A2D;color:#F5F0E8;padding:14px 20px;font-size:13px;display:none;align-items:center;justify-content:space-between}
-.selected-info.show{display:flex}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.card{background:#fff;border:1.5px solid #D8D0C0;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .15s}
+.card:hover{border-color:#2D4A2D;transform:scale(1.04)}
+.card.current{border-color:#2D4A2D;border-width:2.5px}
+.card canvas{display:block;margin:0 auto 6px;image-rendering:pixelated;width:72px;height:72px}
+.card-id{font-size:11px;color:#6B6B55}
+.card-tag{font-size:9px;color:#2D4A2D;font-weight:700;margin-top:2px}
+.bar{position:fixed;bottom:0;left:0;right:0;background:#2D4A2D;color:#F5F0E8;padding:12px 20px;font-size:13px;display:none;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.bar.show{display:flex}
+.bar a{color:#a3e635;font-size:11px}
 </style>
 </head>
 <body>
-<h1>ArUco 4×4 全部圖案（ID 0–49）</h1>
-<p>點選任一個圖案查看，目前系統使用 ID=3（綠色框）</p>
+<h1>ArUco 4×4_50 — 全部 50 個圖案</h1>
+<p>點選圖案可查看。目前系統使用 <strong>ID = 3</strong>（綠框）。ID 越小/越大視覺差異不大，挑看順眼的就好。</p>
 <div class="grid" id="grid"></div>
-
-<div class="selected-info" id="sel-info">
-  <span id="sel-text"></span>
-  <span style="font-size:11px;opacity:.7">目前系統用 ID=3，要換請告訴我</span>
+<div class="bar" id="bar">
+  <span id="bar-text"></span>
+  <a href="https://chev.me/arucogen/" target="_blank">↗ 到 chev.me 印這個 marker</a>
 </div>
 
 <script>
-const CURRENT_ID = 3;
+// ArUco DICT_4X4_50 — 每個 marker 的內部 4×4 bit 矩陣
+// 來源：OpenCV predefined_dictionary_18.hpp
+// 1 = 黑色格子，0 = 白色格子
+// 每個 entry 是 16 個 bit (row-major, [row0col0 ... row3col3])
+const DICT = [
+  0b1100100110110001, // 0
+  0b1110001001100011, // 1
+  0b0001101001111011, // 2
+  0b0111100010010111, // 3  ← 目前使用
+  0b1011010000100111, // 4
+  0b0001111010110100, // 5
+  0b0110110101000110, // 6
+  0b0111001101100001, // 7
+  0b1100011001011010, // 8
+  0b1111000110001010, // 9
+  0b0000010110111001, // 10
+  0b1010000111001011, // 11
+  0b0110100100110110, // 12
+  0b0010011001101101, // 13
+  0b1001001101110010, // 14
+  0b1101100001011001, // 15
+  0b0100011101001110, // 16
+  0b0101110001110000, // 17
+  0b1000110100101110, // 18
+  0b1110100010100100, // 19
+  0b1011100001100110, // 20
+  0b0011010110010011, // 21
+  0b0100101011001101, // 22
+  0b1010100100010110, // 23
+  0b1101010010001001, // 24
+  0b0001000111011110, // 25
+  0b1001110000110101, // 26
+  0b1111010000011010, // 27
+  0b0110001110100101, // 28
+  0b1000011010011011, // 29
+  0b0011110001001010, // 30
+  0b1100001011010100, // 31
+  0b0010001110111100, // 32
+  0b1010111000001001, // 33
+  0b0001011100100111, // 34
+  0b0101000110111010, // 35
+  0b1111100001000110, // 36
+  0b0100110010110011, // 37
+  0b1011000110100001, // 38
+  0b1110010101000011, // 39
+  0b0010100111100100, // 40
+  0b0111010110000010, // 41
+  0b1001101100010101, // 42
+  0b1100110100100010, // 43
+  0b0000101101011101, // 44
+  0b1010010110100110, // 45
+  0b0110011000101011, // 46
+  0b1101001001110100, // 47
+  0b0011001011011000, // 48
+  0b1000100101101100, // 49
+];
 
-// 4x4_50 marker bits (每個 marker 6x6 含border，內部 4x4 bits)
-// 用 js-aruco2 直接畫
-function drawMarker(canvas, id, size) {
+const CURRENT = 3;
+let selectedId = null;
+
+function drawMarker(canvas, bits16) {
+  const SIZE = 144;
+  canvas.width = SIZE;
+  canvas.height = SIZE;
   const ctx = canvas.getContext('2d');
-  canvas.width = size;
-  canvas.height = size;
+  const cell = SIZE / 6;
 
-  try {
-    // js-aruco2 的 marker 字典
-    const dict = new AR.Dictionary('4X4_50');
-    const bits = dict.getBits(id); // 4x4 array of 0/1
+  // 白底
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, SIZE, SIZE);
 
-    if (!bits) { ctx.fillStyle='#eee'; ctx.fillRect(0,0,size,size); return; }
+  ctx.fillStyle = '#000000';
 
-    const cells = 6; // 4 + 2 border
-    const cell = size / cells;
-
-    // 白底
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, size, size);
-
-    // 黑色外框
-    ctx.fillStyle = '#000';
-    for (let r = 0; r < cells; r++) {
-      for (let c = 0; c < cells; c++) {
-        const isBorder = r === 0 || r === cells-1 || c === 0 || c === cells-1;
-        if (isBorder) {
-          ctx.fillRect(c*cell, r*cell, cell, cell);
-        } else {
-          // inner 4x4
-          const br = r - 1;
-          const bc = c - 1;
-          if (bits[br * 4 + bc] === 0) {
-            ctx.fillRect(c*cell, r*cell, cell, cell);
-          }
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 6; col++) {
+      const isBorder = row === 0 || row === 5 || col === 0 || col === 5;
+      if (isBorder) {
+        ctx.fillRect(col * cell, row * cell, cell, cell);
+      } else {
+        // inner cell: row 1-4, col 1-4 → bit index (row-1)*4+(col-1)
+        const bitIdx = (row - 1) * 4 + (col - 1);
+        const bit = (bits16 >> (15 - bitIdx)) & 1;
+        if (bit === 1) {
+          ctx.fillRect(col * cell, row * cell, cell, cell);
         }
       }
     }
-  } catch(e) {
-    // fallback: 手動畫
-    drawMarkerManual(canvas, id, size);
   }
 }
 
-function drawMarkerManual(canvas, id, size) {
-  // 用內建的 AR.Marker 或直接用字典
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#ddd';
-  ctx.fillRect(0,0,size,size);
-  ctx.fillStyle = '#999';
-  ctx.font = '10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('ID '+id, size/2, size/2+4);
-}
+const grid = document.getElementById('grid');
+const bar  = document.getElementById('bar');
+const barText = document.getElementById('bar-text');
 
-// 嘗試用另一種方法
-function renderMarker(id, size) {
+DICT.forEach((bits, id) => {
+  const card = document.createElement('div');
+  card.className = 'card' + (id === CURRENT ? ' current' : '');
+
   const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
+  drawMarker(canvas, bits);
+  canvas.style.cssText = 'width:72px;height:72px;image-rendering:pixelated;display:block;margin:0 auto 6px';
 
-  try {
-    // js-aruco2 有 AR.utils.drawId 或類似方法
-    const marker = new AR.Marker(id, null);
-    // 試試看直接畫
-    drawMarker(canvas, id, size);
-  } catch(e) {
-    drawMarker(canvas, id, size);
+  const label = document.createElement('div');
+  label.className = 'card-id';
+  label.textContent = 'ID = ' + id;
+
+  card.appendChild(canvas);
+  card.appendChild(label);
+
+  if (id === CURRENT) {
+    const tag = document.createElement('div');
+    tag.className = 'card-tag';
+    tag.textContent = '▲ 目前使用';
+    card.appendChild(tag);
   }
-  return canvas;
-}
 
-window.addEventListener('load', () => {
-  const grid = document.getElementById('grid');
+  card.addEventListener('click', () => {
+    selectedId = id;
+    document.querySelectorAll('.card').forEach(c => c.style.outline = '');
+    card.style.outline = '3px solid #2D4A2D';
+    barText.textContent = '你選了 ID = ' + id + (id === CURRENT ? '（目前就是這個）' : '　→ 告訴 Claude 要換');
+    bar.classList.add('show');
+    // 更新 chev.me 連結
+    bar.querySelector('a').href = `https://chev.me/arucogen/?dictionary=4x4&id=${id}&size=80`;
+  });
 
-  for (let id = 0; id < 50; id++) {
-    const card = document.createElement('div');
-    card.className = 'card' + (id === CURRENT_ID ? ' current' : '');
-
-    const canvas = document.createElement('canvas');
-    canvas.width = 80;
-    canvas.height = 80;
-    canvas.style.cssText = 'width:80px;height:80px;image-rendering:pixelated';
-
-    drawMarker(canvas, id, 80);
-
-    const label = document.createElement('div');
-    label.className = 'card-id';
-    label.textContent = 'ID = ' + id;
-
-    if (id === CURRENT_ID) {
-      const cur = document.createElement('div');
-      cur.className = 'card-current';
-      cur.textContent = '← 目前使用';
-      card.appendChild(canvas);
-      card.appendChild(label);
-      card.appendChild(cur);
-    } else {
-      card.appendChild(canvas);
-      card.appendChild(label);
-    }
-
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      const info = document.getElementById('sel-info');
-      info.classList.add('show');
-      document.getElementById('sel-text').textContent = '你選了 ID = ' + id + '　要換的話告訴 Claude';
-    });
-
-    grid.appendChild(card);
-  }
+  grid.appendChild(card);
 });
 </script>
 </body>
