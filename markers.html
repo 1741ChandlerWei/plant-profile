@@ -6,7 +6,14 @@
 <title>ArUco 4x4 全部圖案</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#F5F0E8;font-family:'Courier New',monospace;padding:20px}
+body{background:#F5F0E8;font-family:'Courier New',monospace}
+.top-nav{display:flex;gap:0;background:#EDE6D6;border-bottom:1px solid #D8D0C0;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.top-nav a{display:inline-block;padding:9px 12px;font-size:11px;letter-spacing:.08em;color:#9B9B85;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s}
+.top-nav a:hover{color:#2D4A2D}
+.top-nav a.current{color:#2D4A2D;border-bottom-color:#2D4A2D}
+.top-nav .nav-ext::after{content:'↗';margin-left:3px;font-size:9px;opacity:.6}
+.page-body{padding:20px}
 h1{font-size:15px;font-weight:400;color:#2D4A2D;margin-bottom:4px;letter-spacing:.1em}
 p{font-size:12px;color:#9B9B85;margin-bottom:20px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
@@ -22,6 +29,14 @@ p{font-size:12px;color:#9B9B85;margin-bottom:20px}
 </style>
 </head>
 <body>
+<nav class="top-nav">
+  <a href="/">🌿 植物展示</a>
+  <a href="/dashboard.html">🔧 維護看板</a>
+  <a href="/guide.html">📋 操作說明</a>
+  <a href="/markers.html" class="current">⬛ ArUco 圖案</a>
+  <a href="https://plant-pos.vercel.app/upload.html" class="nav-ext" target="_blank">📷 上傳系統</a>
+</nav>
+<div class="page-body">
 <h1>ArUco 4×4_50 — 全部 50 個圖案</h1>
 <p>點選圖案可查看。目前系統使用 <strong>ID = 3</strong>（綠框）。ID 越小/越大視覺差異不大，挑看順眼的就好。</p>
 <div class="grid" id="grid"></div>
@@ -160,5 +175,6 @@ DICT.forEach((bits, id) => {
   grid.appendChild(card);
 });
 </script>
+</div><!-- /page-body -->
 </body>
 </html>

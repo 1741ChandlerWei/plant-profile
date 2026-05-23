@@ -23,11 +23,17 @@ body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',
 
 /* ── Header ── */
 #dashboard{display:none}
-.dash-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.dash-logo{font-size:12px;letter-spacing:.18em;color:var(--green);font-style:italic;text-decoration:none}
+.dash-header{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.dash-logo{font-size:12px;letter-spacing:.18em;color:var(--green);font-style:italic;text-decoration:none;white-space:nowrap}
 .dash-title{font-size:15px;font-weight:300;letter-spacing:.08em;color:var(--text2)}
-.dash-refresh{background:none;border:1px solid var(--border);padding:6px 12px;font-size:11px;color:var(--text3);cursor:pointer;font-family:inherit;border-radius:var(--r)}
+.dash-refresh{background:none;border:1px solid var(--border);padding:6px 12px;font-size:11px;color:var(--text3);cursor:pointer;font-family:inherit;border-radius:var(--r);white-space:nowrap}
 .dash-refresh:hover{border-color:var(--green);color:var(--green)}
+/* nav strip */
+.dash-nav{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--cream2);padding:0 20px;overflow-x:auto}
+.dash-nav a{display:inline-block;padding:9px 14px;font-size:11px;letter-spacing:.08em;color:var(--text3);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s}
+.dash-nav a:hover{color:var(--green)}
+.dash-nav a.current{color:var(--green);border-bottom-color:var(--green)}
+.dash-nav .nav-ext::after{content:'↗';margin-left:3px;font-size:9px;opacity:.6}
 
 /* ── Tabs ── */
 .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--cream)}
@@ -125,10 +131,18 @@ body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',
 <!-- ── 主面板 ── -->
 <div id="dashboard">
   <div class="dash-header">
-    <a class="dash-logo" href="/plants.html">rễ , thân , lá</a>
+    <a class="dash-logo" href="/">rễ , thân , lá</a>
     <div class="dash-title">維護看板</div>
     <button class="dash-refresh" onclick="loadAll()">↻ 刷新</button>
   </div>
+
+  <nav class="dash-nav">
+    <a href="/">🌿 植物展示</a>
+    <a href="/dashboard.html" class="current">🔧 維護看板</a>
+    <a href="/guide.html">📋 操作說明</a>
+    <a href="/markers.html">⬛ ArUco 圖案</a>
+    <a href="https://plant-pos.vercel.app/upload.html" class="nav-ext" target="_blank">📷 上傳系統</a>
+  </nav>
 
   <div class="tabs">
     <button class="tab active" data-tab="pending" onclick="switchTab('pending')">

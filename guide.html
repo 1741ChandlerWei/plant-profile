@@ -16,6 +16,13 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;padding:0 0 60px}
 
+/* Top nav */
+.top-nav{display:flex;gap:0;background:var(--cream2);border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.top-nav a{display:inline-block;padding:9px 12px;font-size:11px;letter-spacing:.08em;color:var(--text3);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s}
+.top-nav a:hover{color:var(--green)}
+.top-nav a.current{color:var(--green);border-bottom-color:var(--green)}
+.top-nav .nav-ext::after{content:'↗';margin-left:3px;font-size:9px;opacity:.6}
 /* Header */
 .header{background:var(--green);color:var(--cream);padding:20px;text-align:center}
 .header-logo{font-size:11px;letter-spacing:.2em;opacity:.7;margin-bottom:6px}
@@ -96,6 +103,14 @@ body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',
 </style>
 </head>
 <body>
+
+<nav class="top-nav">
+  <a href="/">🌿 植物展示</a>
+  <a href="/dashboard.html">🔧 維護看板</a>
+  <a href="/guide.html" class="current">📋 操作說明</a>
+  <a href="/markers.html">⬛ ArUco 圖案</a>
+  <a href="https://plant-pos.vercel.app/upload.html" class="nav-ext" target="_blank">📷 上傳系統</a>
+</nav>
 
 <div class="header">
   <div class="header-logo">rễ , thân , lá studio</div>
