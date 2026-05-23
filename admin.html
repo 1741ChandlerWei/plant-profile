@@ -10,10 +10,17 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--cream);color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh}
 
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;flex-direction:column}
+.nav-top{padding:10px 20px;display:flex;align-items:center;gap:12px}
 .nav-back{color:var(--green);text-decoration:none;font-size:12px;letter-spacing:.1em;flex-shrink:0}
 .nav-logo{flex:1;text-align:center;font-size:13px;letter-spacing:.15em;color:var(--text3);font-style:italic}
 .nav-spacer{width:60px;flex-shrink:0}
+.nav-strip{display:flex;gap:0;border-top:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 20px;background:var(--cream2)}
+.nav-strip::-webkit-scrollbar{display:none}
+.nav-strip a{display:inline-block;padding:7px 12px;font-size:10px;letter-spacing:.08em;color:var(--text3);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s}
+.nav-strip a:hover{color:var(--green)}
+.nav-strip a.current{color:var(--green);border-bottom-color:var(--green)}
+.nav-strip .nav-ext::after{content:'↗';margin-left:3px;font-size:9px;opacity:.6}
 
 /* 密碼屏 */
 .auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:16px;padding:24px}
@@ -26,7 +33,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 .pwd-error{font-size:11px;color:var(--red);font-style:italic;height:16px}
 
 /* 主面板 */
-.main-panel{display:none;padding-top:56px}
+.main-panel{display:none;padding-top:82px}
 
 /* 主分頁 */
 .main-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--cream2)}
@@ -134,9 +141,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <body>
 
 <nav>
-  <a class="nav-back" href="/index.html">← 首頁</a>
-  <div class="nav-logo">後台管理 · Quản Lý</div>
-  <div class="nav-spacer"></div>
+  <div class="nav-top">
+    <a class="nav-back" href="/">← 首頁</a>
+    <div class="nav-logo">後台管理 · Quản Lý</div>
+    <div class="nav-spacer"></div>
+  </div>
+  <div class="nav-strip">
+    <a href="/">🌿 植物展示</a>
+    <a href="/admin.html" class="current">⚙️ 後台管理</a>
+    <a href="/dashboard.html">🔧 維護看板</a>
+    <a href="/guide.html">📋 操作說明</a>
+    <a href="/markers.html">⬛ ArUco 圖案</a>
+    <a href="https://plant-pos.vercel.app/upload.html" class="nav-ext" target="_blank">📷 上傳系統</a>
+  </div>
 </nav>
 
 <!-- 密碼屏 -->
@@ -412,20 +429,39 @@ async function saveRow(rid) {
   const btn = document.getElementById('save-btn-' + rid);
   btn.textContent = '儲存中...'; btn.disabled = true;
 
-  const r = await fetch(SUPABASE_URL + '/rest/v1/plant_web', {
-    method: 'POST',
+  const payload = {
+    rid,
+    web_status: newStatus,
+    web_owner: newOwner || null,
+    updated_at: new Date().toISOString()
+  };
+
+  // 先嘗試 PATCH（更新已有的列）
+  let r = await fetch(`${SUPABASE_URL}/rest/v1/plant_web?rid=eq.${encodeURIComponent(rid)}`, {
+    method: 'PATCH',
     headers: {
       apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'return=representation'
     },
-    body: JSON.stringify({
-      rid,
-      web_status: newStatus,
-      web_owner: newOwner || null,
-      updated_at: new Date().toISOString()
-    })
+    body: JSON.stringify(payload)
   });
+
+  // 如果 PATCH 回傳空陣列（列不存在），改用 POST 新增
+  if (r.ok) {
+    const patched = await r.json();
+    if (!patched || patched.length === 0) {
+      r = await fetch(`${SUPABASE_URL}/rest/v1/plant_web`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
+  }
 
   btn.textContent = '儲存'; btn.disabled = false;
   btn.style.background = '';
@@ -436,7 +472,10 @@ async function saveRow(rid) {
     updateStats();
     toast(rid + ' 已更新 ✓');
   } else {
-    toast('儲存失敗，請確認 RLS 設定');
+    let errMsg = `HTTP ${r.status}`;
+    try { const body = await r.json(); errMsg = body.message || body.details || errMsg; } catch(e){}
+    console.error('saveRow failed:', errMsg);
+    toast('儲存失敗：' + errMsg.slice(0, 40));
   }
 }
 
