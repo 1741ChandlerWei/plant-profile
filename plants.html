@@ -237,7 +237,7 @@ async function init() {
   // 3. 取得精選照片
   let photosMap = {};
   if (visibleRids.length) {
-    const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at,created_at`);
+    const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at`);
     if (Array.isArray(photoRows)) {
       photoRows.forEach(ph => {
         if (!photosMap[ph.rid]) {
