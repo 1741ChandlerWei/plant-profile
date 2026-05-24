@@ -526,10 +526,9 @@ main{padding-top:82px}
         <div class="form-row">
           <div class="form-label">網頁狀態 / Trạng thái web</div>
           <select class="form-select" id="mgmt-status">
-            <option value="private">暫不公開（私密）</option>
-            <option value="available">可販售</option>
-            <option value="tracking">展示中</option>
-            <option value="pup_sale">側芽販售</option>
+            <option value="hidden">隱藏</option>
+            <option value="display">展示中</option>
+            <option value="sale">可販售</option>
             <option value="sold">已售出</option>
           </select>
         </div>
@@ -622,6 +621,7 @@ const T = {
     'status.available':'可購買','status.sold':'已售出',
     'status.reserved':'已保留','status.tracking':'展示中',
     'status.pup_sale':'側芽販售','status.unlisted':'已下架',
+    'status.hidden':'隱藏','status.display':'展示中','status.sale':'可販售',
     'plant.loading':'正在載入...',
     'saved':'已儲存 ✓',
   },
@@ -653,6 +653,7 @@ const T = {
     'status.available':'Có thể mua','status.sold':'Đã bán',
     'status.reserved':'Đã đặt cọc','status.tracking':'Đang triển lãm',
     'status.pup_sale':'Bán chồi','status.unlisted':'Ngừng bán',
+    'status.hidden':'Ẩn','status.display':'Đang triển lãm','status.sale':'Có thể mua',
     'plant.loading':'Đang tải...',
     'saved':'Đã lưu ✓',
   }
@@ -1294,8 +1295,8 @@ async function init() {
 
   let plantName = rehab.plant_name || rid;
   let plantPrice = '';
-  // 網頁狀態優先用 plant_web，沒有就不顯示 badge（private 預設）
-  let webStatus = webRec ? (webRec.web_status || 'private') : 'private';
+  // 狀態以 rehab.status 為唯一真相（不再讀 plant_web.web_status）
+  let webStatus = rehab.status || 'hidden';
   let webOwner  = webRec ? webRec.web_owner : null;
   let ownerLabel = webRec ? webRec.owner_label : null;
 
@@ -1313,13 +1314,19 @@ async function init() {
   const badge = document.getElementById('status-badge');
   const priceEl = document.getElementById('plant-price');
   const statusMap = {
-    available: { key: 'status.available', cls: 'available', showPrice: true, showContact: true },
+    // new unified values
+    hidden:    { key: 'status.hidden',    cls: 'sold',      showPrice: false, showContact: false },
+    display:   { key: 'status.display',   cls: 'available', showPrice: false, showContact: true },
+    sale:      { key: 'status.sale',      cls: 'available', showPrice: true,  showContact: true },
+    sold:      { key: 'status.sold',      cls: 'sold',      showPrice: false, showContact: false },
+    // backward compat — old values
+    available: { key: 'status.available', cls: 'available', showPrice: true,  showContact: true },
     tracking:  { key: 'status.tracking',  cls: 'available', showPrice: false, showContact: true },
-    pup_sale:  { key: 'status.pup_sale',  cls: 'available', showPrice: true, showContact: true },
-    sold:      { key: 'status.sold',      cls: 'sold', showPrice: false, showContact: false },
-    private:   { key: 'status.unlisted',  cls: 'sold', showPrice: false, showContact: false },
+    pup_sale:  { key: 'status.pup_sale',  cls: 'available', showPrice: true,  showContact: true },
+    private:   { key: 'status.unlisted',  cls: 'sold',      showPrice: false, showContact: false },
+    rehab:     { key: 'status.hidden',    cls: 'sold',      showPrice: false, showContact: false },
   };
-  const sm = statusMap[webStatus] || statusMap['private'];
+  const sm = statusMap[webStatus] || statusMap['hidden'];
   badge.textContent = t(sm.key);
   badge.className = 'status-badge ' + sm.cls;
   priceEl.textContent = sm.showPrice ? plantPrice : '';
@@ -1462,7 +1469,7 @@ function shareUrl() {
   });
 }
 
-// ─── 狀態管理（寫入 plant_web，與 POS 無關） ──────────────
+// ─── 狀態管理（寫入 rehab.status，與 plant_web 同步） ──────────────
 let rehabRowId = null;
 
 async function saveStatusMgmt() {
@@ -1473,47 +1480,60 @@ async function saveStatusMgmt() {
   const btn = document.getElementById('mgmt-save-btn');
   btn.textContent = '儲存中...'; btn.disabled = true;
 
-  // Upsert 到 plant_web（rid 為 primary key，衝突則更新）
-  const r = await fetch(SUPABASE_URL + '/rest/v1/plant_web', {
-    method: 'POST',
+  // PATCH rehab.status（唯一真相，anon key 可寫）
+  const r = await fetch(SUPABASE_URL + '/rest/v1/rehab?rid=eq.' + encodeURIComponent(rid), {
+    method: 'PATCH',
     headers: {
       apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'return=minimal'
     },
-    body: JSON.stringify({
-      rid,
-      web_status: newStatus,
-      web_owner: newOwner || null,
-      updated_at: new Date().toISOString()
-    })
+    body: JSON.stringify({ status: newStatus })
   });
+
+  // 若 plant_web 可寫，同步 web_owner（選填，失敗不影響主流程）
+  if (newOwner !== undefined) {
+    fetch(SUPABASE_URL + '/rest/v1/plant_web', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({ rid, web_owner: newOwner || null, updated_at: new Date().toISOString() })
+    }).catch(() => {});
+  }
 
   btn.textContent = '儲存 / Lưu'; btn.disabled = false;
 
   if (r.ok) {
-    toast('網頁狀態已更新 ✓');
+    toast('狀態已更新 ✓');
     // 即時更新頁面顯示
     const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
     const STATUS_MAP = {
+      hidden:    { key: 'status.hidden',    cls: 'sold' },
+      display:   { key: 'status.display',   cls: 'available' },
+      sale:      { key: 'status.sale',      cls: 'available' },
+      sold:      { key: 'status.sold',      cls: 'sold' },
+      // backward compat
       available: { key: 'status.available', cls: 'available' },
       tracking:  { key: 'status.tracking',  cls: 'available' },
       pup_sale:  { key: 'status.pup_sale',  cls: 'available' },
-      sold:      { key: 'status.sold',      cls: 'sold' },
       private:   { key: 'status.unlisted',  cls: 'sold' },
     };
     const badge = document.getElementById('status-badge');
-    const sm = STATUS_MAP[newStatus] || STATUS_MAP['private'];
+    const sm = STATUS_MAP[newStatus] || STATUS_MAP['hidden'];
     badge.textContent = t(sm.key);
     badge.className = 'status-badge ' + sm.cls;
     document.getElementById('plant-owner').textContent = newOwner ? '📍 ' + (LOC_LABEL[newOwner] || newOwner) : '';
-    // 隱藏聯繫按鈕（已售出 / 私密）
-    const hideContact = ['sold','private'].includes(newStatus);
+    // 聯繫按鈕：sold / hidden 時隱藏
+    const hideContact = ['sold','hidden','private'].includes(newStatus);
     document.getElementById('contact-btn').style.display = hideContact ? 'none' : 'block';
-    // 隱藏價格（展示中）
-    if (newStatus === 'tracking') document.getElementById('plant-price').textContent = '';
+    // 價格：只有 sale 才顯示
+    if (!['sale','available','pup_sale'].includes(newStatus)) document.getElementById('plant-price').textContent = '';
   } else {
-    toast('儲存失敗，請確認 plant_web RLS 設定');
+    const msg = await r.text().catch(() => '');
+    toast('儲存失敗 ' + r.status + (msg ? ': ' + msg.slice(0,80) : ''));
   }
 }
 

@@ -195,10 +195,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
     <div class="filter-row">
       <span class="filter-label">篩選：</span>
       <button class="filter-btn active" data-filter="all">全部</button>
-      <button class="filter-btn" data-filter="private">未公開</button>
-      <button class="filter-btn" data-filter="available">可販售</button>
-      <button class="filter-btn" data-filter="tracking">展示中</button>
-      <button class="filter-btn" data-filter="pup_sale">側芽販售</button>
+      <button class="filter-btn" data-filter="hidden">隱藏</button>
+      <button class="filter-btn" data-filter="display">展示中</button>
+      <button class="filter-btn" data-filter="sale">可販售</button>
       <button class="filter-btn" data-filter="sold">已售出</button>
     </div>
     <div id="loading-state" class="loading-state">載入中...</div>
@@ -311,12 +310,13 @@ let allRows = [];
 let currentFilter = 'all';
 
 const WEB_STATUS_OPTIONS = [
-  { value: 'private',  label: '暫不公開' },
-  { value: 'available',label: '可販售' },
-  { value: 'tracking', label: '展示中' },
-  { value: 'pup_sale', label: '側芽販售' },
-  { value: 'sold',     label: '已售出' },
+  { value: 'hidden',  label: '隱藏' },
+  { value: 'display', label: '展示中' },
+  { value: 'sale',    label: '可販售' },
+  { value: 'sold',    label: '已售出' },
 ];
+// backward compat：舊值顯示名稱
+const STATUS_LABEL = { hidden:'隱藏', display:'展示中', sale:'可販售', sold:'已售出', private:'隱藏', tracking:'展示中', available:'可販售', pup_sale:'可販售', rehab:'隱藏' };
 const OWNER_OPTIONS = [
   { value: '',       label: '（不顯示）' },
   { value: 'mine',   label: 'Chandler家' },
@@ -366,8 +366,8 @@ async function loadPlants() {
 
 function updateStats() {
   const total = allRows.length;
-  const pub = allRows.filter(r => r.web_status !== 'private').length;
-  const priv = allRows.filter(r => r.web_status === 'private').length;
+  const pub = allRows.filter(r => !['hidden','private','rehab'].includes(r.web_status)).length;
+  const priv = allRows.filter(r => ['hidden','private','rehab'].includes(r.web_status)).length;
   const sold = allRows.filter(r => r.web_status === 'sold').length;
   document.getElementById('s-total').textContent = total;
   document.getElementById('s-public').textContent = pub;
@@ -375,10 +375,17 @@ function updateStats() {
   document.getElementById('s-sold').textContent = sold;
 }
 
+// 把舊值正規化成新值
+function normalizeStatus(s) {
+  if (!s) return 'hidden';
+  const map = { private:'hidden', rehab:'hidden', tracking:'display', available:'sale', pup_sale:'sale' };
+  return map[s] || s;
+}
+
 function renderList() {
   const filtered = currentFilter === 'all'
     ? allRows
-    : allRows.filter(r => r.web_status === currentFilter);
+    : allRows.filter(r => normalizeStatus(r.web_status) === currentFilter);
 
   const list = document.getElementById('plant-list');
   if (!filtered.length) {
@@ -387,8 +394,9 @@ function renderList() {
   }
 
   list.innerHTML = filtered.map(r => {
+    const normStatus = normalizeStatus(r.web_status);
     const statusOpts = WEB_STATUS_OPTIONS.map(o =>
-      `<option value="${o.value}" ${r.web_status === o.value ? 'selected' : ''}>${o.label}</option>`
+      `<option value="${o.value}" ${normStatus === o.value ? 'selected' : ''}>${o.label}</option>`
     ).join('');
     const ownerOpts = OWNER_OPTIONS.map(o =>
       `<option value="${o.value}" ${r.web_owner === o.value ? 'selected' : ''}>${o.label}</option>`
