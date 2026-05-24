@@ -187,9 +187,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
     <!-- 統計 -->
     <div class="stats-bar" id="stats-bar">
       <div class="stat-item"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">總植物數</div></div>
-      <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">公開展示</div></div>
-      <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">未公開</div></div>
-      <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">已售出</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">展示中</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">隱藏</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">售出</div></div>
     </div>
     <!-- 篩選 -->
     <div class="filter-row">
@@ -198,7 +198,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
       <button class="filter-btn" data-filter="hidden">隱藏</button>
       <button class="filter-btn" data-filter="display">展示中</button>
       <button class="filter-btn" data-filter="sale">可販售</button>
-      <button class="filter-btn" data-filter="sold">已售出</button>
+      <button class="filter-btn" data-filter="sold">售出</button>
     </div>
     <div id="loading-state" class="loading-state">載入中...</div>
     <div class="plant-list" id="plant-list"></div>
@@ -313,10 +313,10 @@ const WEB_STATUS_OPTIONS = [
   { value: 'hidden',  label: '隱藏' },
   { value: 'display', label: '展示中' },
   { value: 'sale',    label: '可販售' },
-  { value: 'sold',    label: '已售出' },
+  // 售出只走 POS 開單流程，後台不開放直接標記
 ];
 // backward compat：舊值顯示名稱
-const STATUS_LABEL = { hidden:'隱藏', display:'展示中', sale:'可販售', sold:'已售出', private:'隱藏', tracking:'展示中', available:'可販售', pup_sale:'可販售', rehab:'隱藏' };
+const STATUS_LABEL = { hidden:'隱藏', display:'展示中', sale:'可販售', sold:'售出', private:'隱藏', tracking:'隱藏', available:'可販售', pup_sale:'可販售', rehab:'隱藏' };
 const OWNER_OPTIONS = [
   { value: '',       label: '（不顯示）' },
   { value: 'mine',   label: 'Chandler家' },
