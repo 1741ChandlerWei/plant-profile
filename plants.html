@@ -47,8 +47,8 @@ main{padding-top:82px}
 .plant-card-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.06em}
 .plant-card-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
 .badge{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.1em;border:1px solid}
-.badge.available{border-color:var(--green);color:var(--green);background:rgba(45,74,45,.07)}
-.badge.tracking{border-color:var(--gold);color:var(--gold);background:rgba(184,146,42,.07)}
+.badge.available,.badge.sale{border-color:var(--green);color:var(--green);background:rgba(45,74,45,.07)}
+.badge.tracking,.badge.display{border-color:var(--gold);color:var(--gold);background:rgba(184,146,42,.07)}
 .badge.pup_sale{border-color:#4A7FB5;color:#4A7FB5;background:rgba(74,127,181,.07)}
 .badge.sold{border-color:var(--text3);color:var(--text3);background:transparent}
 .plant-card-price{font-size:15px;font-style:italic;color:var(--green);margin-top:2px}
@@ -160,11 +160,10 @@ const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 
 const LOC_LABEL = { mine: 'Chandler家', quang: 'Quang家', helper: '小幫手家' };
-const STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出' };
+const STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出', display: '展示中', sale: '可購買' };
 const PUBLIC_STATUSES = ['available', 'tracking', 'pup_sale', 'sold'];
 const FOR_SALE_STATUSES = ['available', 'tracking', 'pup_sale'];
-// plant_web 對應
-const WEB_STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出' };
+const WEB_STATUS_LABEL = { available: '可販售', tracking: '展示中', pup_sale: '側芽販售', sold: '已售出', display: '展示中', sale: '可購買' };
 
 async function dbGet(table, q) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
@@ -461,6 +460,6 @@ async function initAll() {
 
 initAll();
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.1</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.2</div>
 </body>
 </html>
