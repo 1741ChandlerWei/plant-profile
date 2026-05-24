@@ -366,7 +366,7 @@ async function loadPlants() {
 
 function updateStats() {
   const total = allRows.length;
-  const pub = allRows.filter(r => !['hidden','private','rehab'].includes(r.web_status)).length;
+  const pub = allRows.filter(r => ['display','sale','available','pup_sale'].includes(normalizeStatus(r.web_status))).length;
   const priv = allRows.filter(r => ['hidden','private','rehab'].includes(r.web_status)).length;
   const sold = allRows.filter(r => r.web_status === 'sold').length;
   document.getElementById('s-total').textContent = total;
