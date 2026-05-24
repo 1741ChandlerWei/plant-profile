@@ -218,28 +218,23 @@ function renderGrid(plants, gridId, emptyId) {
 }
 
 async function init() {
-  // 1. 從 plant_web 取得所有公開狀態（排除 private）
-  const webRows = await dbGet('plant_web', '?web_status=neq.private&web_status=not.is.null&select=rid,web_status,web_owner');
-  if (!Array.isArray(webRows) || !webRows.length) {
+  // 1. 從 rehab 取得所有公開植物（display / sale / sold）
+  const rehabRows = await dbGet('rehab', '?status=in.(display,sale,sold)&select=rid,plant_id,plant_name,purchase_date,status&order=rid.asc');
+  if (!Array.isArray(rehabRows) || !rehabRows.length) {
     document.getElementById('loading-indicator').style.display = 'none';
     document.getElementById('empty-for-sale').style.display = 'block';
     return;
   }
-  const webMap = {};
-  webRows.forEach(w => { webMap[w.rid] = w; });
-  const visibleRids = webRows.map(w => w.rid);
-
-  // 2. 從 rehab 取得植物基本資料（name、plant_id）
-  const rehabRows = await dbGet('rehab', `?rid=in.(${visibleRids.join(',')})&select=rid,plant_id,plant_name,purchase_date`);
   const rehabMap = {};
-  if (Array.isArray(rehabRows)) rehabRows.forEach(r => { rehabMap[r.rid] = r; });
+  rehabRows.forEach(r => { rehabMap[r.rid] = r; });
+  const visibleRids = rehabRows.map(r => r.rid);
 
-  // 3. 從 plants 取得品種價格
+  // 2. 從 plants 取得品種價格
   const plantsRows = await dbGet('plants', '?select=id,name,price');
   const plantsMap = {};
   if (Array.isArray(plantsRows)) plantsRows.forEach(p => { plantsMap[p.id] = p; });
 
-  // 4. 取得精選照片
+  // 3. 取得精選照片
   let photosMap = {};
   if (visibleRids.length) {
     const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at,created_at`);
@@ -258,22 +253,20 @@ async function init() {
     }
   }
 
-  // 5. 組合資料
-  allPlants = webRows.map(w => {
-    const r = rehabMap[w.rid] || {};
+  // 4. 組合資料
+  allPlants = rehabRows.map(r => {
     const plant = r.plant_id ? plantsMap[r.plant_id] : null;
     return {
-      rid: w.rid,
-      web_status: w.web_status,
-      web_owner: w.web_owner,
-      plant_name: (plant && plant.name) || r.plant_name || w.rid,
+      rid: r.rid,
+      web_status: r.status,
+      plant_name: (plant && plant.name) || r.plant_name || r.rid,
       price: plant ? plant.price : null,
-      photo_url: photosMap[w.rid] ? photosMap[w.rid].photo_url : null,
+      photo_url: photosMap[r.rid] ? photosMap[r.rid].photo_url : null,
     };
   });
 
-  // 6. 渲染分頁（以 web_status 為準）
-  const forSale = allPlants.filter(p => FOR_SALE_STATUSES.includes(p.web_status));
+  // 5. 渲染分頁
+  const forSale = allPlants.filter(p => ['display','sale'].includes(p.web_status));
   const sold = allPlants.filter(p => p.web_status === 'sold');
 
   document.getElementById('loading-indicator').style.display = 'none';
@@ -468,6 +461,6 @@ async function initAll() {
 
 initAll();
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.0</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.1</div>
 </body>
 </html>
