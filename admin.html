@@ -378,7 +378,7 @@ function updateStats() {
 // 把舊值正規化成新值
 function normalizeStatus(s) {
   if (!s) return 'hidden';
-  const map = { private:'hidden', rehab:'hidden', tracking:'display', available:'sale', pup_sale:'sale' };
+  const map = { private:'hidden', rehab:'hidden', tracking:'hidden', available:'sale', pup_sale:'sale' };
   return map[s] || s;
 }
 
