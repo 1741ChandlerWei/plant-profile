@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>植物履歷列表 — 標籤匯出</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--acc:#2D4A2D}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--cream);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh}
+
+header{background:var(--dark2);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.header-title{font-size:12px;letter-spacing:.18em;color:var(--cream);font-style:italic;font-family:'Cormorant Garamond',serif}
+.header-count{font-size:10px;color:var(--gold);letter-spacing:.1em}
+
+.toolbar{padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border);background:var(--cream);position:sticky;top:53px;z-index:9}
+.search{flex:1;min-width:160px;padding:8px 12px;border:1px solid var(--border);background:#fff;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none}
+.search:focus{border-color:var(--acc)}
+
+.btn{padding:8px 16px;font-size:11px;letter-spacing:.1em;cursor:pointer;border:none;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:6px}
+.btn-export{background:var(--acc);color:#fff}
+.btn-export:hover{background:var(--green2)}
+.btn-select{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-select:hover{border-color:var(--acc);color:var(--acc)}
+
+.filter-row{display:flex;gap:6px;flex-wrap:wrap}
+.filter-chip{padding:4px 10px;font-size:10px;letter-spacing:.08em;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace}
+.filter-chip.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+
+.table-wrap{overflow-x:auto;padding:0 20px 40px}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:16px}
+thead tr{border-bottom:2px solid var(--border)}
+thead th{padding:10px 12px;text-align:left;letter-spacing:.1em;color:var(--text3);font-weight:400;white-space:nowrap}
+thead th:first-child{width:36px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+tbody tr:hover{background:var(--cream2)}
+tbody tr.selected{background:rgba(45,74,45,.07)}
+td{padding:10px 12px;vertical-align:middle}
+td.rid{font-family:'DM Mono',monospace;color:var(--gold);letter-spacing:.08em;white-space:nowrap}
+td.name{color:var(--text);font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic}
+td.status span{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.1em;border:1px solid}
+td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3);font-size:10px}
+.status-rehab span{border-color:#888;color:#888}
+.status-tracking span{border-color:var(--gold);color:var(--gold)}
+.status-display span,.status-sale span{border-color:var(--green);color:var(--green)}
+.status-hidden span{border-color:var(--border);color:var(--text3)}
+.status-sold span{border-color:#999;color:#999}
+
+.check-all,.check-row{accent-color:var(--acc);width:14px;height:14px;cursor:pointer}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;letter-spacing:.1em}
+.loading{text-align:center;padding:60px 20px;color:var(--text3);font-size:12px;letter-spacing:.15em}
+
+.sel-bar{display:none;background:var(--acc);color:#fff;padding:10px 20px;font-size:11px;letter-spacing:.1em;align-items:center;justify-content:space-between}
+.sel-bar.show{display:flex}
+.sel-bar button{background:rgba(255,255,255,.2);border:none;color:#fff;padding:6px 12px;font-size:10px;letter-spacing:.1em;cursor:pointer;font-family:'DM Mono',monospace}
+.sel-bar button:hover{background:rgba(255,255,255,.35)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">植物履歷列表 / Danh sách hồ sơ cây</div>
+  <div class="header-count" id="count-badge">載入中...</div>
+</header>
+
+<div class="sel-bar" id="sel-bar">
+  <span id="sel-count">已選 0 筆</span>
+  <div style="display:flex;gap:8px">
+    <button onclick="exportSelected()">匯出已選 CSV</button>
+    <button onclick="clearSel()">取消選取</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="搜尋 RID 或植物名稱..." oninput="applyFilter()">
+  <div class="filter-row" id="filter-row">
+    <button class="filter-chip active" data-status="all" onclick="setStatus('all')">全部</button>
+    <button class="filter-chip" data-status="rehab" onclick="setStatus('rehab')">復健中</button>
+    <button class="filter-chip" data-status="tracking" onclick="setStatus('tracking')">追蹤中</button>
+    <button class="filter-chip" data-status="display" onclick="setStatus('display')">展示</button>
+    <button class="filter-chip" data-status="sale" onclick="setStatus('sale')">販售</button>
+    <button class="filter-chip" data-status="sold" onclick="setStatus('sold')">已售</button>
+    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏</button>
+  </div>
+  <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
+</div>
+
+<div class="table-wrap">
+  <table id="main-table">
+    <thead>
+      <tr>
+        <th><input type="checkbox" class="check-all" id="check-all" onchange="toggleAll(this)"></th>
+        <th>RID</th>
+        <th>植物名稱</th>
+        <th>狀態</th>
+        <th>URL</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="5" class="loading">載入中 / Đang tải...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const SB_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const BASE = 'https://plant-profile.vercel.app/plant';
+const STATUS_LABEL = {rehab:'復健中',tracking:'追蹤中',display:'展示',sale:'販售',sold:'已售',hidden:'隱藏'};
+
+let allPlants = [];
+let filtered = [];
+let currentStatus = 'all';
+
+async function init() {
+  const r = await fetch(SB_URL + '/rest/v1/rehab?select=rid,plant_name,status&order=rid.asc', {
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY }
+  });
+  allPlants = await r.json();
+  applyFilter();
+}
+
+function applyFilter() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  filtered = allPlants.filter(p => {
+    const matchStatus = currentStatus === 'all' || p.status === currentStatus;
+    const matchQ = !q || (p.rid||'').toLowerCase().includes(q) || (p.plant_name||'').toLowerCase().includes(q);
+    return matchStatus && matchQ;
+  });
+  render();
+}
+
+function setStatus(s) {
+  currentStatus = s;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.status === s));
+  applyFilter();
+}
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  document.getElementById('count-badge').textContent = `共 ${filtered.length} 筆`;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">找不到符合的植物</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(p => {
+    const url = `${BASE}/${p.rid}`;
+    const sl = STATUS_LABEL[p.status] || p.status || '';
+    return `<tr>
+      <td><input type="checkbox" class="check-row" data-rid="${p.rid}" onchange="onCheckRow()"></td>
+      <td class="rid">${p.rid}</td>
+      <td class="name">${p.plant_name || '—'}</td>
+      <td class="status status-${p.status}"><span>${sl}</span></td>
+      <td class="url-cell">${url}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('check-all').checked = false;
+  updateSelBar();
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.check-row').forEach(c => { c.checked = cb.checked; c.closest('tr').classList.toggle('selected', cb.checked); });
+  updateSelBar();
+}
+
+function onCheckRow() {
+  document.querySelectorAll('.check-row').forEach(c => c.closest('tr').classList.toggle('selected', c.checked));
+  const all = document.querySelectorAll('.check-row');
+  const checked = document.querySelectorAll('.check-row:checked');
+  document.getElementById('check-all').checked = all.length && all.length === checked.length;
+  updateSelBar();
+}
+
+function updateSelBar() {
+  const n = document.querySelectorAll('.check-row:checked').length;
+  const bar = document.getElementById('sel-bar');
+  bar.classList.toggle('show', n > 0);
+  document.getElementById('sel-count').textContent = `已選 ${n} 筆`;
+}
+
+function clearSel() {
+  document.querySelectorAll('.check-row').forEach(c => { c.checked = false; c.closest('tr').classList.remove('selected'); });
+  document.getElementById('check-all').checked = false;
+  updateSelBar();
+}
+
+function toCSV(rows) {
+  const header = 'RID,植物名稱,URL\n';
+  const body = rows.map(p => {
+    const name = (p.plant_name || '').replace(/"/g, '""');
+    const url = `${BASE}/${p.rid}`;
+    return `${p.rid},"${name}",${url}`;
+  }).join('\n');
+  return '﻿' + header + body;
+}
+
+function downloadCSV(content, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8' }));
+  a.download = filename;
+  a.click();
+}
+
+function exportAll() {
+  downloadCSV(toCSV(filtered), 'plant_labels.csv');
+}
+
+function exportSelected() {
+  const checkedRids = new Set([...document.querySelectorAll('.check-row:checked')].map(c => c.dataset.rid));
+  const rows = filtered.filter(p => checkedRids.has(p.rid));
+  downloadCSV(toCSV(rows), 'plant_labels_selected.csv');
+}
+
+init();
+</script>
+</body>
+</html>
