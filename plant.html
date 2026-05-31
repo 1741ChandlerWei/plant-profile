@@ -996,6 +996,18 @@ async function loadAI(rid) {
       </div>`).join('');
     if (a.summary) document.getElementById('ai-summary-text').textContent = a.summary;
     if (a.analysis_date) document.getElementById('ai-meta').textContent = t('ai.date') + ' ' + a.analysis_date;
+    // 顯示 AI 預警
+    const predictBox = document.getElementById('hint-ai-predict');
+    if (predictBox) {
+      if (a.warning) {
+        predictBox.innerHTML = `⚠️ ${a.warning}<br><span style="font-size:10px;opacity:.6">${a.analysis_date} · S System</span>`;
+        predictBox.style.borderColor = '#B8922A';
+        predictBox.style.color = 'var(--text2)';
+      } else {
+        predictBox.innerHTML = `✅ <span data-i18n="hints.predict.ok">目前狀態良好，無需特別注意</span><br><span style="font-size:10px;opacity:.6">${a.analysis_date} · S System</span>`;
+        predictBox.style.color = 'var(--green)';
+      }
+    }
   } catch(_) {}
 }
 
