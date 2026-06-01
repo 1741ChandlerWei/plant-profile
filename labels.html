@@ -23,6 +23,8 @@ header{background:var(--dark2);padding:16px 20px;display:flex;align-items:center
 .btn-export:hover{background:var(--green2)}
 .btn-select{background:transparent;border:1px solid var(--border);color:var(--text2)}
 .btn-select:hover{border-color:var(--acc);color:var(--acc)}
+.btn-upload{background:transparent;border:1px solid var(--gold);color:var(--gold);text-decoration:none}
+.btn-upload:hover{background:rgba(184,146,42,.12)}
 
 .filter-row{display:flex;gap:6px;flex-wrap:wrap}
 .filter-chip{padding:4px 10px;font-size:10px;letter-spacing:.08em;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;font-family:'DM Mono',monospace}
@@ -85,6 +87,7 @@ td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:n
     <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏</button>
   </div>
   <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
+  <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload" target="_blank">📦 批次上傳</a>
 </div>
 
 <div class="table-wrap">
