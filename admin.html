@@ -395,6 +395,7 @@ function renderList() {
 
   list.innerHTML = filtered.map(r => {
     const normStatus = normalizeStatus(r.web_status);
+    const isCustody = r.web_status === 'hidden'; // 已託管，由 plant-pos 管理，不可在此修改
     const statusOpts = WEB_STATUS_OPTIONS.map(o =>
       `<option value="${o.value}" ${normStatus === o.value ? 'selected' : ''}>${o.label}</option>`
     ).join('');
@@ -405,6 +406,14 @@ function renderList() {
       ? `<img class="plant-thumb" src="${r.photo_url}" loading="lazy" alt="">`
       : `<div class="plant-thumb-empty">🌿</div>`;
 
+    const controls = isCustody
+      ? `<span style="font-size:11px;color:var(--text3);letter-spacing:.05em;padding:4px 8px;border:1px solid var(--border);border-radius:3px">🔒 已託管（由POS管理）</span>
+         <a class="view-link" href="/plant.html?rid=${r.rid}" target="_blank">查看 →</a>`
+      : `<select class="status-select" id="sel-status-${r.rid}" onchange="markDirty('${r.rid}')">${statusOpts}</select>
+         <select class="owner-select" id="sel-owner-${r.rid}" onchange="markDirty('${r.rid}')">${ownerOpts}</select>
+         <button class="save-row-btn" id="save-btn-${r.rid}" onclick="saveRow('${r.rid}')">儲存</button>
+         <a class="view-link" href="/plant.html?rid=${r.rid}" target="_blank">查看 →</a>`;
+
     return `
     <div class="plant-row" id="row-${r.rid}">
       ${thumb}
@@ -413,10 +422,7 @@ function renderList() {
         <div class="plant-rid">${r.rid}</div>
       </div>
       <div class="plant-controls">
-        <select class="status-select" id="sel-status-${r.rid}" onchange="markDirty('${r.rid}')">${statusOpts}</select>
-        <select class="owner-select" id="sel-owner-${r.rid}" onchange="markDirty('${r.rid}')">${ownerOpts}</select>
-        <button class="save-row-btn" id="save-btn-${r.rid}" onclick="saveRow('${r.rid}')">儲存</button>
-        <a class="view-link" href="/plant.html?rid=${r.rid}" target="_blank">查看 →</a>
+        ${controls}
       </div>
     </div>`;
   }).join('');
