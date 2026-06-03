@@ -1399,7 +1399,7 @@ async function init() {
   const priceEl = document.getElementById('plant-price');
   const statusMap = {
     // new unified values
-    hidden:    { key: 'status.hidden',    cls: 'sold',      showPrice: false, showContact: false },
+    hidden:    { key: 'status.reserved',   cls: 'sold',      showPrice: false, showContact: false },
     display:   { key: 'status.display',   cls: 'available', showPrice: false, showContact: true },
     sale:      { key: 'status.sale',      cls: 'available', showPrice: true,  showContact: true },
     sold:      { key: 'status.sold',      cls: 'sold',      showPrice: false, showContact: false },
@@ -1408,7 +1408,7 @@ async function init() {
     tracking:  { key: 'status.tracking',  cls: 'available', showPrice: false, showContact: true },
     pup_sale:  { key: 'status.pup_sale',  cls: 'available', showPrice: true,  showContact: true },
     private:   { key: 'status.unlisted',  cls: 'sold',      showPrice: false, showContact: false },
-    rehab:     { key: 'status.hidden',    cls: 'sold',      showPrice: false, showContact: false },
+    rehab:     { key: 'status.unlisted',  cls: 'sold',      showPrice: false, showContact: false },
   };
   const sm = statusMap[webStatus] || statusMap['hidden'];
   badge.textContent = t(sm.key);
