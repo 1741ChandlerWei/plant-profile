@@ -619,7 +619,7 @@ const T = {
     'time.today':'今天','time.days.ago':' 天前',
     'unit.days':' 天','unit.photos':' 張',
     'status.available':'可購買','status.sold':'已售出',
-    'status.reserved':'已保留','status.tracking':'展示中',
+    'status.reserved':'已保留','status.tracking':'不公開',
     'status.pup_sale':'側芽販售','status.unlisted':'已下架',
     'status.hidden':'隱藏','status.display':'展示中','status.sale':'可販售',
     'plant.loading':'正在載入...',
@@ -684,7 +684,7 @@ const T = {
     'time.today':'Hôm nay','time.days.ago':' ngày trước',
     'unit.days':' ngày','unit.photos':' ảnh',
     'status.available':'Có thể mua','status.sold':'Đã bán',
-    'status.reserved':'Đã đặt cọc','status.tracking':'Đang triển lãm',
+    'status.reserved':'Đã đặt cọc','status.tracking':'Không công khai',
     'status.pup_sale':'Bán chồi','status.unlisted':'Ngừng bán',
     'status.hidden':'Ẩn','status.display':'Đang triển lãm','status.sale':'Có thể mua',
     'plant.loading':'Đang tải...',
@@ -1405,7 +1405,7 @@ async function init() {
     sold:      { key: 'status.sold',      cls: 'sold',      showPrice: false, showContact: false },
     // backward compat — old values
     available: { key: 'status.available', cls: 'available', showPrice: true,  showContact: true },
-    tracking:  { key: 'status.tracking',  cls: 'available', showPrice: false, showContact: true },
+    tracking:  { key: 'status.tracking',  cls: 'sold',      showPrice: false, showContact: false },
     pup_sale:  { key: 'status.pup_sale',  cls: 'available', showPrice: true,  showContact: true },
     private:   { key: 'status.unlisted',  cls: 'sold',      showPrice: false, showContact: false },
     rehab:     { key: 'status.unlisted',  cls: 'sold',      showPrice: false, showContact: false },
@@ -1601,7 +1601,7 @@ async function saveStatusMgmt() {
       sold:      { key: 'status.sold',      cls: 'sold' },
       // backward compat
       available: { key: 'status.available', cls: 'available' },
-      tracking:  { key: 'status.tracking',  cls: 'available' },
+      tracking:  { key: 'status.tracking',  cls: 'sold' },
       pup_sale:  { key: 'status.pup_sale',  cls: 'available' },
       private:   { key: 'status.unlisted',  cls: 'sold' },
     };
