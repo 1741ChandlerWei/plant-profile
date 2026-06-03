@@ -189,7 +189,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
       <div class="stat-item"><div class="stat-num" id="s-total">—</div><div class="stat-lbl">總植物數</div></div>
       <div class="stat-item"><div class="stat-num" id="s-public">—</div><div class="stat-lbl">展示中</div></div>
       <div class="stat-item"><div class="stat-num" id="s-private">—</div><div class="stat-lbl">隱藏</div></div>
-      <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">售出</div></div>
+      <div class="stat-item"><div class="stat-num" id="s-sold">—</div><div class="stat-lbl">售出/託管</div></div>
     </div>
     <!-- 篩選 -->
     <div class="filter-row">
@@ -198,7 +198,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
       <button class="filter-btn" data-filter="hidden">隱藏</button>
       <button class="filter-btn" data-filter="display">展示中</button>
       <button class="filter-btn" data-filter="sale">可販售</button>
-      <button class="filter-btn" data-filter="sold">售出</button>
+      <button class="filter-btn" data-filter="sold">售出/託管</button>
     </div>
     <div id="loading-state" class="loading-state">載入中...</div>
     <div class="plant-list" id="plant-list"></div>
@@ -367,8 +367,8 @@ async function loadPlants() {
 function updateStats() {
   const total = allRows.length;
   const pub = allRows.filter(r => ['display','sale','available','pup_sale'].includes(normalizeStatus(r.web_status))).length;
-  const priv = allRows.filter(r => ['hidden','private','rehab'].includes(r.web_status)).length;
-  const sold = allRows.filter(r => r.web_status === 'sold').length;
+  const priv = allRows.filter(r => ['private','rehab'].includes(r.web_status)).length;
+  const sold = allRows.filter(r => ['sold','hidden'].includes(r.web_status)).length;
   document.getElementById('s-total').textContent = total;
   document.getElementById('s-public').textContent = pub;
   document.getElementById('s-private').textContent = priv;
@@ -385,7 +385,9 @@ function normalizeStatus(s) {
 function renderList() {
   const filtered = currentFilter === 'all'
     ? allRows
-    : allRows.filter(r => normalizeStatus(r.web_status) === currentFilter);
+    : currentFilter === 'sold'
+      ? allRows.filter(r => ['sold','hidden'].includes(r.web_status))
+      : allRows.filter(r => normalizeStatus(r.web_status) === currentFilter);
 
   const list = document.getElementById('plant-list');
   if (!filtered.length) {
