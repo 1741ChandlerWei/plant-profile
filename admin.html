@@ -378,16 +378,15 @@ function updateStats() {
 // 把舊值正規化成新值
 function normalizeStatus(s) {
   if (!s) return 'hidden';
-  const map = { private:'hidden', rehab:'hidden', tracking:'hidden', available:'sale', pup_sale:'sale' };
+  // hidden(託管) / sold 都歸到 'sold' 群組，舊格式 private/rehab/tracking 歸到 'hidden'
+  const map = { private:'hidden', rehab:'hidden', tracking:'hidden', available:'sale', pup_sale:'sale', hidden:'sold' };
   return map[s] || s;
 }
 
 function renderList() {
   const filtered = currentFilter === 'all'
     ? allRows
-    : currentFilter === 'sold'
-      ? allRows.filter(r => ['sold','hidden'].includes(r.web_status))
-      : allRows.filter(r => normalizeStatus(r.web_status) === currentFilter);
+    : allRows.filter(r => normalizeStatus(r.web_status) === currentFilter);
 
   const list = document.getElementById('plant-list');
   if (!filtered.length) {
@@ -397,7 +396,9 @@ function renderList() {
 
   list.innerHTML = filtered.map(r => {
     const normStatus = normalizeStatus(r.web_status);
-    const isCustody = r.web_status === 'hidden'; // 已託管，由 plant-pos 管理，不可在此修改
+    // hidden(託管) 和 sold(售出) 都由 plant-pos 管理，後台不可修改
+    const isLocked = ['hidden','sold'].includes(r.web_status);
+    const lockedLabel = r.web_status === 'sold' ? '🔒 已售出（由POS管理）' : '🔒 已託管（由POS管理）';
     const statusOpts = WEB_STATUS_OPTIONS.map(o =>
       `<option value="${o.value}" ${normStatus === o.value ? 'selected' : ''}>${o.label}</option>`
     ).join('');
@@ -408,8 +409,8 @@ function renderList() {
       ? `<img class="plant-thumb" src="${r.photo_url}" loading="lazy" alt="">`
       : `<div class="plant-thumb-empty">🌿</div>`;
 
-    const controls = isCustody
-      ? `<span style="font-size:11px;color:var(--text3);letter-spacing:.05em;padding:4px 8px;border:1px solid var(--border);border-radius:3px">🔒 已託管（由POS管理）</span>
+    const controls = isLocked
+      ? `<span style="font-size:11px;color:var(--text3);letter-spacing:.05em;padding:4px 8px;border:1px solid var(--border);border-radius:3px">${lockedLabel}</span>
          <a class="view-link" href="/plant.html?rid=${r.rid}" target="_blank">查看 →</a>`
       : `<select class="status-select" id="sel-status-${r.rid}" onchange="markDirty('${r.rid}')">${statusOpts}</select>
          <select class="owner-select" id="sel-owner-${r.rid}" onchange="markDirty('${r.rid}')">${ownerOpts}</select>
