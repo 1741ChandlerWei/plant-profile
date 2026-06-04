@@ -79,12 +79,11 @@ td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:n
   <input class="search" id="search" placeholder="搜尋 RID 或植物名稱..." oninput="applyFilter()">
   <div class="filter-row" id="filter-row">
     <button class="filter-chip active" data-status="all" onclick="setStatus('all')">全部</button>
-    <button class="filter-chip" data-status="rehab" onclick="setStatus('rehab')">復健中</button>
     <button class="filter-chip" data-status="tracking" onclick="setStatus('tracking')">追蹤中</button>
     <button class="filter-chip" data-status="display" onclick="setStatus('display')">展示</button>
     <button class="filter-chip" data-status="sale" onclick="setStatus('sale')">販售</button>
     <button class="filter-chip" data-status="sold" onclick="setStatus('sold')">已售</button>
-    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏</button>
+    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">託管中</button>
   </div>
   <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
   <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳</a>
@@ -111,7 +110,7 @@ td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:n
 const SB_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const BASE = 'https://plant-profile.vercel.app/plant';
-const STATUS_LABEL = {rehab:'復健中',tracking:'追蹤中',display:'展示',sale:'販售',sold:'已售',hidden:'隱藏'};
+const STATUS_LABEL = {rehab:'修整中',tracking:'追蹤中',display:'展示',sale:'販售',sold:'已售',hidden:'託管中'};
 
 let allPlants = [];
 let filtered = [];
