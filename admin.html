@@ -316,10 +316,9 @@ let allRows = [];
 let currentFilter = 'all';
 
 const WEB_STATUS_OPTIONS = [
-  { value: 'hidden',  label: '隱藏' },
   { value: 'display', label: '展示中' },
   { value: 'sale',    label: '可販售' },
-  // sold 只走 POS 付款流程
+  // hidden/sold 只走 POS 流程，後台不開放設定
 ];
 // backward compat：舊值顯示名稱
 const STATUS_LABEL = { hidden:'隱藏', display:'展示中', sale:'可販售', sold:'售出', private:'隱藏', tracking:'隱藏', available:'可販售', pup_sale:'可販售', rehab:'隱藏' };
