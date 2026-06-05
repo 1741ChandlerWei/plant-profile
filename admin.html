@@ -271,7 +271,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <script>
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
-const ADMIN_PWD = 'roots';
+const ADMIN_PWD = null; // 密碼驗證改走 API
 
 async function dbGet(table, q) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + q, {
@@ -291,18 +291,24 @@ function toast(msg) {
 document.getElementById('pwd-btn').onclick = tryLogin;
 document.getElementById('pwd-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
 
-function tryLogin() {
-  if (document.getElementById('pwd-input').value === ADMIN_PWD) {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-panel').style.display = 'block';
-    loadPlants();
-  } else {
-    const err = document.getElementById('pwd-error');
-    err.textContent = '密碼錯誤 / Sai mật khẩu';
-    setTimeout(() => err.textContent = '', 2500);
-    document.getElementById('pwd-input').value = '';
-    document.getElementById('pwd-input').focus();
-  }
+async function tryLogin() {
+  const pw = document.getElementById('pwd-input').value;
+  const err = document.getElementById('pwd-error');
+  err.textContent = '驗證中...';
+  try {
+    const r = await fetch('https://plant-pos.vercel.app/api/admin-auth', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw })
+    });
+    if (r.ok) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-panel').style.display = 'block';
+      loadPlants();
+    }
+  } catch(e) { err.textContent = '連線錯誤'; }
+  setTimeout(() => err.textContent = '', 2500);
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-input').focus();
 }
 
 // ── 資料 ──────────────────────────────────────────────────
