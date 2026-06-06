@@ -747,6 +747,7 @@ function t(key) { return T[lang][key] || T['zh'][key] || key; }
 const SUPABASE_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const ADMIN_PWD = 'roots';
+const IK = 'gtl_ea745cf7cc0dd9fe10a15cf44175c391f740d2d2186e2337';
 const SB_URL = SUPABASE_URL;
 const SB_KEY = SUPABASE_KEY;
 
@@ -1211,12 +1212,18 @@ function buildAdminPhotoGrid() {
 async function deletePhoto(id, storagePath, e) {
   e.stopPropagation();
   if (!confirm('確定刪除這張照片？\n此操作無法復原。\n\nXác nhận xóa ảnh này?')) return;
-  // 刪除 Storage
-  if (storagePath) {
-    await fetch(`${SUPABASE_URL}/storage/v1/object/plant-media/${storagePath}`, {
-      method: 'DELETE',
-      headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
-    }).catch(()=>{});
+  // 刪除 B2 檔案
+  const photo = allPhotosAdmin.find(p => p.id === id);
+  const photoUrl = photo?.photo_url || '';
+  if (photoUrl.includes('/api/photo?key=')) {
+    try {
+      const key = new URL(photoUrl).searchParams.get('key');
+      if (key) await fetch('https://plant-pos.vercel.app/api/delete-b2-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-internal-key': IK },
+        body: JSON.stringify({ key })
+      });
+    } catch (_) {}
   }
   // 刪除資料庫
   const ok = await fetch(`${SUPABASE_URL}/rest/v1/photos?id=eq.${id}`, {
