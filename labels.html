@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>植物履歷列表 — 標籤匯出</title>
+<title>植物履歷列表 — 標籤匯出 v1.2</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400&display=swap" rel="stylesheet">
 <style>
 :root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--acc:#2D4A2D}
@@ -43,8 +43,10 @@ td.rid{font-family:'DM Mono',monospace;color:var(--gold);letter-spacing:.08em;wh
 td.name{color:var(--text);font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic}
 td.status span{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.1em;border:1px solid}
 td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text3);font-size:10px}
+td.qr-cell{text-align:right;padding:4px 12px;line-height:0}
+th.qr-th{text-align:right}
 .status-rehab span{border-color:#888;color:#888}
-.status-tracking span{border-color:var(--gold);color:var(--gold)}
+.status-tracking span{border-color:var(--border);color:var(--text3)}
 .status-display span,.status-sale span{border-color:var(--green);color:var(--green)}
 .status-hidden span{border-color:var(--border);color:var(--text3)}
 .status-sold span{border-color:#999;color:#999}
@@ -79,11 +81,10 @@ td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:n
   <input class="search" id="search" placeholder="搜尋 RID 或植物名稱..." oninput="applyFilter()">
   <div class="filter-row" id="filter-row">
     <button class="filter-chip active" data-status="all" onclick="setStatus('all')">全部</button>
-    <button class="filter-chip" data-status="tracking" onclick="setStatus('tracking')">追蹤中</button>
     <button class="filter-chip" data-status="display" onclick="setStatus('display')">展示</button>
     <button class="filter-chip" data-status="sale" onclick="setStatus('sale')">販售</button>
     <button class="filter-chip" data-status="sold" onclick="setStatus('sold')">已售</button>
-    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">託管中</button>
+    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏中</button>
   </div>
   <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
   <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳</a>
@@ -98,19 +99,21 @@ td.url-cell{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:n
         <th>植物名稱</th>
         <th>狀態</th>
         <th>URL</th>
+        <th class="qr-th">QR</th>
       </tr>
     </thead>
     <tbody id="tbody">
-      <tr><td colspan="5" class="loading">載入中 / Đang tải...</td></tr>
+      <tr><td colspan="6" class="loading">載入中 / Đang tải...</td></tr>
     </tbody>
   </table>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script>
 const SB_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const BASE = 'https://plant-profile.vercel.app/plant';
-const STATUS_LABEL = {rehab:'修整中',tracking:'追蹤中',display:'展示',sale:'販售',sold:'已售',hidden:'託管中'};
+const STATUS_LABEL = {tracking:'隱藏中',hidden:'隱藏中',display:'展示',sale:'販售',sold:'已售',available:'可販售'};
 
 let allPlants = [];
 let filtered = [];
@@ -127,7 +130,8 @@ async function init() {
 function applyFilter() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   filtered = allPlants.filter(p => {
-    const matchStatus = currentStatus === 'all' || p.status === currentStatus;
+    const matchStatus = currentStatus === 'all' ||
+      (currentStatus === 'hidden' ? ['hidden','tracking'].includes(p.status) : p.status === currentStatus);
     const matchQ = !q || (p.rid||'').toLowerCase().includes(q) || (p.plant_name||'').toLowerCase().includes(q);
     return matchStatus && matchQ;
   });
@@ -144,7 +148,7 @@ function render() {
   const tbody = document.getElementById('tbody');
   document.getElementById('count-badge').textContent = `共 ${filtered.length} 筆`;
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">找不到符合的植物</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">找不到符合的植物</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(p => {
@@ -156,10 +160,18 @@ function render() {
       <td class="name">${p.plant_name || '—'}</td>
       <td class="status status-${p.status}"><span>${sl}</span></td>
       <td class="url-cell">${url}</td>
+      <td class="qr-cell"><canvas id="qr-${p.rid}" width="56" height="56"></canvas></td>
     </tr>`;
   }).join('');
   document.getElementById('check-all').checked = false;
   updateSelBar();
+  // 產生 QR code
+  if (typeof QRCode !== 'undefined') {
+    filtered.forEach(p => {
+      const canvas = document.getElementById('qr-' + p.rid);
+      if (canvas) QRCode.toCanvas(canvas, `${BASE}/${p.rid}`, { width: 56, margin: 1, color: { dark: '#0D0D0A', light: '#F5F0E8' } });
+    });
+  }
 }
 
 function toggleAll(cb) {
