@@ -1218,10 +1218,9 @@ async function deletePhoto(id, storagePath, e) {
   if (photoUrl.includes('/api/photo?key=')) {
     try {
       const key = new URL(photoUrl).searchParams.get('key');
-      if (key) await fetch('https://plant-pos.vercel.app/api/delete-b2-file', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-internal-key': IK },
-        body: JSON.stringify({ key })
+      if (key) await fetch(`https://plant-pos.vercel.app/api/photo?key=${encodeURIComponent(key)}`, {
+        method: 'DELETE',
+        headers: { 'x-internal-key': IK }
       });
     } catch (_) {}
   }
