@@ -278,8 +278,8 @@ async function printQR() {
     @page { size: A4 portrait; margin: 8mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: monospace; }
-    .page { display: grid; grid-template-columns: repeat(${COLS}, 1fr); grid-auto-rows: 44mm; gap: 1mm; page-break-after: always; }
-    .page:last-child { page-break-after: avoid; }
+    .page { display: grid; grid-template-columns: repeat(${COLS}, 1fr); grid-template-rows: repeat(${ROWS}, 1fr); gap: 1mm; width: 194mm; height: 281mm; overflow: hidden; page-break-after: always; break-after: page; }
+    .page:last-child { page-break-after: avoid; break-after: avoid; }
     .card { border: 0.3pt solid #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5mm; overflow: hidden; }
     .card.empty { border: none; }
     .card img { width: 30mm; height: 30mm; display: block; }
