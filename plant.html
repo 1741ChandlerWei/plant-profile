@@ -422,7 +422,7 @@ main{padding-top:82px}
       </div>
     </div>
 
-    <!-- 重量折線圖 -->
+    <!-- 重量折線圖 + 含水率% -->
     <div class="chart-wrap" id="chart-wrap" style="display:none">
       <div class="chart-hint" data-i18n="chart.hint">點擊曲線上的點可查看對應照片</div>
       <div class="chart-canvas-box"><canvas id="weight-chart"></canvas></div>
@@ -436,6 +436,21 @@ main{padding-top:82px}
         <span class="legend-dot" style="background:#C68B2F;clip-path:polygon(50% 0%,100% 100%,0% 100%)"></span>&nbsp;<span data-i18n="chart.pointB">B 乾燥</span>
         <span class="legend-sep">|</span>
         <span class="legend-dot" style="background:#9B59B6"></span>&nbsp;<span data-i18n="chart.pointP">P 操作後</span>
+        <span class="legend-sep">|</span>
+        <span style="display:inline-block;width:18px;border-top:2px dashed rgba(82,160,82,0.7);vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.moisture">含水率%</span>
+      </div>
+    </div>
+
+    <!-- EC 折線圖 -->
+    <div class="chart-wrap" id="ec-chart-wrap" style="display:none">
+      <div class="chart-hint" data-i18n="chart.ec.hint">EC 值趨勢 / Xu hướng EC</div>
+      <div class="chart-canvas-box" style="height:160px"><canvas id="ec-chart"></canvas></div>
+      <div class="chart-legend">
+        <span style="display:inline-block;width:18px;border-top:2px solid #4A90D9;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.in">EC In</span>
+        <span class="legend-sep">|</span>
+        <span style="display:inline-block;width:18px;border-top:2px solid #C68B2F;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.out">EC Out</span>
+        <span class="legend-sep">|</span>
+        <span style="display:inline-block;width:18px;border-top:1px dashed #9B9B85;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.water">EC Water</span>
       </div>
     </div>
 
@@ -672,6 +687,7 @@ const T = {
     'hints.ecTrack':'EC 追蹤中',
     'hints.moisture':'含水率估算','hints.daysToC':'預估需水','hints.water.now':'立即需水',
     'chart.pointA':'A 飽和','chart.pointB':'B 乾燥','chart.pointP':'P 操作後',
+    'chart.moisture':'含水率%','chart.ec.hint':'EC 值趨勢','chart.ec.in':'EC 進水','chart.ec.out':'EC 出水','chart.ec.water':'EC 水源',
     'time.days':' 天',
   },
   vn: {
@@ -743,6 +759,7 @@ const T = {
     'hints.ecTrack':'Đang theo dõi EC',
     'hints.moisture':'Độ ẩm ước tính','hints.daysToC':'Dự kiến cần tưới','hints.water.now':'Cần tưới ngay',
     'chart.pointA':'A Bão hòa','chart.pointB':'B Khô','chart.pointP':'P Sau thao tác',
+    'chart.moisture':'Độ ẩm%','chart.ec.hint':'Xu hướng EC','chart.ec.in':'EC Vào','chart.ec.out':'EC Ra','chart.ec.water':'EC Nước',
     'time.days':' ngày',
   }
 };
@@ -940,6 +957,7 @@ function buildFeaturedVideos(videos) {
 let timelinePhotos = [];
 let slideshowTimer = null;
 let weightChart = null;
+let ecChart = null;
 
 function buildDiary(allPhotos, rid) {
   const timelineZone = allPhotos.filter(p => !p.zone || p.zone === 'timeline');
@@ -949,6 +967,7 @@ function buildDiary(allPhotos, rid) {
   document.getElementById('diary-section').style.display = 'block';
   buildTimeline();
   buildWeightChart(timelineZone);
+  buildECChart(allPhotos);
   loadAI(rid);
   loadHints(rid);
 }
@@ -1045,17 +1064,36 @@ function buildWeightChart(allTimelineZone) {
   if (lastBW) annos.lineB = { type:'line', yMin:lastBW, yMax:lastBW, borderColor:'rgba(198,139,47,0.55)', borderWidth:1, borderDash:[4,3], label: annoLabel('B','#C68B2F') };
   if (cVal)   annos.lineC = { type:'line', yMin:cVal,   yMax:cVal,   borderColor:'rgba(224,82,82,0.55)',   borderWidth:1, borderDash:[2,5], label: annoLabel('C ⚠','#E05252') };
 
+  // 含水率估算資料集 — A=100%, B=0%，中間 spanGaps 直線內插（模擬乾燥曲線）
+  const moistureData = pts.map(p => {
+    if (p.weight_type === 'A') return 100;
+    if (p.weight_type === 'B') return 0;
+    return null;
+  });
+  const hasMoisture = moistureData.some(v => v !== null);
+
   const photoIdxMap = pts.map(p => photos.findIndex(ph => ph.id === p.id));
   const ctx = document.getElementById('weight-chart').getContext('2d');
   if (weightChart) weightChart.destroy();
   weightChart = new Chart(ctx, {
     type: 'line',
-    data: { labels, datasets: [{
-      data: weights, borderColor: '#2D4A2D', backgroundColor: 'rgba(45,74,45,0.06)',
-      pointBackgroundColor: ptColors, pointBorderColor: ptColors,
-      pointStyle: ptStyles,
-      pointRadius: ptRadii, pointHoverRadius: 9, tension: 0.3, fill: true, borderWidth: 1.5
-    }]},
+    data: { labels, datasets: [
+      {
+        data: weights, borderColor: '#2D4A2D', backgroundColor: 'rgba(45,74,45,0.06)',
+        pointBackgroundColor: ptColors, pointBorderColor: ptColors,
+        pointStyle: ptStyles,
+        pointRadius: ptRadii, pointHoverRadius: 9, tension: 0.3, fill: true, borderWidth: 1.5,
+        yAxisID: 'y'
+      },
+      ...(hasMoisture ? [{
+        data: moistureData,
+        borderColor: 'rgba(82,160,82,0.65)', backgroundColor: 'rgba(82,160,82,0.04)',
+        borderDash: [5, 4], borderWidth: 1.5,
+        pointRadius: 0, pointHoverRadius: 5, tension: 0,
+        fill: false, spanGaps: true, yAxisID: 'y1',
+        label: t('chart.moisture')
+      }] : [])
+    ]},
     options: {
       responsive: true, maintainAspectRatio: false,
       onClick: (e, els) => {
@@ -1070,6 +1108,7 @@ function buildWeightChart(allTimelineZone) {
           callbacks: {
             title: items => labels[items[0].dataIndex],
             label: ctx => {
+              if (ctx.datasetIndex === 1) return ctx.parsed.y + '% ' + t('chart.moisture');
               const p = pts[ctx.dataIndex];
               const tag = p.weight_type === 'A' ? ' ◆ A' : p.weight_type === 'B' ? ' ▲ B' : p.weight_type === 'P' ? ' ■ P' : '';
               return ctx.parsed.y + ' g' + tag + (isWatering(p.note) ? '  💧 ' + t('chart.watering') : (p.note ? '  '+p.note : ''));
@@ -1082,7 +1121,67 @@ function buildWeightChart(allTimelineZone) {
       },
       scales: {
         x: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', maxTicksLimit:8, maxRotation:0 }, grid: { color:'rgba(216,208,192,.4)' } },
-        y: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', callback: v => v+'g' }, grid: { color:'rgba(216,208,192,.4)' } }
+        y: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', callback: v => v+'g' }, grid: { color:'rgba(216,208,192,.4)' } },
+        y1: {
+          display: hasMoisture, position: 'right', min: 0, max: 100,
+          ticks: { font: { family:'DM Mono',size:9 }, color:'rgba(82,160,82,0.8)', callback: v => v+'%', stepSize: 25 },
+          grid: { drawOnChartArea: false }
+        }
+      }
+    }
+  });
+}
+
+function buildECChart(allPhotos) {
+  const ecPts = allPhotos.filter(p =>
+    p.angle === 'front' && (p.ec_in != null || p.ec_out != null || p.ec_water != null)
+  );
+  if (ecPts.length < 1) return;
+  document.getElementById('ec-chart-wrap').style.display = 'block';
+
+  const labels = ecPts.map(p => fmtDate(p.taken_at || p.created_at));
+  const ctx = document.getElementById('ec-chart').getContext('2d');
+  if (ecChart) ecChart.destroy();
+  ecChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      {
+        label: t('chart.ec.in'), data: ecPts.map(p => p.ec_in),
+        borderColor: '#4A90D9', backgroundColor: 'rgba(74,144,217,0.08)',
+        pointRadius: 5, pointHoverRadius: 7, tension: 0.3,
+        fill: false, borderWidth: 1.8, spanGaps: true
+      },
+      {
+        label: t('chart.ec.out'), data: ecPts.map(p => p.ec_out),
+        borderColor: '#C68B2F', backgroundColor: 'rgba(198,139,47,0.08)',
+        pointRadius: 5, pointHoverRadius: 7, tension: 0.3,
+        fill: false, borderWidth: 1.8, spanGaps: true
+      },
+      {
+        label: t('chart.ec.water'), data: ecPts.map(p => p.ec_water),
+        borderColor: '#9B9B85', borderDash: [4,3],
+        pointRadius: 3, pointHoverRadius: 5, tension: 0.3,
+        fill: false, borderWidth: 1.2, spanGaps: true
+      }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => labels[items[0].dataIndex],
+            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(2) + ' mS/cm' : '—')
+          },
+          titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'Cormorant Garamond', size: 13 },
+          backgroundColor: 'rgba(26,26,20,.88)', titleColor: '#9B9B85', bodyColor: '#F5F0E8',
+          padding: 10, borderColor: '#D8D0C0', borderWidth: 0.5
+        }
+      },
+      scales: {
+        x: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', maxTicksLimit:8, maxRotation:0 }, grid: { color:'rgba(216,208,192,.4)' } },
+        y: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', callback: v => v.toFixed(2) }, grid: { color:'rgba(216,208,192,.4)' },
+             title: { display: true, text: 'mS/cm', font: { family:'DM Mono',size:8 }, color:'#9B9B85' } }
       }
     }
   });
