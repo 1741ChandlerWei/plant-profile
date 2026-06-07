@@ -66,29 +66,22 @@ th.qr-th{text-align:right}
 
 <header>
   <div class="header-title">植物履歷列表 / Danh sách hồ sơ cây</div>
-  <div class="header-count" id="count-badge">載入中...</div>
+  <div class="header-count" id="count-badge">載入中 / Đang tải...</div>
 </header>
 
-<div class="sel-bar" id="sel-bar">
-  <span id="sel-count">已選 0 筆</span>
-  <div style="display:flex;gap:8px">
-    <button onclick="exportSelected()">匯出已選 CSV</button>
-    <button onclick="clearSel()">取消選取</button>
-  </div>
-</div>
-
 <div class="toolbar">
-  <input class="search" id="search" placeholder="搜尋 RID 或植物名稱..." oninput="applyFilter()">
+  <input class="search" id="search" placeholder="搜尋 RID 或植物名稱 / Tìm RID hoặc tên cây..." oninput="applyFilter()">
   <div class="filter-row" id="filter-row">
-    <button class="filter-chip active" data-status="all" onclick="setStatus('all')">全部</button>
-    <button class="filter-chip" data-status="display" onclick="setStatus('display')">展示</button>
-    <button class="filter-chip" data-status="sale" onclick="setStatus('sale')">販售</button>
-    <button class="filter-chip" data-status="sold" onclick="setStatus('sold')">已售</button>
-    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏中</button>
+    <button class="filter-chip active" data-status="all" onclick="setStatus('all')">全部 / Tất cả</button>
+    <button class="filter-chip" data-status="display" onclick="setStatus('display')">展示 / Trưng bày</button>
+    <button class="filter-chip" data-status="sale" onclick="setStatus('sale')">販售 / Đang bán</button>
+    <button class="filter-chip" data-status="sold" onclick="setStatus('sold')">已售 / Đã bán</button>
+    <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏中 / Đang ẩn</button>
   </div>
-  <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
-  <button class="btn btn-export" onclick="printQR()" style="background:#4a5568">🖨 列印 QR（正反面）</button>
-  <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳</a>
+  <button class="btn btn-export" id="btn-export-sel" onclick="exportSelected()" disabled style="opacity:.4;cursor:default">⬇ 匯出已選 / Xuất đã chọn <span id="sel-count-btn"></span></button>
+  <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 / Xuất tất cả</button>
+  <button class="btn btn-export" onclick="printQR()" style="background:#4a5568">🖨 列印 QR / In QR</button>
+  <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳 / Tải lên hàng loạt</a>
 </div>
 
 <div class="table-wrap">
@@ -97,8 +90,8 @@ th.qr-th{text-align:right}
       <tr>
         <th><input type="checkbox" class="check-all" id="check-all" onchange="toggleAll(this)"></th>
         <th>RID</th>
-        <th>植物名稱</th>
-        <th>狀態</th>
+        <th>植物名稱 / Tên cây</th>
+        <th>狀態 / Trạng thái</th>
         <th>URL</th>
         <th class="qr-th">QR</th>
       </tr>
@@ -114,7 +107,7 @@ th.qr-th{text-align:right}
 const SB_URL = 'https://edvklxnzhuhmijdwyzrl.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
 const BASE = 'https://plant-profile.vercel.app/plant';
-const STATUS_LABEL = {tracking:'隱藏中',hidden:'隱藏中',display:'展示',sale:'販售',sold:'已售',available:'可販售'};
+const STATUS_LABEL = {tracking:'隱藏中 / Đang ẩn',hidden:'隱藏中 / Đang ẩn',display:'展示 / Trưng bày',sale:'販售 / Đang bán',sold:'已售 / Đã bán',available:'可販售 / Có thể bán'};
 
 let allPlants = [];
 let filtered = [];
@@ -147,9 +140,9 @@ function setStatus(s) {
 
 function render() {
   const tbody = document.getElementById('tbody');
-  document.getElementById('count-badge').textContent = `共 ${filtered.length} 筆`;
+  document.getElementById('count-badge').textContent = `共 ${filtered.length} 筆 / ${filtered.length} mục`;
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">找不到符合的植物</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">找不到符合的植物 / Không tìm thấy cây phù hợp</td></tr>';
     return;
   }
   tbody.innerHTML = filtered.map(p => {
@@ -190,9 +183,14 @@ function onCheckRow() {
 
 function updateSelBar() {
   const n = document.querySelectorAll('.check-row:checked').length;
-  const bar = document.getElementById('sel-bar');
-  bar.classList.toggle('show', n > 0);
-  document.getElementById('sel-count').textContent = `已選 ${n} 筆`;
+  const btn = document.getElementById('btn-export-sel');
+  const badge = document.getElementById('sel-count-btn');
+  if (btn) {
+    btn.disabled = n === 0;
+    btn.style.opacity = n === 0 ? '.4' : '1';
+    btn.style.cursor = n === 0 ? 'default' : 'pointer';
+    if (badge) badge.textContent = n > 0 ? `(${n})` : '';
+  }
 }
 
 function clearSel() {
@@ -231,7 +229,7 @@ function exportSelected() {
 async function printQR() {
   const checkedRids = new Set([...document.querySelectorAll('.check-row:checked')].map(c => c.dataset.rid));
   const plants = checkedRids.size > 0 ? filtered.filter(p => checkedRids.has(p.rid)) : filtered;
-  if (!plants.length) { alert('沒有可印的植物'); return; }
+  if (!plants.length) { alert('沒有可印的植物 / Không có cây để in'); return; }
 
   // 產生每株的 QR data URL
   const qrMap = {};
