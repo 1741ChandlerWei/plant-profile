@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>植物履歷列表 — 標籤匯出 v1.2</title>
+<title>植物履歷列表 — 標籤匯出 v1.3</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=Cormorant+Garamond:ital,wght@0,300;0,400&display=swap" rel="stylesheet">
 <style>
 :root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--acc:#2D4A2D}
@@ -87,6 +87,7 @@ th.qr-th{text-align:right}
     <button class="filter-chip" data-status="hidden" onclick="setStatus('hidden')">隱藏中</button>
   </div>
   <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 CSV</button>
+  <button class="btn btn-export" onclick="printQR()" style="background:#4a5568">🖨 列印 QR（正反面）</button>
   <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳</a>
 </div>
 
@@ -225,6 +226,74 @@ function exportSelected() {
   const checkedRids = new Set([...document.querySelectorAll('.check-row:checked')].map(c => c.dataset.rid));
   const rows = filtered.filter(p => checkedRids.has(p.rid));
   downloadCSV(toCSV(rows), 'plant_labels_selected.csv');
+}
+
+async function printQR() {
+  const checkedRids = new Set([...document.querySelectorAll('.check-row:checked')].map(c => c.dataset.rid));
+  const plants = checkedRids.size > 0 ? filtered.filter(p => checkedRids.has(p.rid)) : filtered;
+  if (!plants.length) { alert('沒有可印的植物'); return; }
+
+  // 產生每株的 QR data URL
+  const qrMap = {};
+  await Promise.all(plants.map(p =>
+    QRCode.toDataURL(`${BASE}/${p.rid}`, { width: 300, margin: 1, color: { dark: '#000000', light: '#ffffff' } })
+      .then(url => { qrMap[p.rid] = url; })
+  ));
+
+  const COLS = 5, ROWS = 6, PER = COLS * ROWS;
+
+  // 分頁
+  const pages = [];
+  for (let i = 0; i < plants.length; i += PER) pages.push(plants.slice(i, i + PER));
+
+  function padPage(arr) {
+    const a = [...arr];
+    while (a.length < PER) a.push(null);
+    return a;
+  }
+
+  function frontPage(pagePlants) {
+    return `<div class="page">${padPage(pagePlants).map(p => p
+      ? `<div class="card"><img src="${qrMap[p.rid]}"><div class="card-rid">${p.rid}</div></div>`
+      : `<div class="card empty"></div>`
+    ).join('')}</div>`;
+  }
+
+  function backPage(pagePlants) {
+    // 水平鏡像：每列倒序，使翻面後對齊
+    const padded = padPage(pagePlants);
+    const mirrored = [];
+    for (let r = 0; r < ROWS; r++) {
+      const row = padded.slice(r * COLS, (r + 1) * COLS);
+      mirrored.push(...[...row].reverse());
+    }
+    return `<div class="page">${mirrored.map(p => p
+      ? `<div class="card back"><div class="card-rid">${p.rid}</div><div class="card-name">${p.plant_name || ''}</div></div>`
+      : `<div class="card empty"></div>`
+    ).join('')}</div>`;
+  }
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    @page { size: A4 portrait; margin: 8mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: monospace; }
+    .page { display: grid; grid-template-columns: repeat(${COLS}, 1fr); grid-auto-rows: 44mm; gap: 1mm; page-break-after: always; }
+    .page:last-child { page-break-after: avoid; }
+    .card { border: 0.3pt solid #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5mm; overflow: hidden; }
+    .card.empty { border: none; }
+    .card img { width: 30mm; height: 30mm; display: block; }
+    .card-rid { font-size: 5.5pt; color: #888; margin-top: 1mm; letter-spacing: 0.05em; }
+    .card.back .card-rid { font-size: 7pt; color: #333; font-weight: bold; }
+    .card-name { font-size: 7pt; color: #111; margin-top: 1.5mm; text-align: center; max-width: 34mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style></head><body>
+  ${pages.map(p => frontPage(p) + backPage(p)).join('')}
+  </body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 400);
 }
 
 init();
