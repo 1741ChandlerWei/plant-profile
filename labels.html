@@ -252,25 +252,36 @@ async function printQR() {
     return a;
   }
 
+  function makeTable(cells, cls) {
+    let html = `<table class="page ${cls}">`;
+    for (let r = 0; r < ROWS; r++) {
+      html += '<tr>';
+      for (let c = 0; c < COLS; c++) {
+        html += `<td>${cells[r * COLS + c] || ''}</td>`;
+      }
+      html += '</tr>';
+    }
+    return html + '</table>';
+  }
+
   function frontPage(pagePlants) {
-    return `<div class="page">${padPage(pagePlants).map(p => p
-      ? `<div class="card"><img src="${qrMap[p.rid]}"><div class="card-rid">${p.rid}</div></div>`
-      : `<div class="card empty"></div>`
-    ).join('')}</div>`;
+    const cells = padPage(pagePlants).map(p => p
+      ? `<img src="${qrMap[p.rid]}"><br><span class="rid-label">${p.rid}</span>`
+      : '');
+    return makeTable(cells, 'front');
   }
 
   function backPage(pagePlants) {
-    // 水平鏡像：每列倒序，使翻面後對齊
     const padded = padPage(pagePlants);
     const mirrored = [];
     for (let r = 0; r < ROWS; r++) {
       const row = padded.slice(r * COLS, (r + 1) * COLS);
       mirrored.push(...[...row].reverse());
     }
-    return `<div class="page">${mirrored.map(p => p
-      ? `<div class="card back"><div class="card-rid">${p.rid}</div><div class="card-name">${p.plant_name || ''}</div></div>`
-      : `<div class="card empty"></div>`
-    ).join('')}</div>`;
+    const cells = mirrored.map(p => p
+      ? `<span class="back-rid">${p.rid}</span><br><span class="back-name">${p.plant_name || ''}</span>`
+      : '');
+    return makeTable(cells, 'back');
   }
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -278,14 +289,13 @@ async function printQR() {
     @page { size: A4 portrait; margin: 8mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: monospace; }
-    .page { display: grid; grid-template-columns: repeat(${COLS}, 1fr); grid-template-rows: repeat(${ROWS}, 1fr); gap: 1mm; width: 194mm; height: 281mm; overflow: hidden; page-break-after: always; break-after: page; }
-    .page:last-child { page-break-after: avoid; break-after: avoid; }
-    .card { border: 0.3pt solid #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1.5mm; overflow: hidden; }
-    .card.empty { border: none; }
-    .card img { width: 30mm; height: 30mm; display: block; }
-    .card-rid { font-size: 5.5pt; color: #888; margin-top: 1mm; letter-spacing: 0.05em; }
-    .card.back .card-rid { font-size: 7pt; color: #333; font-weight: bold; }
-    .card-name { font-size: 7pt; color: #111; margin-top: 1.5mm; text-align: center; max-width: 34mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    table.page { width: 194mm; height: 281mm; table-layout: fixed; border-collapse: collapse; page-break-after: always; break-after: page; }
+    table.page:last-child { page-break-after: avoid; break-after: avoid; }
+    td { width: 38.6mm; border: 0.3pt solid #ccc; text-align: center; vertical-align: middle; padding: 1.5mm; overflow: hidden; }
+    td img { width: 30mm; height: 30mm; display: block; margin: 0 auto; }
+    .rid-label { font-size: 5pt; color: #999; letter-spacing: 0.04em; }
+    .back-rid { font-size: 7.5pt; font-weight: bold; color: #111; }
+    .back-name { font-size: 7pt; color: #444; display: block; margin-top: 1.5mm; }
   </style></head><body>
   ${pages.map(p => frontPage(p) + backPage(p)).join('')}
   </body></html>`;
