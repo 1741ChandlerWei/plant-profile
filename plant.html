@@ -444,6 +444,7 @@ main{padding-top:82px}
       <div class="hint-row"><span class="hint-icon">💊</span><span class="hint-label" data-i18n="hints.fertilizer">上次給肥</span><span class="hint-val" id="hint-fertilizer">—</span></div>
       <div class="hint-row"><span class="hint-icon">📋</span><span class="hint-label" data-i18n="hints.status">上次狀態</span><span class="hint-val" id="hint-status">—</span></div>
       <div class="hint-row"><span class="hint-icon">💧</span><span class="hint-label" data-i18n="hints.lastA">上次飽和</span><span class="hint-val" id="hint-last-a">—</span></div>
+      <div class="hint-row" id="ec-track-row" style="display:none"><span class="hint-icon">🔬</span><span class="hint-label" data-i18n="hints.ecTrack">EC 追蹤中</span><span class="hint-val warn" id="hint-ec-track">—</span></div>
       <div class="ai-predict-box" id="hint-ai-predict">
         🤖 <span data-i18n="hints.predict">AI 預警</span><br><span class="hint-predict-sub" data-i18n="hints.predict.sub">數據累積中，預警功能開啟後將顯示於此</span>
       </div>
@@ -658,6 +659,8 @@ const T = {
     'status_label.new_growth':'看到新生長跡象','status_label.moss_dry':'水苔過乾',
     'status_label.dehydrated':'植物缺水（脫水）',
     'status_label.leaf_drop_unknown':'不正常掉葉（原因不明確）',
+    'status_label.wet_wilt':'水苔高濕但葉片下垂（疑似根系問題）',
+    'hints.ecTrack':'EC 追蹤中',
   },
   vn: {
     'nav.home':'Trang chủ','nav.plants':'Triển lãm','nav.shop':'Sản phẩm',
@@ -724,6 +727,8 @@ const T = {
     'status_label.new_growth':'Thấy dấu hiệu sinh trưởng mới','status_label.moss_dry':'Rêu quá khô',
     'status_label.dehydrated':'Cây thiếu nước (mất nước)',
     'status_label.leaf_drop_unknown':'Rụng lá bất thường (chưa rõ nguyên nhân)',
+    'status_label.wet_wilt':'Rêu ẩm nhưng lá rũ xuống (nghi vấn rễ)',
+    'hints.ecTrack':'Đang theo dõi EC',
   }
 };
 
@@ -1091,6 +1096,7 @@ function getStatusLabel() {
     moss_dry: t('status_label.moss_dry'),
     dehydrated: t('status_label.dehydrated'),
     leaf_drop_unknown: t('status_label.leaf_drop_unknown'),
+    wet_wilt: t('status_label.wet_wilt'),
   };
 }
 
@@ -1119,6 +1125,16 @@ async function loadHints(rid) {
       el.textContent = label + '　·　' + (days === 0 ? t('time.today') : days + t('time.days.ago'));
       el.className = 'hint-val' + (['dehydrated','moss_dry','growth_concern','frond_poor'].includes(s.plant_status) ? ' warn' : '');
     }
+    // EC 追蹤中（最近一筆含 wet_wilt 的紀錄）
+    const ecRows = await dbGet('photos',
+      '?rid=eq.'+rid+'&plant_status=like.*wet_wilt*&order=taken_at.desc&limit=1&select=taken_at');
+    if (ecRows && ecRows.length) {
+      const days = Math.floor((Date.now() - new Date(ecRows[0].taken_at)) / 86400000);
+      const label = days === 0 ? t('time.today') : days + t('time.days.ago');
+      document.getElementById('hint-ec-track').textContent = label + ' · 持續追蹤 EC 變化';
+      document.getElementById('ec-track-row').style.display = '';
+    }
+
     // 上次達到飽和（A點）
     const aRows = await dbGet('photos',
       '?rid=eq.'+rid+'&weight_type=eq.A&order=taken_at.desc&limit=1&select=taken_at,weight_g');
