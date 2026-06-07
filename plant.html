@@ -444,13 +444,21 @@ main{padding-top:82px}
     <!-- EC 折線圖 -->
     <div class="chart-wrap" id="ec-chart-wrap" style="display:none">
       <div class="chart-hint" data-i18n="chart.ec.hint">EC 值趨勢 / Xu hướng EC</div>
-      <div class="chart-canvas-box" style="height:160px"><canvas id="ec-chart"></canvas></div>
-      <div class="chart-legend">
+      <div class="chart-canvas-box" style="height:180px"><canvas id="ec-chart"></canvas></div>
+      <div class="chart-legend" style="margin-top:8px">
         <span style="display:inline-block;width:18px;border-top:2px solid #4A90D9;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.in">EC In</span>
         <span class="legend-sep">|</span>
         <span style="display:inline-block;width:18px;border-top:2px solid #C68B2F;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.out">EC Out</span>
         <span class="legend-sep">|</span>
         <span style="display:inline-block;width:18px;border-top:1px dashed #9B9B85;vertical-align:middle;margin-bottom:1px"></span>&nbsp;<span data-i18n="chart.ec.water">EC Water</span>
+        <span class="legend-sep">|</span>
+        <span style="display:inline-block;width:7px;height:7px;background:#52A052;border-radius:50%;vertical-align:middle"></span>&nbsp;<span data-i18n="chart.ec.ratio">Out/In 比</span>
+      </div>
+      <!-- EC 狀態 banner -->
+      <div id="ec-status-bar" style="display:none;margin-top:10px;padding:9px 14px;border-radius:8px;border:1px solid;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+        <span id="ec-status-icon" style="font-size:14px"></span>
+        <span id="ec-status-text" style="font-size:12px;font-weight:600;color:var(--text)"></span>
+        <span id="ec-status-rec" style="font-size:11px;color:var(--text3)"></span>
       </div>
     </div>
 
@@ -687,7 +695,9 @@ const T = {
     'hints.ecTrack':'EC 追蹤中',
     'hints.moisture':'含水率估算','hints.daysToC':'預估需水','hints.water.now':'立即需水',
     'chart.pointA':'A 飽和','chart.pointB':'B 乾燥','chart.pointP':'P 操作後',
-    'chart.moisture':'含水率%','chart.ec.hint':'EC 值趨勢','chart.ec.in':'EC 進水','chart.ec.out':'EC 出水','chart.ec.water':'EC 水源',
+    'chart.moisture':'含水率%','chart.ec.hint':'EC 值趨勢','chart.ec.in':'EC 進水','chart.ec.out':'EC 出水','chart.ec.water':'EC 水源','chart.ec.ratio':'Out/In 比',
+    'ec.ok':'根部環境正常','ec.warn':'開始積鹽，追蹤中','ec.danger':'需要沖洗根部',
+    'ec.ok.rec':'無鹽分累積風險','ec.warn.rec':'下次澆水時多沖幾次','ec.danger.rec':'請立即大量清水沖洗排鹽',
     'time.days':' 天',
   },
   vn: {
@@ -759,7 +769,9 @@ const T = {
     'hints.ecTrack':'Đang theo dõi EC',
     'hints.moisture':'Độ ẩm ước tính','hints.daysToC':'Dự kiến cần tưới','hints.water.now':'Cần tưới ngay',
     'chart.pointA':'A Bão hòa','chart.pointB':'B Khô','chart.pointP':'P Sau thao tác',
-    'chart.moisture':'Độ ẩm%','chart.ec.hint':'Xu hướng EC','chart.ec.in':'EC Vào','chart.ec.out':'EC Ra','chart.ec.water':'EC Nước',
+    'chart.moisture':'Độ ẩm%','chart.ec.hint':'Xu hướng EC','chart.ec.in':'EC Vào','chart.ec.out':'EC Ra','chart.ec.water':'EC Nước','chart.ec.ratio':'Tỷ lệ Ra/Vào',
+    'ec.ok':'Rễ khỏe mạnh','ec.warn':'Bắt đầu tích muối, theo dõi','ec.danger':'Cần rửa rễ ngay',
+    'ec.ok.rec':'Không có nguy cơ tích muối','ec.warn.rec':'Tưới thêm lần nữa lần sau','ec.danger.rec':'Dội nhiều nước sạch ngay để rửa muối',
     'time.days':' ngày',
   }
 };
@@ -1140,6 +1152,31 @@ function buildECChart(allPhotos) {
   document.getElementById('ec-chart-wrap').style.display = 'block';
 
   const labels = ecPts.map(p => fmtDate(p.taken_at || p.created_at));
+
+  // EC Out/In 比值：只有 ec_in > 0 且 ec_out 存在才計算
+  const ratioData = ecPts.map(p =>
+    (p.ec_in != null && p.ec_in > 0 && p.ec_out != null)
+      ? Math.round(p.ec_out / p.ec_in * 100) / 100
+      : null
+  );
+  const ratioColors = ratioData.map(v => {
+    if (v == null) return 'transparent';
+    if (v < 1.5) return '#52A052';
+    if (v < 2.0) return '#C8A030';
+    return '#E05252';
+  });
+  const hasRatio = ratioData.some(v => v != null);
+
+  // 警戒線 annotation（ratio = 2.0）
+  const ratioAnno = hasRatio ? {
+    ratioLine: {
+      type: 'line', yMin: 2, yMax: 2, yScaleID: 'y1',
+      borderColor: 'rgba(224,82,82,0.5)', borderWidth: 1.2, borderDash: [4,4],
+      label: { display: true, content: '× 2.0', position: 'end', color: '#E05252',
+               font: { size: 9, family: 'DM Mono' }, backgroundColor: 'transparent', padding: 0, yAdjust: -6 }
+    }
+  } : {};
+
   const ctx = document.getElementById('ec-chart').getContext('2d');
   if (ecChart) ecChart.destroy();
   ecChart = new Chart(ctx, {
@@ -1149,29 +1186,44 @@ function buildECChart(allPhotos) {
         label: t('chart.ec.in'), data: ecPts.map(p => p.ec_in),
         borderColor: '#4A90D9', backgroundColor: 'rgba(74,144,217,0.08)',
         pointRadius: 5, pointHoverRadius: 7, tension: 0.3,
-        fill: false, borderWidth: 1.8, spanGaps: true
+        fill: false, borderWidth: 1.8, spanGaps: true, yAxisID: 'y'
       },
       {
         label: t('chart.ec.out'), data: ecPts.map(p => p.ec_out),
         borderColor: '#C68B2F', backgroundColor: 'rgba(198,139,47,0.08)',
         pointRadius: 5, pointHoverRadius: 7, tension: 0.3,
-        fill: false, borderWidth: 1.8, spanGaps: true
+        fill: false, borderWidth: 1.8, spanGaps: true, yAxisID: 'y'
       },
       {
         label: t('chart.ec.water'), data: ecPts.map(p => p.ec_water),
         borderColor: '#9B9B85', borderDash: [4,3],
         pointRadius: 3, pointHoverRadius: 5, tension: 0.3,
-        fill: false, borderWidth: 1.2, spanGaps: true
-      }
+        fill: false, borderWidth: 1.2, spanGaps: true, yAxisID: 'y'
+      },
+      ...(hasRatio ? [{
+        label: t('chart.ec.ratio'), data: ratioData,
+        borderColor: 'rgba(100,180,100,0.7)', borderDash: [3,3],
+        pointBackgroundColor: ratioColors, pointBorderColor: ratioColors,
+        pointRadius: 6, pointHoverRadius: 8, tension: 0.3,
+        fill: false, borderWidth: 1.4, spanGaps: false, yAxisID: 'y1'
+      }] : [])
     ]},
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
+        annotation: { annotations: ratioAnno },
         tooltip: {
           callbacks: {
             title: items => labels[items[0].dataIndex],
-            label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(2) + ' mS/cm' : '—')
+            label: ctx => {
+              if (ctx.datasetIndex === 3) {
+                const v = ctx.parsed.y;
+                const status = v < 1.5 ? '✅ 正常' : v < 2.0 ? '⚠️ 注意' : '🔴 危險';
+                return `Out/In: ${v != null ? v.toFixed(2) : '—'}  ${status}`;
+              }
+              return ctx.dataset.label + ': ' + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(2) + ' mS/cm' : '—');
+            }
           },
           titleFont: { family: 'DM Mono', size: 11 }, bodyFont: { family: 'Cormorant Garamond', size: 13 },
           backgroundColor: 'rgba(26,26,20,.88)', titleColor: '#9B9B85', bodyColor: '#F5F0E8',
@@ -1181,10 +1233,39 @@ function buildECChart(allPhotos) {
       scales: {
         x: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', maxTicksLimit:8, maxRotation:0 }, grid: { color:'rgba(216,208,192,.4)' } },
         y: { ticks: { font: { family:'DM Mono',size:9 }, color:'#9B9B85', callback: v => v.toFixed(2) }, grid: { color:'rgba(216,208,192,.4)' },
-             title: { display: true, text: 'mS/cm', font: { family:'DM Mono',size:8 }, color:'#9B9B85' } }
+             title: { display: true, text: 'mS/cm', font: { family:'DM Mono',size:8 }, color:'#9B9B85' } },
+        y1: {
+          display: hasRatio, position: 'right', min: 0, max: 4,
+          ticks: { font: { family:'DM Mono',size:9 }, color:'rgba(100,180,100,0.9)', callback: v => '×'+v.toFixed(1), stepSize: 1 },
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Out/In', font: { family:'DM Mono',size:8 }, color:'rgba(100,180,100,0.8)' }
+        }
       }
     }
   });
+
+  // EC 狀態 banner
+  if (hasRatio) {
+    const latestRatio = ratioData.filter(v => v != null).slice(-1)[0];
+    const banner = document.getElementById('ec-status-bar');
+    let icon, textKey, recKey, bg, borderColor;
+    if (latestRatio < 1.5) {
+      icon = '✅'; textKey = 'ec.ok'; recKey = 'ec.ok.rec';
+      bg = 'rgba(82,160,82,0.07)'; borderColor = 'rgba(82,160,82,0.3)';
+    } else if (latestRatio < 2.0) {
+      icon = '⚠️'; textKey = 'ec.warn'; recKey = 'ec.warn.rec';
+      bg = 'rgba(200,160,48,0.07)'; borderColor = 'rgba(200,160,48,0.35)';
+    } else {
+      icon = '🔴'; textKey = 'ec.danger'; recKey = 'ec.danger.rec';
+      bg = 'rgba(224,82,82,0.07)'; borderColor = 'rgba(224,82,82,0.35)';
+    }
+    document.getElementById('ec-status-icon').textContent = icon;
+    document.getElementById('ec-status-text').textContent = ' ' + t(textKey);
+    document.getElementById('ec-status-rec').textContent = `  ×${latestRatio.toFixed(2)}  —  ${t(recKey)}`;
+    banner.style.background = bg;
+    banner.style.borderColor = borderColor;
+    banner.style.display = 'flex';
+  }
 }
 
 // 幻燈片
