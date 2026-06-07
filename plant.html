@@ -1386,9 +1386,15 @@ async function loadHints(rid) {
     }
 
     // 含水率估算 & 預估需水天數（C = B + 20% × (A-B)）
-    const allAB = await dbGet('photos',
-      '?rid=eq.'+rid+'&weight_type=in.(A,B)&order=taken_at.asc&select=taken_at,weight_g,weight_type');
-    if (allAB && allAB.length >= 2) {
+    // P 點代表換板/分株 → 介質重量基準改變，P 之前的 A/B 不算數
+    const allABP = await dbGet('photos',
+      '?rid=eq.'+rid+'&weight_type=in.(A,B,P)&order=taken_at.asc&select=taken_at,weight_g,weight_type');
+    if (allABP && allABP.length >= 2) {
+      // 找最近的 P，之後的 A/B 才是有效基準
+      const latestP = [...allABP].reverse().find(p => p.weight_type === 'P');
+      const cutoff  = latestP ? new Date(latestP.taken_at) : new Date(0);
+      const allAB   = allABP.filter(p => p.weight_type !== 'P' && new Date(p.taken_at) > cutoff);
+
       let R = null, prevA = null;
       for (const pt of allAB) {
         if (pt.weight_type === 'A') {
