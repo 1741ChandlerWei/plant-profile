@@ -267,7 +267,7 @@ async function printQR() {
 
   function frontPage(pagePlants) {
     const cells = padPage(pagePlants).map(p => p
-      ? `<img src="${qrMap[p.rid]}" style="width:${QR_SIZE}mm;height:${QR_SIZE}mm;display:block;margin:0 auto"><br><span class="rid-label">${p.rid}</span>`
+      ? `<img src="${qrMap[p.rid]}" style="width:${QR_SIZE}mm;height:${QR_SIZE}mm;display:block;margin:0 auto"><span class="rid-label">${p.rid}</span>`
       : '');
     return makeTable(cells, 'front');
   }
@@ -294,7 +294,7 @@ async function printQR() {
     table.page { width: 194mm; height: ${TABLE_H}mm; table-layout: fixed; border-collapse: collapse; page-break-after: always; break-after: page; }
     table.page:last-child { page-break-after: avoid; break-after: avoid; }
     td { width: 38.6mm; border: 0.3pt solid #ccc; text-align: center; vertical-align: middle; padding: 1mm; overflow: hidden; }
-    .rid-label { font-size: 10pt; font-weight: bold; color: #111; letter-spacing: 0.04em; display: block; width: ${QR_SIZE}mm; margin: 0.3mm auto 0; text-align: center; }
+    .rid-label { font-size: 10pt; font-weight: bold; color: #111; letter-spacing: 0.04em; display: block; width: ${QR_SIZE}mm; margin: -0.5mm auto 0; text-align: center; }
     .back-rid { font-size: 10pt; font-weight: bold; color: #111; }
     .back-name { font-size: 9pt; color: #222; display: block; margin-top: 1.5mm; }
   </style></head><body>
