@@ -80,7 +80,7 @@ th.qr-th{text-align:right}
   </div>
   <button class="btn btn-export" id="btn-export-sel" onclick="exportSelected()" disabled style="opacity:.4;cursor:default">⬇ 匯出已選 / Xuất đã chọn <span id="sel-count-btn"></span></button>
   <button class="btn btn-export" onclick="exportAll()">⬇ 匯出全部 / Xuất tất cả</button>
-  <button class="btn btn-export" onclick="printQR()" style="background:#4a5568">🖨 列印 QR / In QR</button>
+  <button class="btn btn-export" id="btn-print-qr" onclick="printQR()" disabled style="background:#4a5568;opacity:.4;cursor:default">🖨 列印 QR / In QR <span id="sel-count-print"></span></button>
   <a class="btn btn-upload" href="https://plant-pos.vercel.app/upload.html" target="_blank">📦 批次上傳 / Tải lên hàng loạt</a>
 </div>
 
@@ -183,13 +183,21 @@ function onCheckRow() {
 
 function updateSelBar() {
   const n = document.querySelectorAll('.check-row:checked').length;
-  const btn = document.getElementById('btn-export-sel');
+  const btnExport = document.getElementById('btn-export-sel');
   const badge = document.getElementById('sel-count-btn');
-  if (btn) {
-    btn.disabled = n === 0;
-    btn.style.opacity = n === 0 ? '.4' : '1';
-    btn.style.cursor = n === 0 ? 'default' : 'pointer';
+  if (btnExport) {
+    btnExport.disabled = n === 0;
+    btnExport.style.opacity = n === 0 ? '.4' : '1';
+    btnExport.style.cursor = n === 0 ? 'default' : 'pointer';
     if (badge) badge.textContent = n > 0 ? `(${n})` : '';
+  }
+  const btnPrint = document.getElementById('btn-print-qr');
+  const printBadge = document.getElementById('sel-count-print');
+  if (btnPrint) {
+    btnPrint.disabled = n === 0;
+    btnPrint.style.opacity = n === 0 ? '.4' : '1';
+    btnPrint.style.cursor = n === 0 ? 'default' : 'pointer';
+    if (printBadge) printBadge.textContent = n > 0 ? `(${n})` : '';
   }
 }
 
@@ -228,8 +236,8 @@ function exportSelected() {
 
 async function printQR() {
   const checkedRids = new Set([...document.querySelectorAll('.check-row:checked')].map(c => c.dataset.rid));
-  const plants = checkedRids.size > 0 ? filtered.filter(p => checkedRids.has(p.rid)) : filtered;
-  if (!plants.length) { alert('沒有可印的植物 / Không có cây để in'); return; }
+  const plants = filtered.filter(p => checkedRids.has(p.rid));
+  if (!plants.length) { alert('請先勾選要列印的植物 / Vui lòng chọn cây trước khi in'); return; }
 
   // 產生每株的 QR data URL
   const qrMap = {};
