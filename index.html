@@ -4,78 +4,194 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>rễ , thân , lá studio — 根莖葉工作室</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-:root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark:#0D0D0A;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0}
+:root{
+  --cream:#FAF8F4;
+  --cream2:#F0EBE1;
+  --dark:#0D0D0A;
+  --dark2:#1A1A14;
+  --green:#2D4A2D;
+  --gold:#9A7A1E;
+  --text:#0D0D0A;
+  --text2:#4A4A3A;
+  --text3:#8A8A72;
+  --border:#D8D2C4;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--dark2);color:var(--cream);font-family:'Cormorant Garamond',Georgia,serif;min-height:100vh;overflow-x:hidden}
+html,body{height:100%}
+body{
+  background:var(--cream);
+  color:var(--text);
+  font-family:'Cormorant Garamond',Georgia,serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
 
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(26,26,20,.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08);padding:14px 24px;display:flex;justify-content:center;align-items:center}
-.nav-logo{font-size:14px;letter-spacing:.18em;color:rgba(245,240,232,.7);font-style:italic}
+/* ── Nav ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 28px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(250,248,244,0);
+  transition:background .3s,border-color .3s;
+}
+nav.scrolled{
+  background:rgba(250,248,244,.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-size:13px;letter-spacing:.15em;
+  color:var(--text2);font-style:italic;
+  text-decoration:none;
+}
+.nav-admin{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.12em;
+  color:var(--text3);text-decoration:none;
+  transition:color .2s;
+}
+.nav-admin:hover{color:var(--text)}
 
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 48px;text-align:center;background:var(--dark2);position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(45,74,45,.18) 0%,transparent 70%);pointer-events:none}
-.hero-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;color:var(--gold);margin-bottom:20px;opacity:.85}
-.hero-title{font-size:clamp(36px,8vw,72px);font-weight:300;font-style:italic;line-height:1.1;color:rgba(245,240,232,.95);letter-spacing:.04em;margin-bottom:8px}
-.hero-title-zh{font-size:clamp(18px,4vw,32px);font-weight:300;color:rgba(245,240,232,.5);letter-spacing:.12em;margin-bottom:20px}
-.hero-sub{font-size:12px;letter-spacing:.22em;color:var(--text3);margin-bottom:56px;text-transform:uppercase}
-.hero-divider{width:40px;height:1px;background:var(--gold);margin:0 auto 52px;opacity:.6}
+/* ── Hero ── */
+.hero{
+  flex:1;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:0 28px 52px;
+  min-height:100svh;
+  position:relative;
+}
+.hero-eyebrow{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.28em;
+  color:var(--gold);
+  margin-bottom:20px;
+  text-transform:uppercase;
+}
+.hero-title{
+  font-size:clamp(52px,14vw,120px);
+  font-weight:300;font-style:italic;
+  line-height:.95;
+  letter-spacing:.02em;
+  color:var(--dark);
+  margin-bottom:12px;
+}
+.hero-title-zh{
+  font-size:clamp(18px,4vw,28px);
+  font-weight:300;
+  color:var(--text3);
+  letter-spacing:.18em;
+  margin-bottom:40px;
+}
+.hero-rule{
+  width:100%;
+  height:1px;
+  background:var(--border);
+  margin-bottom:32px;
+}
 
-.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:rgba(255,255,255,.06);width:100%;max-width:480px;border:1px solid rgba(255,255,255,.06)}
-.card{background:var(--dark2);padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:10px;text-decoration:none;color:var(--cream);transition:background .25s,color .25s;cursor:pointer;border:none;font-family:inherit}
-.card:hover{background:#22221A}
-.card-icon{font-size:26px;margin-bottom:4px;opacity:.85}
-.card-name{font-size:16px;font-style:italic;color:rgba(245,240,232,.85);letter-spacing:.04em}
-.card-name-vn{font-size:11px;letter-spacing:.12em;color:var(--text3);margin-top:2px}
-.card-arrow{font-size:11px;color:var(--gold);opacity:0;transform:translateX(-4px);transition:opacity .2s,transform .2s}
-.card:hover .card-arrow{opacity:.8;transform:translateX(0)}
+/* ── Nav Links ── */
+.nav-entries{
+  display:flex;flex-direction:column;gap:0;
+}
+.nav-entry{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+  text-decoration:none;
+  color:var(--text);
+  transition:color .2s;
+  cursor:pointer;
+}
+.nav-entry:first-child{border-top:1px solid var(--border)}
+.nav-entry:hover .entry-name{color:var(--green)}
+.nav-entry:hover .entry-arrow{transform:translateX(4px);opacity:1}
+.entry-num{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.1em;
+  color:var(--text3);
+  flex-shrink:0;
+  margin-right:16px;
+}
+.entry-name{
+  font-size:clamp(20px,5vw,28px);
+  font-style:italic;font-weight:300;
+  flex:1;
+  transition:color .2s;
+}
+.entry-sub{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.12em;
+  color:var(--text3);
+  margin-left:12px;
+  display:none;
+}
+@media(min-width:480px){.entry-sub{display:block}}
+.entry-arrow{
+  font-size:16px;color:var(--text3);
+  margin-left:12px;flex-shrink:0;
+  transition:transform .25s,opacity .2s;
+  opacity:.4;
+}
 
-footer{text-align:center;padding:32px 24px;border-top:1px solid rgba(255,255,255,.06)}
-.footer-fb{display:inline-flex;align-items:center;gap:8px;color:var(--text3);text-decoration:none;font-size:12px;letter-spacing:.1em;transition:color .2s}
-.footer-fb:hover{color:rgba(245,240,232,.7)}
-.footer-fb svg{width:16px;height:16px;fill:currentColor}
-.footer-note{font-size:10px;color:var(--text3);opacity:.5;margin-top:16px;letter-spacing:.08em;font-style:italic}
+/* ── Footer ── */
+footer{
+  padding:20px 28px;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.footer-fb{
+  display:inline-flex;align-items:center;gap:8px;
+  color:var(--text3);text-decoration:none;
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.1em;
+  transition:color .2s;
+}
+.footer-fb:hover{color:var(--text2)}
+.footer-fb svg{width:14px;height:14px;fill:currentColor}
+.footer-ver{
+  font-family:'DM Mono',monospace;
+  font-size:10px;letter-spacing:.1em;
+  color:var(--text3);opacity:.5;
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">rễ , thân , lá studio</div>
+<nav id="main-nav">
+  <a class="nav-logo" href="/">rễ , thân , lá</a>
+  <a class="nav-admin" href="/admin.html">後台</a>
 </nav>
 
 <div class="hero">
-  <div class="hero-label">Platycerium specialist</div>
-  <div class="hero-title">rễ , thân , lá</div>
+  <div class="hero-eyebrow">Platycerium specialist</div>
+  <div class="hero-title">rễ ,<br>thân ,<br>lá</div>
   <div class="hero-title-zh">根莖葉工作室</div>
-  <div class="hero-sub">Studio · Plant Profile</div>
-  <div class="hero-divider"></div>
+  <div class="hero-rule"></div>
 
-  <div class="cards">
-    <a class="card" href="/plants.html">
-      <div class="card-icon">🌿</div>
-      <div class="card-name">植物展示區</div>
-      <div class="card-name-vn">Vườn cây</div>
-      <div class="card-arrow">→</div>
+  <nav class="nav-entries">
+    <a class="nav-entry" href="/plants.html">
+      <span class="entry-num">01</span>
+      <span class="entry-name">植物展示</span>
+      <span class="entry-sub">VƯỜN CÂY</span>
+      <span class="entry-arrow">→</span>
     </a>
-    <a class="card" href="/shop.html">
-      <div class="card-icon">🛒</div>
-      <div class="card-name">其他商品</div>
-      <div class="card-name-vn">Sản phẩm</div>
-      <div class="card-arrow">→</div>
+    <a class="nav-entry" href="/shop.html">
+      <span class="entry-num">02</span>
+      <span class="entry-name">其他商品</span>
+      <span class="entry-sub">SẢN PHẨM</span>
+      <span class="entry-arrow">→</span>
     </a>
-    <a class="card" href="/collection.html">
-      <div class="card-icon">📦</div>
-      <div class="card-name">我的收藏</div>
-      <div class="card-name-vn">Bộ sưu tập</div>
-      <div class="card-arrow">→</div>
+    <a class="nav-entry" href="/collection.html">
+      <span class="entry-num">03</span>
+      <span class="entry-name">我的收藏</span>
+      <span class="entry-sub">BỘ SƯU TẬP</span>
+      <span class="entry-arrow">→</span>
     </a>
-    <a class="card" href="/admin.html">
-      <div class="card-icon">⚙</div>
-      <div class="card-name">後台管理</div>
-      <div class="card-name-vn">Quản lý</div>
-      <div class="card-arrow">→</div>
-    </a>
-  </div>
+  </nav>
 </div>
 
 <footer>
@@ -83,8 +199,15 @@ footer{text-align:center;padding:32px 24px;border-top:1px solid rgba(255,255,255
     <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
     Facebook
   </a>
-  <div class="footer-note">rễ , thân , lá studio · 根莖葉工作室 · v1.0</div>
+  <div class="footer-ver">v2.0</div>
 </footer>
+
+<script>
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+}, {passive:true});
+</script>
 
 </body>
 </html>
