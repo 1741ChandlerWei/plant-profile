@@ -314,7 +314,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
             <th>時間</th><th>RID</th><th>植物名稱</th>
             <th>操作前重量</th><th>重量類型</th><th>補登重量</th>
             <th>狀態</th><th>狀態備註</th><th>環境</th>
-            <th>操作</th><th>澆水</th><th>肥料</th><th>給肥EC</th><th>當下EC</th>
+            <th>操作</th><th>液體輸入</th><th>肥料</th><th>給肥EC</th><th>當下EC</th>
           </tr>
         </thead>
         <tbody id="rec-body">
@@ -956,7 +956,7 @@ function exportRecordsExcel() {
 
   if (!rows.length) { toast('沒有資料可匯出'); return; }
 
-  const headers = ['時間','RID','植物名稱','操作前重量(g)','重量類型','補登重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','給肥EC','當下EC'];
+  const headers = ['時間','RID','植物名稱','操作前重量(g)','重量類型','補登重量(g)','狀態','狀態備註','環境','操作','液體輸入','肥料','給肥EC','當下EC'];
   const data = rows.map(r => [
     fmtRecDate(r.taken_at),
     r.rid||'',
