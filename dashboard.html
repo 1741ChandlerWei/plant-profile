@@ -533,7 +533,7 @@ function closeModal() {
 
 async function completePending() {
   const wVal = document.getElementById('modal-weight').value.trim();
-  if (!wVal || isNaN(parseInt(wVal))) { showToast('請輸入操作後重量', 'error'); return; }
+  if (!wVal || isNaN(parseFloat(wVal))) { showToast('請輸入操作後重量', 'error'); return; }
   const waterStatus = currentPendingIsLiquid
     ? document.querySelector('input[name="modal_water"]:checked')?.value
     : null;
@@ -541,7 +541,7 @@ async function completePending() {
     const r = await fetch(POS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pendingId: currentPendingId, postWeightG: parseInt(wVal), postWaterStatus: waterStatus })
+      body: JSON.stringify({ pendingId: currentPendingId, postWeightG: parseFloat(wVal), postWaterStatus: waterStatus })
     });
     if (!r.ok) throw new Error(await r.text());
     closeModal();
