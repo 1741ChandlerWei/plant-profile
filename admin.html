@@ -180,7 +180,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <div class="auth-screen" id="auth-screen">
   <div class="auth-logo">rễ , thân , lá</div>
   <div class="auth-sub">後台管理 · Quản lý nội bộ</div>
-  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.5</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.6</div>
   <div class="pwd-row">
     <input class="pwd-input" id="pwd-input" type="password" placeholder="輸入密碼" autocomplete="current-password">
     <button class="pwd-btn" id="pwd-btn">進入</button>
@@ -304,14 +304,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
         <span class="rec-label">植物名稱</span>
         <input type="text" class="rec-input" id="rec-name-q" placeholder="搜尋..." style="width:120px" oninput="applyRecFilter()">
       </div>
-      <div class="rec-field">
-        <span class="rec-label">角度</span>
-        <select class="rec-input" id="rec-angle-q" onchange="applyRecFilter()">
-          <option value="all">全部</option>
-          <option value="front">正面</option>
-          <option value="detail">細節</option>
-        </select>
-      </div>
       <button class="rec-export-btn" onclick="exportRecordsExcel()">匯出 Excel</button>
     </div>
     <div class="rec-count" id="rec-count">—</div>
@@ -319,10 +311,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
       <table class="rec-table">
         <thead>
           <tr>
-            <th>時間</th><th>RID</th><th>植物名稱</th><th>角度</th>
-            <th>重量(g)</th><th>狀態</th><th>狀態備註</th><th>環境</th>
-            <th>操作</th><th>澆水</th><th>肥料</th><th>當下EC</th>
-            <th>區域</th><th>上傳者</th>
+            <th>時間</th><th>RID</th><th>植物名稱</th>
+            <th>操作前重量</th><th>重量類型</th><th>補登重量</th>
+            <th>狀態</th><th>狀態備註</th><th>環境</th>
+            <th>操作</th><th>澆水</th><th>肥料</th><th>給肥EC</th><th>當下EC</th>
           </tr>
         </thead>
         <tbody id="rec-body">
@@ -847,14 +839,23 @@ let recLoaded = false;
 let allRecords = [];
 
 const STATUS_MAP = {
-  normal:'正常', growth_healthy:'健康生長', growth_slow:'緩慢生長',
-  moss_dry:'水苔乾燥', moss_wet:'水苔過濕', stress:'壓迫',
-  pest:'蟲害', disease:'病害', monitor:'觀察中'
+  normal:'', growth_healthy:'芽頭健康', moss_ok:'水苔正常',
+  new_growth:'新生長', frond_cover_clear:'覆蓋解除', sporophyll_new:'新孢子葉',
+  new_pup:'新側芽', spore_forming:'出孢中',
+  growth_concern:'⚠芽頭不健康', frond_poor:'⚠葉片差', moss_dry:'⚠水苔過乾',
+  overwatered:'⚠過濕', dehydrated:'⚠缺水', frond_cover_warn:'⚠快被遮擋',
+  trophophyll_warn:'⚠營養葉警告', leaf_drop_unknown:'⚠掉葉不明', wet_wilt:'⚠濕爛'
 };
 const OP_MAP = {
-  none:'無', repot:'換盆', trim:'修葉', rotate:'轉方向',
-  stake:'立支架', divide:'分株', wash:'沖洗'
+  none:'', trim:'修剪葉片', add_substrate:'補充水苔', wire:'銅線矯正',
+  pest:'除蟲噴藥', remove_pup:'側芽分株', remount:'換板', frond_cover_fix:'處理覆蓋'
 };
+const WEIGHT_TYPE_MAP = { A:'A點', B:'B點' };
+
+function mapMulti(map, val) {
+  if (!val || val === 'none' || val === 'normal') return '';
+  return val.split(',').map(v => map[v] ?? v).filter(Boolean).join(' · ');
+}
 const LIQ_MAP = {
   none:'無', mist_water:'噴葉水', mist_fert:'噴葉肥', drench_water:'澆水', drench_fert:'澆水+肥'
 };
@@ -872,7 +873,8 @@ function fmtRecDate(s) {
   if (!s) return '';
   const d = new Date(s);
   const p = n => String(n).padStart(2,'0');
-  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getFullYear()}/${MON[d.getMonth()]}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 function initRecordsTab() {
@@ -893,7 +895,7 @@ async function loadRecords() {
   tbody.innerHTML = '<tr><td colspan="14" class="rec-empty-row">載入中...</td></tr>';
   document.getElementById('rec-count').textContent = '載入中...';
 
-  let q = '?order=taken_at.desc&limit=2000&select=rid,plant_name,angle,taken_at,weight_g,plant_status,status_note,env_state,physical_op,liquid_action,fertilizer_type,ec_out,zone,uploaded_by';
+  let q = '?angle=eq.front&order=taken_at.desc&limit=2000&select=rid,plant_name,taken_at,weight_g,weight_type,post_weight_g,is_pending,completed_at,plant_status,status_note,env_state,physical_op,liquid_action,fertilizer_type,ec_in,ec_out';
   if (from) q += `&taken_at=gte.${from}T00:00:00`;
   if (to)   q += `&taken_at=lte.${to}T23:59:59`;
 
@@ -903,14 +905,12 @@ async function loadRecords() {
 }
 
 function applyRecFilter() {
-  const ridQ   = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
-  const nameQ  = (document.getElementById('rec-name-q').value || '').toLowerCase();
-  const angleQ =  document.getElementById('rec-angle-q').value || 'all';
+  const ridQ  = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
+  const nameQ = (document.getElementById('rec-name-q').value || '').toLowerCase();
 
   const rows = allRecords.filter(r => {
     if (ridQ  && !(r.rid        || '').toLowerCase().includes(ridQ))  return false;
     if (nameQ && !(r.plant_name || '').toLowerCase().includes(nameQ)) return false;
-    if (angleQ !== 'all' && r.angle !== angleQ)                       return false;
     return true;
   });
 
@@ -922,58 +922,60 @@ function applyRecFilter() {
     return;
   }
 
-  tbody.innerHTML = rows.map(r => `<tr>
-    <td>${fmtRecDate(r.taken_at)}</td>
-    <td class="rec-rid">${r.rid||''}</td>
-    <td>${r.plant_name||''}</td>
-    <td class="${r.angle==='front'?'rec-front':'rec-detail'}">${r.angle==='front'?'正面':'細節'}</td>
-    <td>${r.weight_g!=null ? r.weight_g+'g' : ''}</td>
-    <td>${STATUS_MAP[r.plant_status]||r.plant_status||''}</td>
-    <td>${r.status_note||''}</td>
-    <td>${parseEnvState(r.env_state)}</td>
-    <td>${OP_MAP[r.physical_op]   ||r.physical_op   ||''}</td>
-    <td>${LIQ_MAP[r.liquid_action]||r.liquid_action ||''}</td>
-    <td>${r.fertilizer_type||''}</td>
-    <td>${r.ec_out!=null ? r.ec_out : ''}</td>
-    <td>${r.zone||''}</td>
-    <td>${r.uploaded_by||''}</td>
-  </tr>`).join('');
+  tbody.innerHTML = rows.map(r => {
+    const postWt = r.post_weight_g != null ? r.post_weight_g+'g'
+                 : (r.is_pending && !r.completed_at) ? '<span style="color:#c08030;font-size:11px">待補登</span>' : '';
+    return `<tr>
+      <td>${fmtRecDate(r.taken_at)}</td>
+      <td class="rec-rid">${r.rid||''}</td>
+      <td>${r.plant_name||''}</td>
+      <td>${r.weight_g!=null ? r.weight_g+'g' : ''}</td>
+      <td>${WEIGHT_TYPE_MAP[r.weight_type]||''}</td>
+      <td>${postWt}</td>
+      <td>${mapMulti(STATUS_MAP, r.plant_status)}</td>
+      <td>${r.status_note||''}</td>
+      <td>${parseEnvState(r.env_state)}</td>
+      <td>${mapMulti(OP_MAP, r.physical_op)}</td>
+      <td>${LIQ_MAP[r.liquid_action]||''}</td>
+      <td>${r.fertilizer_type||''}</td>
+      <td>${r.ec_in!=null ? r.ec_in : ''}</td>
+      <td>${r.ec_out!=null ? r.ec_out : ''}</td>
+    </tr>`;
+  }).join('');
 }
 
 function exportRecordsExcel() {
-  const ridQ   = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
-  const nameQ  = (document.getElementById('rec-name-q').value || '').toLowerCase();
-  const angleQ =  document.getElementById('rec-angle-q').value || 'all';
+  const ridQ  = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
+  const nameQ = (document.getElementById('rec-name-q').value || '').toLowerCase();
 
   const rows = allRecords.filter(r => {
     if (ridQ  && !(r.rid        || '').toLowerCase().includes(ridQ))  return false;
     if (nameQ && !(r.plant_name || '').toLowerCase().includes(nameQ)) return false;
-    if (angleQ !== 'all' && r.angle !== angleQ)                       return false;
     return true;
   });
 
   if (!rows.length) { toast('沒有資料可匯出'); return; }
 
-  const headers = ['時間','RID','植物名稱','角度','重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','當下EC','區域','上傳者'];
+  const headers = ['時間','RID','植物名稱','操作前重量(g)','重量類型','補登重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','給肥EC','當下EC'];
   const data = rows.map(r => [
     fmtRecDate(r.taken_at),
     r.rid||'',
     r.plant_name||'',
-    r.angle==='front'?'正面':'細節',
     r.weight_g!=null ? r.weight_g : '',
-    STATUS_MAP[r.plant_status]||r.plant_status||'',
+    WEIGHT_TYPE_MAP[r.weight_type]||'',
+    r.post_weight_g!=null ? r.post_weight_g : (r.is_pending && !r.completed_at ? '待補登' : ''),
+    mapMulti(STATUS_MAP, r.plant_status),
     r.status_note||'',
     parseEnvState(r.env_state),
-    OP_MAP[r.physical_op]   ||r.physical_op   ||'',
-    LIQ_MAP[r.liquid_action]||r.liquid_action ||'',
+    mapMulti(OP_MAP, r.physical_op),
+    LIQ_MAP[r.liquid_action]||'',
     r.fertilizer_type||'',
-    r.ec_out!=null ? r.ec_out : '',
-    r.zone||'',
-    r.uploaded_by||''
+    r.ec_in!=null ? r.ec_in : '',
+    r.ec_out!=null ? r.ec_out : ''
   ]);
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-  ws['!cols'] = [14,10,20,6,8,10,14,20,8,8,8,8,8,10].map(w => ({wch:w}));
+  ws['!cols'] = [18,10,20,12,8,12,14,16,20,12,8,8,8,8].map(w => ({wch:w}));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '維護紀錄');
   const from = document.getElementById('rec-from').value || 'all';
