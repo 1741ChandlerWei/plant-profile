@@ -321,7 +321,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
           <tr>
             <th>時間</th><th>RID</th><th>植物名稱</th><th>角度</th>
             <th>重量(g)</th><th>狀態</th><th>狀態備註</th><th>環境</th>
-            <th>操作</th><th>澆水</th><th>肥料</th><th>EC流出</th>
+            <th>操作</th><th>澆水</th><th>肥料</th><th>當下EC</th>
             <th>區域</th><th>上傳者</th>
           </tr>
         </thead>
@@ -856,7 +856,7 @@ const OP_MAP = {
   stake:'立支架', divide:'分株', wash:'沖洗'
 };
 const LIQ_MAP = {
-  none:'無', soak:'浸泡', top_water:'淋水', mist:'噴霧', drain:'倒水'
+  none:'無', mist_water:'噴葉水', mist_fert:'噴葉肥', drench_water:'澆水', drench_fert:'澆水+肥'
 };
 
 function parseEnvState(s) {
@@ -954,7 +954,7 @@ function exportRecordsExcel() {
 
   if (!rows.length) { toast('沒有資料可匯出'); return; }
 
-  const headers = ['時間','RID','植物名稱','角度','重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','EC流出','區域','上傳者'];
+  const headers = ['時間','RID','植物名稱','角度','重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','當下EC','區域','上傳者'];
   const data = rows.map(r => [
     fmtRecDate(r.taken_at),
     r.rid||'',
