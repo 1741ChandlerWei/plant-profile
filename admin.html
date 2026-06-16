@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>後台管理 — rễ , thân , lá studio</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--cream:#F5F0E8;--cream2:#EDE6D6;--dark2:#1A1A14;--green:#2D4A2D;--green2:#3D6B3D;--gold:#B8922A;--text:#1A1A14;--text2:#6B6B55;--text3:#9B9B85;--border:#D8D0C0;--red:#8B1A1A}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -85,6 +86,25 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 /* loading */
 .loading-state{text-align:center;padding:60px 20px;color:var(--text3);font-style:italic}
 
+/* ── 紀錄總表 ── */
+.rec-toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);align-items:flex-end}
+.rec-field{display:flex;flex-direction:column;gap:3px}
+.rec-label{font-size:10px;letter-spacing:.1em;color:var(--text3)}
+.rec-input{border:1px solid var(--border);background:var(--cream);padding:6px 10px;font-size:12px;font-family:inherit;color:var(--text);outline:none;min-width:0}
+.rec-input:focus{border-color:var(--green)}
+.rec-export-btn{background:var(--green);color:var(--cream);border:none;padding:7px 18px;font-size:11px;letter-spacing:.1em;cursor:pointer;font-family:inherit;transition:background .2s;white-space:nowrap;align-self:flex-end;margin-left:auto}
+.rec-export-btn:hover{background:var(--green2)}
+.rec-count{font-size:11px;color:var(--text3);padding:8px 20px;border-bottom:1px solid var(--border);letter-spacing:.06em}
+.rec-table-wrap{overflow-x:auto;padding-bottom:40px}
+.rec-table{border-collapse:collapse;font-size:12px;min-width:1000px;width:100%}
+.rec-table th{background:var(--cream2);text-align:left;font-size:10px;letter-spacing:.1em;color:var(--text3);font-weight:400;padding:8px 12px;border-bottom:2px solid var(--border);white-space:nowrap}
+.rec-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;white-space:nowrap;font-size:12px}
+.rec-table tr:hover td{background:rgba(237,230,214,.4)}
+.rec-rid{font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:.06em}
+.rec-front{color:var(--green)}
+.rec-detail{color:var(--text3)}
+.rec-empty-row{text-align:center;padding:48px 20px;color:var(--text3);font-style:italic}
+
 /* toast */
 .save-toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:var(--cream);padding:8px 16px;font-size:11px;letter-spacing:.1em;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
 .save-toast.show{opacity:1}
@@ -160,7 +180,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <div class="auth-screen" id="auth-screen">
   <div class="auth-logo">rễ , thân , lá</div>
   <div class="auth-sub">後台管理 · Quản lý nội bộ</div>
-  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.4</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.5</div>
   <div class="pwd-row">
     <input class="pwd-input" id="pwd-input" type="password" placeholder="輸入密碼" autocomplete="current-password">
     <button class="pwd-btn" id="pwd-btn">進入</button>
@@ -180,6 +200,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
   <div class="main-tabs">
     <button class="main-tab active" data-main-tab="plants">植物狀態</button>
     <button class="main-tab" data-main-tab="customers">客戶管理</button>
+    <button class="main-tab" data-main-tab="records">紀錄總表</button>
   </div>
 
   <!-- ── TAB 1: 植物狀態 ── -->
@@ -263,6 +284,53 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
     </div>
 
   </div><!-- /main-tab-customers -->
+
+  <!-- ── TAB 3: 紀錄總表 ── -->
+  <div class="main-tab-content" id="main-tab-records">
+    <div class="rec-toolbar">
+      <div class="rec-field">
+        <span class="rec-label">開始日期</span>
+        <input type="date" class="rec-input" id="rec-from" onchange="loadRecords()">
+      </div>
+      <div class="rec-field">
+        <span class="rec-label">結束日期</span>
+        <input type="date" class="rec-input" id="rec-to" onchange="loadRecords()">
+      </div>
+      <div class="rec-field">
+        <span class="rec-label">RID</span>
+        <input type="text" class="rec-input" id="rec-rid-q" placeholder="R-000001" style="width:110px" oninput="applyRecFilter()">
+      </div>
+      <div class="rec-field">
+        <span class="rec-label">植物名稱</span>
+        <input type="text" class="rec-input" id="rec-name-q" placeholder="搜尋..." style="width:120px" oninput="applyRecFilter()">
+      </div>
+      <div class="rec-field">
+        <span class="rec-label">角度</span>
+        <select class="rec-input" id="rec-angle-q" onchange="applyRecFilter()">
+          <option value="all">全部</option>
+          <option value="front">正面</option>
+          <option value="detail">細節</option>
+        </select>
+      </div>
+      <button class="rec-export-btn" onclick="exportRecordsExcel()">匯出 Excel</button>
+    </div>
+    <div class="rec-count" id="rec-count">—</div>
+    <div class="rec-table-wrap">
+      <table class="rec-table">
+        <thead>
+          <tr>
+            <th>時間</th><th>RID</th><th>植物名稱</th><th>角度</th>
+            <th>重量(g)</th><th>狀態</th><th>狀態備註</th><th>環境</th>
+            <th>操作</th><th>澆水</th><th>肥料</th><th>EC流出</th>
+            <th>區域</th><th>上傳者</th>
+          </tr>
+        </thead>
+        <tbody id="rec-body">
+          <tr><td colspan="14" class="rec-empty-row">請選擇日期範圍後載入</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /main-tab-records -->
 
 </div>
 
@@ -489,6 +557,7 @@ document.querySelectorAll('.main-tab').forEach(tab => {
     tab.classList.add('active');
     document.getElementById('main-tab-' + tab.dataset.mainTab).classList.add('active');
     if (tab.dataset.mainTab === 'customers' && !custLoaded) loadCustomers();
+    if (tab.dataset.mainTab === 'records'   && !recLoaded)  initRecordsTab();
   };
 });
 
@@ -769,6 +838,147 @@ async function deleteCustomer(custId) {
   } else {
     toast('刪除失敗');
   }
+}
+
+// ══════════════════════════════════════════════════════════
+// 紀錄總表
+// ══════════════════════════════════════════════════════════
+let recLoaded = false;
+let allRecords = [];
+
+const STATUS_MAP = {
+  normal:'正常', growth_healthy:'健康生長', growth_slow:'緩慢生長',
+  moss_dry:'水苔乾燥', moss_wet:'水苔過濕', stress:'壓迫',
+  pest:'蟲害', disease:'病害', monitor:'觀察中'
+};
+const OP_MAP = {
+  none:'無', repot:'換盆', trim:'修葉', rotate:'轉方向',
+  stake:'立支架', divide:'分株', wash:'沖洗'
+};
+const LIQ_MAP = {
+  none:'無', soak:'浸泡', top_water:'淋水', mist:'噴霧', drain:'倒水'
+};
+
+function parseEnvState(s) {
+  if (!s || s === 'open') return '無包膜 · 冷氣 · 無悶箱';
+  const p = s.split(',');
+  const wrap = p.includes('wrapped')  ? '有包膜' : '無包膜';
+  const ac   = p.includes('no_ac')    ? '無冷氣' : '冷氣';
+  const box  = p.includes('enclosed') ? '有悶箱' : '無悶箱';
+  return `${wrap} · ${ac} · ${box}`;
+}
+
+function fmtRecDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function initRecordsTab() {
+  recLoaded = true;
+  const today = new Date();
+  const ago90 = new Date(today);
+  ago90.setDate(ago90.getDate() - 90);
+  const fmt = d => d.toISOString().slice(0, 10);
+  document.getElementById('rec-from').value = fmt(ago90);
+  document.getElementById('rec-to').value   = fmt(today);
+  loadRecords();
+}
+
+async function loadRecords() {
+  const from  = document.getElementById('rec-from').value;
+  const to    = document.getElementById('rec-to').value;
+  const tbody = document.getElementById('rec-body');
+  tbody.innerHTML = '<tr><td colspan="14" class="rec-empty-row">載入中...</td></tr>';
+  document.getElementById('rec-count').textContent = '載入中...';
+
+  let q = '?order=taken_at.desc&limit=2000&select=rid,plant_name,angle,taken_at,weight_g,plant_status,status_note,env_state,physical_op,liquid_action,fertilizer_type,ec_out,zone,uploaded_by';
+  if (from) q += `&taken_at=gte.${from}T00:00:00`;
+  if (to)   q += `&taken_at=lte.${to}T23:59:59`;
+
+  const data = await dbGet('photos', q);
+  allRecords = Array.isArray(data) ? data : [];
+  applyRecFilter();
+}
+
+function applyRecFilter() {
+  const ridQ   = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
+  const nameQ  = (document.getElementById('rec-name-q').value || '').toLowerCase();
+  const angleQ =  document.getElementById('rec-angle-q').value || 'all';
+
+  const rows = allRecords.filter(r => {
+    if (ridQ  && !(r.rid        || '').toLowerCase().includes(ridQ))  return false;
+    if (nameQ && !(r.plant_name || '').toLowerCase().includes(nameQ)) return false;
+    if (angleQ !== 'all' && r.angle !== angleQ)                       return false;
+    return true;
+  });
+
+  document.getElementById('rec-count').textContent = `共 ${rows.length} 筆`;
+
+  const tbody = document.getElementById('rec-body');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="14" class="rec-empty-row">沒有符合的紀錄</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td>${fmtRecDate(r.taken_at)}</td>
+    <td class="rec-rid">${r.rid||''}</td>
+    <td>${r.plant_name||''}</td>
+    <td class="${r.angle==='front'?'rec-front':'rec-detail'}">${r.angle==='front'?'正面':'細節'}</td>
+    <td>${r.weight_g!=null ? r.weight_g+'g' : ''}</td>
+    <td>${STATUS_MAP[r.plant_status]||r.plant_status||''}</td>
+    <td>${r.status_note||''}</td>
+    <td>${parseEnvState(r.env_state)}</td>
+    <td>${OP_MAP[r.physical_op]   ||r.physical_op   ||''}</td>
+    <td>${LIQ_MAP[r.liquid_action]||r.liquid_action ||''}</td>
+    <td>${r.fertilizer_type||''}</td>
+    <td>${r.ec_out!=null ? r.ec_out : ''}</td>
+    <td>${r.zone||''}</td>
+    <td>${r.uploaded_by||''}</td>
+  </tr>`).join('');
+}
+
+function exportRecordsExcel() {
+  const ridQ   = (document.getElementById('rec-rid-q').value  || '').toLowerCase();
+  const nameQ  = (document.getElementById('rec-name-q').value || '').toLowerCase();
+  const angleQ =  document.getElementById('rec-angle-q').value || 'all';
+
+  const rows = allRecords.filter(r => {
+    if (ridQ  && !(r.rid        || '').toLowerCase().includes(ridQ))  return false;
+    if (nameQ && !(r.plant_name || '').toLowerCase().includes(nameQ)) return false;
+    if (angleQ !== 'all' && r.angle !== angleQ)                       return false;
+    return true;
+  });
+
+  if (!rows.length) { toast('沒有資料可匯出'); return; }
+
+  const headers = ['時間','RID','植物名稱','角度','重量(g)','狀態','狀態備註','環境','操作','澆水','肥料','EC流出','區域','上傳者'];
+  const data = rows.map(r => [
+    fmtRecDate(r.taken_at),
+    r.rid||'',
+    r.plant_name||'',
+    r.angle==='front'?'正面':'細節',
+    r.weight_g!=null ? r.weight_g : '',
+    STATUS_MAP[r.plant_status]||r.plant_status||'',
+    r.status_note||'',
+    parseEnvState(r.env_state),
+    OP_MAP[r.physical_op]   ||r.physical_op   ||'',
+    LIQ_MAP[r.liquid_action]||r.liquid_action ||'',
+    r.fertilizer_type||'',
+    r.ec_out!=null ? r.ec_out : '',
+    r.zone||'',
+    r.uploaded_by||''
+  ]);
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  ws['!cols'] = [14,10,20,6,8,10,14,20,8,8,8,8,8,10].map(w => ({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '維護紀錄');
+  const from = document.getElementById('rec-from').value || 'all';
+  const to   = document.getElementById('rec-to').value   || 'all';
+  XLSX.writeFile(wb, `plant-records_${from}_to_${to}.xlsx`);
 }
 </script>
 </body>
