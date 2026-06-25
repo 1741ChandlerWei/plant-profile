@@ -280,7 +280,7 @@ main{padding-top:82px}
 /* ── 角度切換按鈕 ── */
 .angle-toggle-btn{position:absolute;top:16px;left:16px;background:rgba(13,13,10,.5);backdrop-filter:blur(8px);border:1px solid rgba(245,240,232,.25);color:var(--cream);padding:6px 14px;font-size:10px;letter-spacing:.12em;cursor:pointer;z-index:10;font-family:inherit;transition:all .2s;white-space:nowrap}
 .angle-toggle-btn:hover{background:rgba(13,13,10,.8);border-color:rgba(245,240,232,.45)}
-.photo-angle{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;color:rgba(245,240,232,.45);margin-left:2px}
+.photo-angle{position:absolute;bottom:56px;right:24px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:rgba(245,240,232,.7);text-shadow:0 1px 4px rgba(0,0,0,.9)}
 /* 時間軸雙角度標示 */
 .tl-angle-dot{font-family:'DM Mono',monospace;font-size:7px;color:var(--gold);text-align:center;letter-spacing:.04em;opacity:.9}
 
@@ -352,12 +352,11 @@ main{padding-top:82px}
     <div class="hero-thumbs" id="hero-thumbs"></div>
     <div class="photo-info" id="photo-info" style="display:none">
       <div class="photo-meta">
-        <div class="photo-date" id="photo-date"></div>
         <div class="photo-weight" id="photo-weight"></div>
-        <div class="photo-angle" id="photo-angle"></div>
       </div>
       <div class="photo-note" id="photo-note"></div>
     </div>
+    <div class="photo-angle" id="photo-angle"></div>
   </div>
 
   <!-- 精選影片帶（有資料才顯示） -->
@@ -924,11 +923,12 @@ function showPhoto(idx) {
   img.style.opacity = '0';
   img.src = p.photo_url;
   img.onload = () => { img.style.transition = 'opacity .15s'; img.style.opacity = '1'; };
-  document.getElementById('photo-date').textContent = (p.taken_at || p.created_at || '').slice(0,10);
   document.getElementById('photo-weight').textContent = p.weight_g ? p.weight_g + ' g' : '';
   document.getElementById('photo-note').textContent = p.note || '';
   const myAngle = p.angle || 'front';
-  document.getElementById('photo-angle').textContent = myAngle === 'detail' ? t('photo.angle.detail') : '';
+  const angleEl = document.getElementById('photo-angle');
+  angleEl.textContent = myAngle === 'detail' ? t('photo.angle.detail') : '';
+  angleEl.style.display = myAngle === 'detail' ? 'block' : 'none';
   document.getElementById('photo-info').style.display = 'block';
   document.getElementById('photo-counter').textContent = (idx+1) + ' / ' + photos.length;
   // 同日角度切換按鈕
