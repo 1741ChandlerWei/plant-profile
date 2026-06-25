@@ -1280,12 +1280,18 @@ document.getElementById('btn-play').onclick = () => {
     const b = document.getElementById('btn-play'); b.textContent = t('photo.play'); b.classList.remove('playing');
   } else {
     if (!timelinePhotos.length) return;
+    const curAngle = (photos[currentIdx]?.angle) || 'front';
+    const sameAngle = timelinePhotos.filter(p => (p.angle || 'front') === curAngle);
+    if (!sameAngle.length) return;
     const b = document.getElementById('btn-play'); b.textContent = t('photo.pause'); b.classList.add('playing');
     let ti = 0;
     function adv() {
-      const p = timelinePhotos[ti]; const gi = photos.findIndex(ph => ph.id === p.id);
-      if (gi >= 0) showPhoto(gi); setTimelineActive(ti);
-      ti = (ti + 1) % timelinePhotos.length;
+      const p = sameAngle[ti];
+      const gi = photos.findIndex(ph => ph.id === p.id);
+      if (gi >= 0) showPhoto(gi);
+      const tli = timelinePhotos.findIndex(tp => tp.id === p.id);
+      if (tli >= 0) setTimelineActive(tli);
+      ti = (ti + 1) % sameAngle.length;
     }
     adv(); slideshowTimer = setInterval(adv, 280);
   }
