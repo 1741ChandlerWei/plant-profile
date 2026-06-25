@@ -1660,12 +1660,25 @@ document.getElementById('video-modal').onclick = e => {
 };
 
 // ─── 鍵盤 & 觸控 ────────────────────────────────────────
-document.getElementById('btn-prev').onclick = () => { if (currentIdx>0) showPhoto(currentIdx-1); };
-document.getElementById('btn-next').onclick = () => { if (currentIdx<photos.length-1) showPhoto(currentIdx+1); };
+function navSameAngle(dir) {
+  const angle = (photos[currentIdx]?.angle) || 'front';
+  if (dir === 'next') {
+    for (let i = currentIdx + 1; i < photos.length; i++) {
+      if ((photos[i].angle || 'front') === angle) { showPhoto(i); return; }
+    }
+  } else {
+    for (let i = currentIdx - 1; i >= 0; i--) {
+      if ((photos[i].angle || 'front') === angle) { showPhoto(i); return; }
+    }
+  }
+}
+
+document.getElementById('btn-prev').onclick = () => navSameAngle('prev');
+document.getElementById('btn-next').onclick = () => navSameAngle('next');
 document.addEventListener('keydown', e => {
   if (document.getElementById('admin-overlay').classList.contains('open')) return;
-  if (e.key==='ArrowLeft'&&currentIdx>0) showPhoto(currentIdx-1);
-  if (e.key==='ArrowRight'&&currentIdx<photos.length-1) showPhoto(currentIdx+1);
+  if (e.key==='ArrowLeft') navSameAngle('prev');
+  if (e.key==='ArrowRight') navSameAngle('next');
   if (e.key===' ') { e.preventDefault(); document.getElementById('btn-play').click(); }
   if (e.key==='Escape' && slideshowTimer) document.getElementById('btn-play').click();
 });
@@ -1673,9 +1686,9 @@ let touchX = 0;
 document.getElementById('photo-hero').addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
 document.getElementById('photo-hero').addEventListener('touchend', e => {
   const d = touchX - e.changedTouches[0].clientX;
-  if (Math.abs(d)>50) {
-    if (d>0 && currentIdx<photos.length-1) showPhoto(currentIdx+1);
-    if (d<0 && currentIdx>0) showPhoto(currentIdx-1);
+  if (Math.abs(d) > 50) {
+    if (d > 0) navSameAngle('next');
+    if (d < 0) navSameAngle('prev');
   }
 });
 
