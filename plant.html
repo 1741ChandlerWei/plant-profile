@@ -1780,24 +1780,27 @@ async function init() {
 
   // 照片
   const photoData = await dbGet('photos', '?rid=eq.' + rid + '&approved=eq.true&order=taken_at.asc&select=*');
-  photos = Array.isArray(photoData) ? photoData : [];
+  // weight_only 記錄（A/P 點）沒有照片，只給重量圖表用；相簿/縮圖只顯示真照片，避免破圖「?」
+  const allRecords = Array.isArray(photoData) ? photoData : [];
+  photos = allRecords.filter(p => p.angle !== 'weight_only' && p.photo_url);
   buildSessionMap();
   document.getElementById('stat-photos').textContent = photos.length + t('unit.photos');
 
   if (photos.length) {
-    const lastW = [...photos].reverse().find(p => p.weight_g);
+    const lastW = [...allRecords].reverse().find(p => p.weight_g);
     if (lastW) document.getElementById('stat-weight').textContent = lastW.weight_g + ' g';
     buildThumbnails();
     // 優先顯示精選照片
     const featIdx = photos.findIndex(p => p.is_featured);
     showPhoto(featIdx >= 0 ? featIdx : photos.length - 1);
-    buildDiary(photos, rid);
   } else {
     document.getElementById('no-photo').style.display = 'flex';
     document.getElementById('photo-counter').textContent = t('photo.no.photos');
     document.getElementById('btn-prev').style.display = 'none';
     document.getElementById('btn-next').style.display = 'none';
   }
+  // 重量圖表用完整資料（含 A/P 點 weight_only），即使該株只有重量沒照片也照畫
+  if (allRecords.length) buildDiary(allRecords, rid);
   if (!document.getElementById('stat-weight').textContent)
     document.getElementById('stat-weight').textContent = '—';
 
@@ -2328,6 +2331,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.1</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.2</div>
 </body>
 </html>
