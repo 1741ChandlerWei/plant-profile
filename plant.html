@@ -1065,7 +1065,14 @@ function syncTimeline(globalIdx) {
 
 function buildWeightChart(allTimelineZone) {
   const src = allTimelineZone || timelinePhotos;
-  const pts = src.filter(p => p.weight_g);
+  // 排序修正：同一天「補登」的 B(澆前)要排在 A(澆後)前面，不被時間戳排反
+  const typeRank = q => q.weight_type==='B' ? 0 : q.weight_type==='A' ? 2 : q.weight_type==='P' ? 3 : 1;
+  const pts = src.filter(p => p.weight_g).slice().sort((a,b) => {
+    const da=(a.taken_at||a.created_at||'').slice(0,10), db=(b.taken_at||b.created_at||'').slice(0,10);
+    if (da!==db) return da<db ? -1 : 1;                            // 先依日期（一天一格）
+    if (typeRank(a)!==typeRank(b)) return typeRank(a)-typeRank(b);  // 同日：B澆前→A澆後→P
+    return (a.taken_at||'')<(b.taken_at||'') ? -1 : 1;
+  });
   if (pts.length < 2) return;
   document.getElementById('chart-wrap').style.display = 'block';
 
@@ -1115,7 +1122,17 @@ function buildWeightChart(allTimelineZone) {
       data: weights, borderColor: '#2D4A2D', backgroundColor: 'rgba(45,74,45,0.06)',
       pointBackgroundColor: ptColors, pointBorderColor: ptColors,
       pointStyle: ptStyles,
-      pointRadius: ptRadii, pointHoverRadius: 9, tension: 0.3, fill: true, borderWidth: 1.5
+      pointRadius: ptRadii, pointHoverRadius: 9, tension: 0, fill: true, borderWidth: 1.5,
+      segment: {
+        // 沒資料的區間 / 補登澆水跳變 → 虛線；只有連續真實量測才用實線
+        borderDash: c => {
+          const a = pts[c.p0DataIndex], b = pts[c.p1DataIndex];
+          if (!a || !b) return undefined;
+          const gap = Math.abs(new Date(b.taken_at||b.created_at) - new Date(a.taken_at||a.created_at)) / 86400000;
+          const wateringJump = a.weight_type === 'B' && (b.weight_type === 'A' || b.weight_type === 'P');
+          return (gap > 1.5 || wateringJump) ? [6,5] : undefined;
+        }
+      }
     }]},
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -2331,6 +2348,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.2</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.3 · 重量圖虛線/排序修正</div>
 </body>
 </html>
