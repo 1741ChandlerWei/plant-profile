@@ -827,6 +827,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ADMIN_PWD = 'roots';
 const IK = 'gtl_ea745cf7cc0dd9fe10a15cf44175c391f740d2d2186e2337';
 const SB_URL = SUPABASE_URL;
+let _pageWasLocked = false;
 const SB_KEY = SUPABASE_KEY;
 
 // ─── Customer session ────────────────────────────────────
@@ -1506,6 +1507,8 @@ function tryLogin() {
   const v = document.getElementById('admin-pwd').value;
   if (v === ADMIN_PWD) {
     adminAuthed = true;
+    sessionStorage.setItem('plant_admin_authed', '1');
+    if (_pageWasLocked) { location.reload(); return; }
     document.getElementById('admin-auth-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
     loadAdminData();
@@ -1755,6 +1758,25 @@ async function init() {
   let webStatus = rehab.status || 'hidden';
   let webOwner  = webRec ? webRec.web_owner : null;
   let ownerLabel = webRec ? webRec.owner_label : null;
+
+  // 隱藏/未公開植物 — 非管理員攔截
+  const HIDDEN_STATUSES = ['hidden', 'tracking'];
+  const isAdminSession = sessionStorage.getItem('plant_admin_authed') === '1';
+  if (HIDDEN_STATUSES.includes(webStatus) && !isAdminSession) {
+    document.getElementById('loading').style.display = 'none';
+    _pageWasLocked = true;
+    const es = document.getElementById('error-state');
+    es.style.display = 'flex';
+    es.innerHTML =
+      '<div style="font-size:28px;margin-bottom:16px;opacity:.35">🔒</div>' +
+      '<div style="font-size:13px;letter-spacing:.12em;color:var(--text2)">' + rid + '</div>' +
+      '<div style="font-size:11px;color:var(--text3);margin-top:6px;letter-spacing:.05em">此植物頁面尚未公開</div>' +
+      '<button onclick="document.getElementById(\'admin-trigger\').click()" ' +
+        'style="margin-top:24px;padding:9px 20px;background:transparent;border:1px solid var(--border);' +
+        'color:var(--text3);font-family:inherit;font-size:10px;letter-spacing:.12em;cursor:pointer">' +
+        '⚙ 管理員登入</button>';
+    return;
+  }
 
   if (rehab.plant_id) {
     const plantRows = await dbGet('plants', '?id=eq.' + rehab.plant_id + '&limit=1');
