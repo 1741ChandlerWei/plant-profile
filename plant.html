@@ -1350,17 +1350,27 @@ async function loadAI(rid) {
 }
 
 // ─── AI 提示視窗 ──────────────────────────────────────────
+// 固定中文/英文（不隨中/越切換），完整涵蓋所有狀態代碼
 function getStatusLabel() {
   return {
-    normal: t('status_label.normal'),
-    growth_healthy: t('status_label.growth_healthy'),
-    growth_concern: t('status_label.growth_concern'),
-    frond_poor: t('status_label.frond_poor'),
-    new_growth: t('status_label.new_growth'),
-    moss_dry: t('status_label.moss_dry'),
-    dehydrated: t('status_label.dehydrated'),
-    leaf_drop_unknown: t('status_label.leaf_drop_unknown'),
-    wet_wilt: t('status_label.wet_wilt'),
+    normal: '正常 / Normal',
+    growth_healthy: '芽頭健康，有活力 / Growing point healthy',
+    moss_ok: '水苔濕度正常 / Moss moisture OK',
+    new_growth: '看到新生長跡象 / New growth visible',
+    frond_cover_clear: '芽頭覆蓋問題解除 / Growing point uncovered',
+    sporophyll_new: '新的孢子葉出現 / New fertile frond',
+    new_pup: '發現新側芽 / New pup',
+    spore_forming: '出孢 / Sporing',
+    growth_concern: '芽頭看起來不健康 / Growing point unhealthy',
+    frond_poor: '葉片狀態不好 / Fronds poor',
+    moss_dry: '水苔過乾 / Moss too dry',
+    overwatered: '過濕（有症狀）/ Overwatered (symptoms)',
+    dehydrated: '植物缺水 / Dehydrated',
+    frond_cover_warn: '芽頭快被遮擋待處理 / Growing point getting covered',
+    trophophyll_warn: '新營養葉可能影響生長 / Shield frond may block growth',
+    leaf_drop_unknown: '不正常掉葉（原因不明確）/ Abnormal frond drop (cause unclear)',
+    wet_wilt: '水苔高濕但葉片下垂（疑似根系問題）/ Wet moss, drooping fronds (root issue?)',
+    other: '其他 / Other',
   };
 }
 
@@ -1384,10 +1394,12 @@ async function loadHints(rid) {
     if (statusRows && statusRows.length) {
       const s = statusRows[0];
       const days = Math.floor((Date.now() - new Date(s.taken_at)) / 86400000);
-      const label = getStatusLabel()[s.plant_status] || s.status_note || s.plant_status;
+      const map = getStatusLabel();
+      const codes = (s.plant_status || '').split(',').map(c => c.trim()).filter(Boolean);
+      const label = codes.map(c => c === 'other' ? (s.status_note || map.other) : (map[c] || c)).join('、') || s.status_note || s.plant_status;
       const el = document.getElementById('hint-status');
       el.textContent = label + '　·　' + (days === 0 ? t('time.today') : days + t('time.days.ago'));
-      el.className = 'hint-val' + (['dehydrated','moss_dry','growth_concern','frond_poor'].includes(s.plant_status) ? ' warn' : '');
+      el.className = 'hint-val' + (codes.some(c => ['dehydrated','moss_dry','growth_concern','frond_poor'].includes(c)) ? ' warn' : '');
     }
     // EC 追蹤中（最近一筆含 wet_wilt 的紀錄）
     const ecRows = await dbGet('photos',
@@ -2371,6 +2383,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.4 · 修正隱藏植物鎖定頁面顯示</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.5 · 狀態顯示中英雙語＋多選拆解修正</div>
 </body>
 </html>
