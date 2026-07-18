@@ -1067,7 +1067,7 @@ function syncTimeline(globalIdx) {
 function buildWeightChart(allTimelineZone) {
   const src = allTimelineZone || timelinePhotos;
   // 排序修正：同一天「補登」的 B(澆前)要排在 A(澆後)前面，不被時間戳排反
-  const typeRank = q => q.weight_type==='B' ? 0 : q.weight_type==='A' ? 2 : q.weight_type==='P' ? 3 : 1;
+  const typeRank = q => q.weight_type==='B' ? 0 : q.weight_type==='A' ? 2 : 1;
   const pts = src.filter(p => p.weight_g).slice().sort((a,b) => {
     const da=(a.taken_at||a.created_at||'').slice(0,10), db=(b.taken_at||b.created_at||'').slice(0,10);
     if (da!==db) return da<db ? -1 : 1;                            // 先依日期（一天一格）
@@ -1083,17 +1083,15 @@ function buildWeightChart(allTimelineZone) {
   const ptColors = pts.map(p => {
     if (p.weight_type === 'A') return '#4A90D9';
     if (p.weight_type === 'B') return '#C68B2F';
-    if (p.weight_type === 'P') return '#9B59B6';
     return isWatering(p.note) ? '#4A90D9' : '#B8922A';
   });
   const ptRadii = pts.map(p =>
-    (p.weight_type === 'A' || p.weight_type === 'B' || p.weight_type === 'P') ? 8
+    (p.weight_type === 'A' || p.weight_type === 'B') ? 8
     : isWatering(p.note) ? 7 : 5
   );
   const ptStyles = pts.map(p => {
     if (p.weight_type === 'A') return 'rectRot';
     if (p.weight_type === 'B') return 'triangle';
-    if (p.weight_type === 'P') return 'rectRounded';
     return 'circle';
   });
 
@@ -1130,7 +1128,7 @@ function buildWeightChart(allTimelineZone) {
           const a = pts[c.p0DataIndex], b = pts[c.p1DataIndex];
           if (!a || !b) return undefined;
           const gap = Math.abs(new Date(b.taken_at||b.created_at) - new Date(a.taken_at||a.created_at)) / 86400000;
-          const wateringJump = a.weight_type === 'B' && (b.weight_type === 'A' || b.weight_type === 'P');
+          const wateringJump = a.weight_type === 'B' && b.weight_type === 'A';
           return (gap > 1.5 || wateringJump) ? [6,5] : undefined;
         }
       }
@@ -1150,7 +1148,7 @@ function buildWeightChart(allTimelineZone) {
             title: items => labels[items[0].dataIndex],
             label: ctx => {
               const p = pts[ctx.dataIndex];
-              const tag = p.weight_type === 'A' ? ' ◆ A' : p.weight_type === 'B' ? ' ▲ B' : p.weight_type === 'P' ? ' ■ P' : '';
+              const tag = p.weight_type === 'A' ? ' ◆ A' : p.weight_type === 'B' ? ' ▲ B' : '';
               return ctx.parsed.y + ' g' + tag + (isWatering(p.note) ? '  💧 ' + t('chart.watering') : (p.note ? '  '+p.note : ''));
             }
           },
@@ -1422,14 +1420,17 @@ async function loadHints(rid) {
     }
 
     // 含水率估算 & 預估需水天數（C = B + 20% × (A-B)）
-    // P 點代表換板/分株 → 介質重量基準改變，P 之前的 A/B 不算數
-    const allABP = await dbGet('photos',
-      '?rid=eq.'+rid+'&weight_type=in.(A,B,P)&order=taken_at.asc&select=taken_at,weight_g,weight_type');
-    if (allABP && allABP.length >= 2) {
-      // 找最近的 P，之後的 A/B 才是有效基準
-      const latestP = [...allABP].reverse().find(p => p.weight_type === 'P');
-      const cutoff  = latestP ? new Date(latestP.taken_at) : new Date(0);
-      const allAB   = allABP.filter(p => p.weight_type !== 'P' && new Date(p.taken_at) > cutoff);
+    // 基準重設：換板/換盆/分株/補水苔 這類改變本體的物理操作 → 舊 A/B 作廢
+    // （2026-07-18 廢除 weight_type='P'，改用 physical_op 判定，與 S 系統 runConverter 一致）
+    const EPOCH_OPS = ['remount','add_substrate','remove_pup','repot'];
+    const abAll = await dbGet('photos',
+      '?rid=eq.'+rid+'&weight_type=in.(A,B)&order=taken_at.asc&select=taken_at,weight_g,weight_type');
+    const opRows = await dbGet('photos',
+      '?rid=eq.'+rid+'&physical_op=not.is.null&order=taken_at.desc&select=taken_at,physical_op&limit=200');
+    const lastBreak = (opRows||[]).find(r => (r.physical_op||'').split(',').some(o=>EPOCH_OPS.includes(o.trim())));
+    if (abAll && abAll.length >= 2) {
+      const cutoff = lastBreak ? new Date(lastBreak.taken_at) : new Date(0);
+      const allAB  = abAll.filter(p => new Date(p.taken_at) > cutoff);
 
       let R = null, prevA = null;
       for (const pt of allAB) {
@@ -2383,6 +2384,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.6 · 乾/缺水狀態加葉片下垂備注</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.7 · 廢除P點，基準重設改用physical_op（與S系統一致）</div>
 </body>
 </html>
