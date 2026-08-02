@@ -163,6 +163,7 @@ footer{
 
 <nav id="main-nav">
   <a class="nav-logo" href="/">rễ , thân , lá</a>
+  <a class="nav-admin" href="#" id="owner-login" style="margin-right:16px">⚙ 管理員登入</a>
   <a class="nav-admin" href="/admin.html">後台</a>
 </nav>
 
@@ -199,7 +200,7 @@ footer{
     <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.791-4.697 4.533-4.697 1.313 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
     Facebook
   </a>
-  <div class="footer-ver">v2.0</div>
+  <div class="footer-ver">v2.1</div>
 </footer>
 
 <script>
@@ -207,6 +208,36 @@ const nav = document.getElementById('main-nav');
 window.addEventListener('scroll', () => {
   nav.classList.toggle('scrolled', window.scrollY > 20);
 }, {passive:true});
+
+// ── 入口處：管理員登入（設 localStorage flag，所有植物頁共用）──
+const OWNER_PWD = 'roots';
+const loginLink = document.getElementById('owner-login');
+function refreshOwnerState() {
+  const authed = localStorage.getItem('plant_admin_authed') === '1';
+  loginLink.textContent = authed ? '✓ 已登入（點此登出）' : '⚙ 管理員登入';
+}
+loginLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  const authed = localStorage.getItem('plant_admin_authed') === '1';
+  if (authed) {
+    if (confirm('要登出管理員嗎？登出後查看隱藏植物會重新要密碼。')) {
+      localStorage.removeItem('plant_admin_authed');
+      refreshOwnerState();
+      alert('已登出。');
+    }
+    return;
+  }
+  const pw = prompt('請輸入管理員密碼：');
+  if (pw === null) return;
+  if (pw === OWNER_PWD) {
+    localStorage.setItem('plant_admin_authed', '1');
+    refreshOwnerState();
+    alert('✅ 已登入，所有植物已解鎖，之後不用再輸入密碼。');
+  } else {
+    alert('密碼錯誤。');
+  }
+});
+refreshOwnerState();
 </script>
 
 </body>
