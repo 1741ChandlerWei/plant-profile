@@ -1520,7 +1520,7 @@ function tryLogin() {
   const v = document.getElementById('admin-pwd').value;
   if (v === ADMIN_PWD) {
     adminAuthed = true;
-    sessionStorage.setItem('plant_admin_authed', '1');
+    localStorage.setItem('plant_admin_authed', '1');
     if (_pageWasLocked) { location.reload(); return; }
     document.getElementById('admin-auth-screen').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
@@ -1774,7 +1774,7 @@ async function init() {
 
   // 隱藏/未公開植物 — 非管理員攔截
   const HIDDEN_STATUSES = ['hidden', 'tracking'];
-  const isAdminSession = sessionStorage.getItem('plant_admin_authed') === '1';
+  const isAdminSession = localStorage.getItem('plant_admin_authed') === '1';
   if (HIDDEN_STATUSES.includes(webStatus) && !isAdminSession) {
     document.getElementById('loading').style.display = 'none';
     _pageWasLocked = true;
@@ -2384,6 +2384,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.7 · 廢除P點，基準重設改用physical_op（與S系統一致）</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.8 · 管理員登入改用 localStorage（登入一次跨分頁通用，免重複輸密碼）</div>
 </body>
 </html>
