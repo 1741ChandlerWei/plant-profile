@@ -108,6 +108,7 @@ main{padding-top:82px}
     <div class="page-title" data-i18n="page.title">植物展示</div>
     <div class="page-title-vn">VƯỜN CÂY</div>
   </div>
+  <div id="owner-banner" style="display:none;text-align:center;font-size:11px;color:var(--gold);letter-spacing:.1em;padding:2px 0 10px">👑 老闆模式 · 顯示全部植物（含追蹤中／隱藏）</div>
 
   <div class="tabs">
     <button class="tab active" data-tab="for-sale" data-i18n="tab.forsale">展示販售中</button>
@@ -249,7 +250,10 @@ function renderGrid(plants, gridId, emptyId) {
 
 async function init() {
   // 1. 從 rehab 取得所有公開植物（display / sale / sold / hidden託管）
-  const rehabRows = await dbGet('rehab', '?status=in.(display,sale,sold,hidden)&select=rid,plant_id,plant_name,purchase_date,status&order=rid.asc');
+  const isOwner = localStorage.getItem('plant_admin_authed') === '1';
+  const _statuses = isOwner ? 'display,sale,sold,hidden,tracking,available' : 'display,sale,sold,hidden';
+  if (isOwner) document.getElementById('owner-banner').style.display = 'block';
+  const rehabRows = await dbGet('rehab', `?status=in.(${_statuses})&select=rid,plant_id,plant_name,purchase_date,status&order=rid.asc`);
   if (!Array.isArray(rehabRows) || !rehabRows.length) {
     document.getElementById('loading-indicator').style.display = 'none';
     document.getElementById('empty-for-sale').style.display = 'block';
@@ -296,7 +300,8 @@ async function init() {
   });
 
   // 5. 渲染分頁
-  const forSale = allPlants.filter(p => ['display','sale'].includes(p.web_status));
+  const forSaleStatuses = isOwner ? ['display','sale','tracking','available'] : ['display','sale'];
+  const forSale = allPlants.filter(p => forSaleStatuses.includes(p.web_status));
   const sold = allPlants.filter(p => ['sold','hidden'].includes(p.web_status));
 
   document.getElementById('loading-indicator').style.display = 'none';
@@ -492,6 +497,6 @@ async function initAll() {
 
 initAll();
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.2</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.3 · 老闆登入後顯示全部植物（含追蹤中／隱藏）</div>
 </body>
 </html>
