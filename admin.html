@@ -180,7 +180,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,240,232,
 <div class="auth-screen" id="auth-screen">
   <div class="auth-logo">rễ , thân , lá</div>
   <div class="auth-sub">後台管理 · Quản lý nội bộ</div>
-  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.6</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:-8px">v1.7</div>
   <div class="pwd-row">
     <input class="pwd-input" id="pwd-input" type="password" placeholder="輸入密碼" autocomplete="current-password">
     <button class="pwd-btn" id="pwd-btn">進入</button>
@@ -397,7 +397,7 @@ async function loadPlants() {
   // 同時取得 rehab、plant_web、每株最新照片
   const [rehabRows, photoRows, plantsRows] = await Promise.all([
     dbGet('rehab', '?order=rid.asc&select=rid,plant_id,plant_name,purchase_date,status'),
-    dbGet('photos', '?approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured'),
+    dbGet('photos', '?approved=eq.true&photo_url=not.is.null&order=taken_at.asc&select=rid,photo_url,is_featured'),
     dbGet('plants', '?select=id,name'),
   ]);
 

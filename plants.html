@@ -271,7 +271,7 @@ async function init() {
   // 3. 取得精選照片
   let photosMap = {};
   if (visibleRids.length) {
-    const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at`);
+    const photoRows = await dbGet('photos', `?rid=in.(${visibleRids.join(',')})&approved=eq.true&photo_url=not.is.null&order=taken_at.asc&select=rid,photo_url,is_featured,taken_at`);
     if (Array.isArray(photoRows)) {
       photoRows.forEach(ph => {
         if (!photosMap[ph.rid]) {
@@ -385,7 +385,7 @@ async function loginCustomer(cust) {
   const [rehabRows, plantsRows, photoRows] = await Promise.all([
     dbGet('rehab', `?rid=in.(${rids.join(',')})&select=rid,plant_id,plant_name`),
     dbGet('plants', '?select=id,name,price'),
-    dbGet('photos', `?rid=in.(${rids.join(',')})&approved=eq.true&order=taken_at.asc&select=rid,photo_url,is_featured`),
+    dbGet('photos', `?rid=in.(${rids.join(',')})&approved=eq.true&photo_url=not.is.null&order=taken_at.asc&select=rid,photo_url,is_featured`),
   ]);
 
   const rehabMap = {};
@@ -497,6 +497,6 @@ async function initAll() {
 
 initAll();
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.3 · 老闆登入後顯示全部植物（含追蹤中／隱藏）</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.4 · 封面照排除無照片的重量列（weight_only），修「尚無照片」誤顯示</div>
 </body>
 </html>
