@@ -1580,23 +1580,13 @@ async function deletePhoto(id, storagePath, e) {
   if (!confirm('確定刪除這張照片？\n此操作無法復原。\n\nXác nhận xóa ảnh này?')) return;
   const photo = allPhotosAdmin.find(p => p.id === id);
   const photoUrl = photo?.photo_url || '';
-  // 1. 先刪 DB 列：走 service key 端點（真的刪、回傳被刪列數）。
-  //    修 anon key + RLS 靜默擋的假成功 bug（不再「說成功但列還在、只刪 B2 留破圖」）。
-  const ok = await fetch('https://plant-pos.vercel.app/api/delete-photo-row', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-internal-key': IK },
-    body: JSON.stringify({ id })
+  const key = photoUrl.includes('/api/photo?key=') ? (new URL(photoUrl).searchParams.get('key') || '') : '';
+  // 一次呼叫 /api/photo（帶 id+key）：後端用 service key 先刪 DB 列(真刪、回傳列數) → 再刪 B2 檔。
+  // 修 anon key + RLS 假成功破圖 bug：只有 deleted>0（DB 真的刪掉）才算成功。
+  const ok = await fetch(`https://plant-pos.vercel.app/api/photo?key=${encodeURIComponent(key || '_')}&id=${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'x-internal-key': IK }
   }).then(async r => { if (!r.ok) return false; const d = await r.json().catch(() => null); return !!(d && d.deleted > 0); }).catch(() => false);
-  // 2. DB 確認刪掉後，才刪 B2 檔（順序：DB 先於 B2，避免 DB 沒刪成功卻先刪圖 → 破圖）。
-  if (ok && photoUrl.includes('/api/photo?key=')) {
-    try {
-      const key = new URL(photoUrl).searchParams.get('key');
-      if (key) await fetch(`https://plant-pos.vercel.app/api/photo?key=${encodeURIComponent(key)}`, {
-        method: 'DELETE',
-        headers: { 'x-internal-key': IK }
-      });
-    } catch (_) {}
-  }
   if (ok) {
     allPhotosAdmin = allPhotosAdmin.filter(p => p.id !== id);
     photos = photos.filter(p => p.id !== id);
