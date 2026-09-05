@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照護紀錄平台 — rễ · thân · lá</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#edf1e8; --surface:#ffffff; --surface-2:#f3f6f0; --border:#dde5d6;
+  --text:#16231a; --muted:#5d7162; --faint:#8a9c8b;
+  --accent:#3f7d2c; --accent-soft:rgba(63,125,44,.12);
+  --ok:#2f9e44; --ok-soft:rgba(47,158,68,.12);
+  --warn:#bd7b0a; --warn-soft:rgba(189,123,10,.13);
+  --crit:#cf3c3c; --crit-soft:rgba(207,60,60,.11);
+  --on-accent:#ffffff; --shadow:0 1px 2px rgba(20,40,25,.05),0 6px 18px rgba(20,40,25,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e150e; --surface:#172317; --surface-2:#1d2b1d; --border:#2a3a2a;
+  --text:#e8f5e8; --muted:#88a688; --faint:#5f7a60;
+  --accent:#a3e635; --accent-soft:rgba(163,230,53,.14);
+  --ok:#4ade80; --ok-soft:rgba(74,222,128,.14);
+  --warn:#fbbf24; --warn-soft:rgba(251,191,36,.14);
+  --crit:#f87171; --crit-soft:rgba(248,113,113,.13);
+  --on-accent:#0c140c; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.28);
+}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Instrument Sans",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;margin:0}
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 40px}
+button{font-family:inherit}
+header{padding:20px 2px 14px}
+.mark{font-family:"Fraunces",Georgia,serif;font-size:12px;letter-spacing:.12em;text-transform:lowercase;color:var(--muted)}
+.mark b{color:var(--accent);font-weight:600}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:27px;letter-spacing:-.01em;margin:2px 0 0}
+.sub{font-size:13px;color:var(--muted);margin-top:3px}
+.addbtn{width:100%;margin:14px 0 2px;padding:14px;border:none;border-radius:13px;background:var(--accent);color:var(--on-accent);font-size:15.5px;font-weight:600;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:8px}
+.addbtn span{font-weight:500;opacity:.72;font-size:13px}
+.addbtn:disabled{opacity:.5;cursor:default}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 18px}
+.tile{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:12px 12px 11px;box-shadow:var(--shadow)}
+.tile .n{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.tile .lbl{font-size:11px;color:var(--muted);margin-top:6px}
+.tile.alert{border-color:color-mix(in srgb,var(--crit) 45%,var(--border));background:var(--crit-soft)} .tile.alert .n{color:var(--crit)}
+.tile.good .n{color:var(--ok)}
+.sectlbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:16px 4px 8px;font-weight:600}
+ul.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-left-width:4px;border-radius:13px;padding:10px 13px 10px 11px;box-shadow:var(--shadow);cursor:pointer;text-decoration:none;color:inherit}
+.row.sev-crit{border-left-color:var(--crit)} .row.sev-warn{border-left-color:var(--warn)} .row.sev-ok{border-left-color:var(--ok)}
+.row.isnew{border-left-color:var(--accent);border-left-style:dashed}
+.thumb{width:56px;height:56px;border-radius:9px;overflow:hidden;position:relative;flex-shrink:0;background:var(--surface-2)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.empty{display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:20px}
+.mid{min-width:0}
+.code{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600}
+.metarow{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap}
+.status{font-size:11.5px;padding:2px 8px;border-radius:6px;font-weight:500;white-space:nowrap}
+.st-ok{background:var(--ok-soft);color:var(--ok)} .st-warn{background:var(--warn-soft);color:var(--warn)}
+.st-crit{background:var(--crit-soft);color:var(--crit)} .st-mut{background:var(--surface-2);color:var(--muted)}
+.care{display:inline-flex;align-items:center;gap:5px}
+.care .pips{display:inline-flex;gap:2.5px}
+.care .pip{width:12px;height:6px;border-radius:2px;background:color-mix(in srgb,var(--muted) 26%,transparent)}
+.care .pip.on{background:var(--care-c)} .care .cl{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.since{text-align:right;min-width:82px}
+.since .d{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.since .u{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap}
+.since.sev-crit .d{color:var(--crit)} .since.sev-warn .d{color:var(--warn)} .since.sev-ok .d{color:var(--ok)}
+.since .today{font-size:14px;font-weight:600;color:var(--ok)} .since .new{font-size:14px;font-weight:600;color:var(--accent)}
+.date{font-size:10.5px;color:var(--faint);font-family:"IBM Plex Mono",monospace;margin-top:2px}
+.state{text-align:center;padding:50px 20px;color:var(--faint)}
+.state .dots{display:inline-flex;gap:6px}.state .dots span{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:b 1.2s ease-in-out infinite}
+.state .dots span:nth-child(2){animation-delay:.2s}.state .dots span:nth-child(3){animation-delay:.4s}@keyframes b{0%,100%{opacity:.2}50%{opacity:1}}
+.note{margin-top:22px;font-size:11.5px;color:var(--faint);line-height:1.7;border-top:1px dashed var(--border);padding-top:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:50;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">rễ · thân · <b>lá</b> · care log</div>
+    <h1>照護紀錄平台</h1>
+    <div class="sub">Plant Care Log · 掃 QR 拍照建檔，一眼看出哪株太久沒紀錄</div>
+  </header>
+  <button class="addbtn" id="addbtn" onclick="addRecord()">＋ 新增紀錄 <span>/ New record</span></button>
+  <div class="tiles">
+    <div class="tile"><div class="n" id="t-total">–</div><div class="lbl">培養中 · In care</div></div>
+    <div class="tile alert"><div class="n" id="t-over">–</div><div class="lbl">逾期未拍 · Overdue</div></div>
+    <div class="tile good"><div class="n" id="t-today">–</div><div class="lbl">今日已拍 · Today</div></div>
+  </div>
+  <div class="sectlbl" id="sectlbl">最久沒拍在前 · Longest overdue first</div>
+  <ul class="list" id="list"><li class="state"><div class="dots"><span></span><span></span><span></span></div><div style="margin-top:10px;font-size:12px">載入中 Loading…</div></li></ul>
+  <div class="note">
+    獨立系統，與 R 植物完全不相干；照片存 B2。培養模式不記重量，只記照片＋狀態＋觀照等級＋EC。<br>
+    逾期門檻：<b>≥10 天</b>亮紅、<b>≥5 天</b>亮黃。點任一列進單株頁,可看照片、連續播放、拍照上傳。
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const POS='https://plant-pos.vercel.app';
+const IK='gtl_ea745cf7cc0dd9fe10a15cf44175c391f740d2d2186e2337';
+const H={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+const OVER_CRIT=10, OVER_WARN=5;
+
+async function sb(t,q){ const r=await fetch(SB_URL+'/rest/v1/'+t+q,{headers:H}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+const careColor=lv=> lv<=1?'var(--crit)': lv===2?'var(--warn)': lv===3?'var(--accent)':'var(--ok)';
+const sevOf=d=> d>=OVER_CRIT?'crit': d>=OVER_WARN?'warn':'ok';
+const daysBetween=iso=> Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+function statusPill(s){ if(!s) return {t:'尚未標記',c:'st-mut'}; const first=s.split(',')[0].trim();
+  if(first.includes('病蟲害')) return {t:s,c:'st-crit'}; if(first.includes('虛弱')) return {t:s,c:'st-warn'};
+  if(first.includes('健康')) return {t:s,c:'st-ok'}; return {t:s,c:'st-mut'}; }
+function fmtDate(iso){ const d=new Date(iso); return (d.getMonth()+1+'').padStart(2,'0')+'/'+(d.getDate()+'').padStart(2,'0'); }
+let tt; function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+async function load(){
+  let culti, logs;
+  try{
+    [culti, logs] = await Promise.all([
+      sb('culti','?archived=eq.false&select=tid,plant_name,created_at&order=tid.asc'),
+      sb('culti_logs','?select=tid,photo_url,angle,plant_status,care_level,taken_at,created_at&order=created_at.desc')
+    ]);
+  }catch(e){
+    document.getElementById('list').innerHTML='<li class="state"><div style="font-size:13px;color:var(--crit)">讀取失敗</div><div style="font-size:12px;margin-top:8px">請先到 Supabase 跑建表 SQL（culti / culti_logs）。<br><span style="font-family:monospace;font-size:11px">'+String(e.message).slice(0,120)+'</span></div></li>';
+    return;
+  }
+  // 每個 tid 的最新紀錄
+  const latest={}, cover={};
+  for(const l of logs){ // logs 已 created_at desc
+    if(!latest[l.tid]) latest[l.tid]=l;
+    if(!cover[l.tid] && l.photo_url && l.angle!=='detail') cover[l.tid]=l.photo_url;
+    if(!cover[l.tid] && l.photo_url) cover[l.tid]=l.photo_url;
+  }
+  const items = culti.map(c=>{
+    const lg=latest[c.tid];
+    if(!lg) return {tid:c.tid, isNew:true, days:Infinity};
+    const when=lg.taken_at||lg.created_at;
+    return {tid:c.tid, isNew:false, days:daysBetween(when), when, status:lg.plant_status, care:lg.care_level, cover:cover[c.tid]};
+  });
+  items.sort((a,b)=> b.days-a.days); // 逾期/未拍在前
+  // tiles
+  const total=items.length;
+  const over=items.filter(i=>!i.isNew && i.days>=OVER_CRIT).length + items.filter(i=>i.isNew).length;
+  const today=items.filter(i=>!i.isNew && i.days===0).length;
+  document.getElementById('t-total').textContent=total;
+  document.getElementById('t-over').textContent=over;
+  document.getElementById('t-today').textContent=today;
+  if(!total){ document.getElementById('list').innerHTML='<li class="state"><div style="font-size:13px">還沒有任何編號</div><div style="font-size:12px;margin-top:8px">按上面「＋ 新增紀錄」建立第一株 T 植物。</div></li>'; return; }
+  document.getElementById('list').innerHTML = items.map(i=>{
+    const sev = i.isNew?'crit':sevOf(i.days);
+    const pips=[1,2,3,4].map(n=>`<span class="pip ${i.care&&n<=i.care?'on':''}"></span>`).join('');
+    const thumb = i.cover ? `<div class="thumb"><img src="${i.cover}" loading="lazy" alt=""></div>` : `<div class="thumb empty">🌱</div>`;
+    const care = i.care ? `<span class="care" style="--care-c:${careColor(i.care)}"><span class="pips">${pips}</span><span class="cl">Lv.${i.care}</span></span>`:'';
+    let pill; if(i.isNew) pill={t:'尚未拍照 New',c:'st-mut'}; else pill=statusPill(i.status);
+    const since = i.isNew ? `<div class="new">新 New</div><div class="date">尚未拍照</div>`
+      : i.days===0 ? `<div class="today">今天 Today</div><div class="date">${fmtDate(i.when)}</div>`
+      : `<div class="d">${i.days}</div><div class="u">天沒拍 days</div><div class="date">${fmtDate(i.when)}</div>`;
+    return `<a class="row sev-${sev} ${i.isNew?'isnew':''}" href="culti.html?tid=${i.tid}">
+      ${thumb}
+      <div class="mid"><div class="code">${i.tid}</div><div class="metarow"><span class="status ${pill.c}">${pill.t}</span>${care}</div></div>
+      <div class="since sev-${sev}">${since}</div></a>`;
+  }).join('');
+}
+
+async function addRecord(){
+  const btn=document.getElementById('addbtn'); btn.disabled=true; btn.querySelector('span').textContent='/ 建立中…';
+  try{
+    const r=await fetch(POS+'/api/culti-new',{method:'POST',headers:{'Content-Type':'application/json','x-internal-key':IK},body:JSON.stringify({})});
+    const j=await r.json();
+    if(!r.ok||!j.tid) throw new Error(j.error||'failed');
+    toast('已新增 '+j.tid+' · 點它拍第一張');
+    await load();
+  }catch(e){ toast('新增失敗：'+String(e.message).slice(0,60)); }
+  btn.disabled=false; btn.querySelector('span').textContent='/ New record';
+}
+load();
+</script>
+</body>
+</html>

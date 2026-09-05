@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>照護紀錄 — rễ · thân · lá</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#edf1e8; --surface:#ffffff; --surface-2:#f3f6f0; --border:#dde5d6;
+  --text:#16231a; --muted:#5d7162; --faint:#8a9c8b;
+  --accent:#3f7d2c; --accent-soft:rgba(63,125,44,.12);
+  --ok:#2f9e44; --ok-soft:rgba(47,158,68,.12);
+  --warn:#bd7b0a; --warn-soft:rgba(189,123,10,.13);
+  --crit:#cf3c3c; --crit-soft:rgba(207,60,60,.11);
+  --on-accent:#ffffff; --shadow:0 1px 2px rgba(20,40,25,.05),0 6px 18px rgba(20,40,25,.05);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e150e; --surface:#172317; --surface-2:#1d2b1d; --border:#2a3a2a;
+  --text:#e8f5e8; --muted:#88a688; --faint:#5f7a60;
+  --accent:#a3e635; --accent-soft:rgba(163,230,53,.14);
+  --ok:#4ade80; --ok-soft:rgba(74,222,128,.14);
+  --warn:#fbbf24; --warn-soft:rgba(251,191,36,.14);
+  --crit:#f87171; --crit-soft:rgba(248,113,113,.13);
+  --on-accent:#0c140c; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.28);
+}}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Instrument Sans",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;margin:0}
+.wrap{max-width:520px;margin:0 auto;padding:0 14px 40px}
+button{font-family:inherit}
+.bar{display:flex;align-items:center;gap:10px;padding:16px 4px 10px}
+.bar .back{font-size:15px;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:none;display:flex;align-items:center;gap:4px}
+.bar .code{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600}
+.bar .sp{flex:1}
+.bar .mini{font-size:11px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.hero{position:relative;aspect-ratio:4/3;background:#0c120c;display:flex;align-items:center;justify-content:center}
+.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.hero.empty{flex-direction:column;color:var(--faint);gap:8px;background:var(--surface-2)}
+.tag{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:#a3e635;font-size:11px;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:20px}
+.hero-ctrl{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,.5),transparent)}
+.hbtn{flex:1;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:12.5px;font-weight:600;padding:8px;border-radius:9px;cursor:pointer}
+.hbtn.play{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.strip{display:flex;gap:5px;padding:9px 12px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.strip::-webkit-scrollbar{display:none}
+.strip .t{width:46px;height:46px;border-radius:7px;flex-shrink:0;overflow:hidden;position:relative;border:2px solid transparent;cursor:pointer;background:var(--surface-2)}
+.strip .t.cur{border-color:var(--accent)} .strip .t img{width:100%;height:100%;object-fit:cover}
+.dbody{padding:13px 15px 16px}
+.chipline{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.status{font-size:11.5px;padding:2px 8px;border-radius:6px;font-weight:500}
+.st-ok{background:var(--ok-soft);color:var(--ok)} .st-warn{background:var(--warn-soft);color:var(--warn)}
+.st-crit{background:var(--crit-soft);color:var(--crit)} .st-mut{background:var(--surface-2);color:var(--muted)}
+.care{display:inline-flex;align-items:center;gap:5px}
+.care .pips{display:inline-flex;gap:2.5px}.care .pip{width:12px;height:6px;border-radius:2px;background:color-mix(in srgb,var(--muted) 26%,transparent)}
+.care .pip.on{background:var(--care-c)}.care .cl{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.sectlbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin:2px 0 4px;font-weight:600}
+.logrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--border);font-size:12.5px}
+.logrow:last-child{border-bottom:none}
+.logrow .dt{font-family:"IBM Plex Mono",monospace;color:var(--muted);font-size:11.5px;white-space:nowrap}
+.logrow .ec{font-family:"IBM Plex Mono",monospace;color:var(--faint);font-size:11px;white-space:nowrap}
+.logrow .del{background:none;border:none;color:var(--faint);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:6px}
+.logrow .del:hover{color:var(--crit);background:var(--crit-soft)}
+.cta{width:100%;margin-top:16px;padding:14px;border:none;border-radius:13px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px}
+.cta span{font-weight:500;opacity:.72;font-size:13px}
+.state{text-align:center;padding:50px 20px;color:var(--faint)}
+.state .dots{display:inline-flex;gap:6px}.state .dots span{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:b 1.2s ease-in-out infinite}
+.state .dots span:nth-child(2){animation-delay:.2s}.state .dots span:nth-child(3){animation-delay:.4s}@keyframes b{0%,100%{opacity:.2}50%{opacity:1}}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.25s;pointer-events:none;z-index:50;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="bar">
+    <a class="back" href="care.html">‹ 返回 Back</a>
+    <span class="code" id="code">…</span>
+    <span class="sp"></span><span class="mini">照護紀錄 / Care log</span>
+  </div>
+  <div id="body"><div class="state"><div class="dots"><span></span><span></span><span></span></div><div style="margin-top:10px;font-size:12px">載入中 Loading…</div></div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://edvklxnzhuhmijdwyzrl.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkdmtseG56aHVobWlqZHd5enJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2OTE4MTQsImV4cCI6MjA5MzI2NzgxNH0.65Vf-XUlPZmhc-LWqzXq55bpR6RcG8iqNybf_bqyd60';
+const POS='https://plant-pos.vercel.app';
+const IK='gtl_ea745cf7cc0dd9fe10a15cf44175c391f740d2d2186e2337';
+const H={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+async function sb(t,q){ const r=await fetch(SB_URL+'/rest/v1/'+t+q,{headers:H}); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+const careColor=lv=> lv<=1?'var(--crit)': lv===2?'var(--warn)': lv===3?'var(--accent)':'var(--ok)';
+const daysBetween=iso=> Math.floor((Date.now()-new Date(iso).getTime())/86400000);
+function statusPill(s){ if(!s) return {t:'尚未標記',c:'st-mut'}; const f=s.split(',')[0].trim();
+  if(f.includes('病蟲害')) return {t:s,c:'st-crit'}; if(f.includes('虛弱')) return {t:s,c:'st-warn'};
+  if(f.includes('健康')) return {t:s,c:'st-ok'}; return {t:s,c:'st-mut'}; }
+function fmtDate(iso){ const d=new Date(iso); return (d.getMonth()+1+'').padStart(2,'0')+'/'+(d.getDate()+'').padStart(2,'0'); }
+function keyFromUrl(u){ try{ return decodeURIComponent(new URL(u).searchParams.get('key')||''); }catch{ return ''; } }
+let tt; function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);}
+function getTid(){ const m=location.pathname.match(/\/t\/(T-\d+)/i); if(m) return m[1].toUpperCase();
+  return (new URLSearchParams(location.search).get('tid')||'').toUpperCase()||null; }
+
+let LOGS=[], TID=null, playTimer=null, curIdx=0;
+
+async function load(){
+  TID=getTid();
+  document.getElementById('code').textContent=TID||'—';
+  if(!TID){ document.getElementById('body').innerHTML='<div class="state">缺少編號（?tid=T-000001）</div>'; return; }
+  let culti, logs;
+  try{
+    [culti, logs]=await Promise.all([
+      sb('culti','?tid=eq.'+TID+'&limit=1&select=tid,plant_name,notes,created_at'),
+      sb('culti_logs','?tid=eq.'+TID+'&approved=eq.true&order=taken_at.desc&select=*')
+    ]);
+  }catch(e){
+    document.getElementById('body').innerHTML='<div class="state"><div style="color:var(--crit)">讀取失敗</div><div style="font-size:12px;margin-top:8px">請先在 Supabase 建表。<br><span style="font-family:monospace;font-size:11px">'+String(e.message).slice(0,120)+'</span></div></div>';
+    return;
+  }
+  if(!culti||!culti.length){ document.getElementById('body').innerHTML='<div class="state">查無此編號 '+TID+'</div>'; return; }
+  LOGS=logs||[];
+  render();
+}
+
+function render(){
+  const b=document.getElementById('body');
+  if(!LOGS.length){
+    b.innerHTML='<div class="card"><div class="hero empty"><div style="font-size:30px">🌱</div><div style="font-size:12px">尚未拍照 / No photos yet</div></div>'
+      +'<div class="dbody"><div class="sectlbl">紀錄 History · 0 筆</div><div style="font-size:12px;color:var(--faint);padding:8px 2px">按下方「拍照上傳」建立第一張紀錄。</div></div></div>'
+      +'<a class="cta" href="'+POS+'/upload-culti.html?tid='+TID+'">📷 拍照上傳 <span>/ Add photo</span></a>';
+    return;
+  }
+  const photos=LOGS.filter(l=>l.photo_url);
+  curIdx=Math.min(curIdx,Math.max(0,photos.length-1));
+  const cur=photos[curIdx]||LOGS[0];
+  const latest=LOGS[0];
+  const pill=statusPill(latest.plant_status);
+  const care=latest.care_level;
+  const pips=[1,2,3,4].map(n=>`<span class="pip ${care&&n<=care?'on':''}"></span>`).join('');
+  const days=daysBetween(latest.taken_at||latest.created_at);
+  const angleTag = cur.angle==='detail'?'細節 DETAIL':'正面 FRONT';
+  b.innerHTML=`
+    <div class="card">
+      <div class="hero">
+        ${cur.photo_url?`<img id="heroimg" src="${cur.photo_url}" alt="">`:'<div style="color:var(--faint)">無照片</div>'}
+        <div class="tag" id="herotag">${angleTag}</div>
+        <div class="hero-ctrl">
+          <button class="hbtn" onclick="cycleAngle()">🔄 切換角度 / Angle</button>
+          <button class="hbtn play" id="playbtn" onclick="togglePlay()">▶ 連續播放 / Play</button>
+        </div>
+      </div>
+      ${photos.length>1?`<div class="strip" id="strip">${photos.map((p,i)=>`<div class="t ${i===curIdx?'cur':''}" onclick="showIdx(${i})"><img src="${p.photo_url}" alt=""></div>`).join('')}</div>`:''}
+      <div class="dbody">
+        <div class="chipline">
+          <span class="status ${pill.c}">${pill.t}</span>
+          ${care?`<span class="care" style="--care-c:${careColor(care)}"><span class="pips">${pips}</span><span class="cl">Lv.${care}</span></span>`:''}
+          <span style="flex:1"></span>
+          <span style="font-size:11px;color:var(--${days>=10?'crit':days>=5?'warn':'muted'});font-family:'IBM Plex Mono',monospace">${days===0?'今天':days+' 天沒拍'}</span>
+        </div>
+        <div class="sectlbl">紀錄 History · ${LOGS.length} 筆</div>
+        ${LOGS.map(l=>{
+          const p=statusPill(l.plant_status);
+          const k=keyFromUrl(l.photo_url);
+          return `<div class="logrow">
+            <span class="dt">${fmtDate(l.taken_at||l.created_at)}</span>
+            <span><span class="status ${p.c}" style="font-size:11px;padding:1px 7px">${(l.plant_status||'—').split(',')[0]}</span>
+              ${l.care_level?`<span style="font-size:11px;color:var(--muted);margin-left:6px;font-family:'IBM Plex Mono',monospace">Lv.${l.care_level}</span>`:''}
+              <span style="font-size:10px;color:var(--faint);margin-left:6px">${l.angle==='detail'?'細節':'正面'}</span></span>
+            <span class="ec">${l.ec_uscm!=null?'EC '+l.ec_uscm:'—'}</span>
+            <button class="del" title="刪除" onclick="delLog(${l.id},'${k}')">🗑</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <a class="cta" href="${POS}/upload-culti.html?tid=${TID}">📷 拍照上傳 <span>/ Add photo</span></a>`;
+}
+
+function showIdx(i){ stopPlay(); curIdx=i; render(); }
+function cycleAngle(){ const photos=LOGS.filter(l=>l.photo_url); if(photos.length<2) return; curIdx=(curIdx+1)%photos.length; render(); }
+function togglePlay(){ playTimer?stopPlay():startPlay(); }
+function startPlay(){ const photos=LOGS.filter(l=>l.photo_url); if(photos.length<2){toast('只有一張照片');return;}
+  playTimer=setInterval(()=>{ curIdx=(curIdx+1)%photos.length; const img=document.getElementById('heroimg'); const tag=document.getElementById('herotag');
+    if(img){img.src=photos[curIdx].photo_url;} if(tag){tag.textContent=photos[curIdx].angle==='detail'?'細節 DETAIL':'正面 FRONT';}
+    document.querySelectorAll('#strip .t').forEach((el,i)=>el.classList.toggle('cur',i===curIdx));
+  },900);
+  const pb=document.getElementById('playbtn'); if(pb) pb.textContent='⏸ 暫停 / Pause'; }
+function stopPlay(){ if(playTimer){clearInterval(playTimer);playTimer=null; const pb=document.getElementById('playbtn'); if(pb) pb.textContent='▶ 連續播放 / Play';} }
+
+async function delLog(id,key){
+  if(!confirm('確定刪除這筆照護紀錄？照片會從 B2 一併刪除，無法復原。')) return;
+  try{
+    const url=POS+'/api/culti-photo?id='+encodeURIComponent(id)+(key?'&key='+encodeURIComponent(key):'');
+    const r=await fetch(url,{method:'DELETE',headers:{'x-internal-key':IK}});
+    const j=await r.json();
+    if(!r.ok||j.ok===false) throw new Error(j.error||'failed');
+    toast('已刪除');
+    LOGS=LOGS.filter(l=>l.id!==id); curIdx=0; render();
+  }catch(e){ toast('刪除失敗：'+String(e.message).slice(0,60)); }
+}
+load();
+</script>
+</body>
+</html>
