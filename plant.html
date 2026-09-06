@@ -60,9 +60,12 @@ main{padding-top:82px}
 .no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:rgba(245,240,232,.3);font-style:italic;font-size:14px;letter-spacing:.1em}
 
 /* 大圖內浮動縮略圖 */
-.hero-thumbs{position:absolute;bottom:74px;left:0;right:0;display:flex;gap:4px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;z-index:5}
-.hero-thumbs::-webkit-scrollbar{display:none}
-.hero-thumb{width:46px;height:46px;flex-shrink:0;object-fit:cover;opacity:.45;cursor:pointer;border:2px solid transparent;transition:opacity .15s,border-color .15s}
+.hero-thumbs{display:flex;flex-direction:column;gap:7px;padding:12px 16px;background:var(--dark2)}
+.ht-row{display:flex;align-items:center;gap:10px}
+.ht-lab{width:30px;flex-shrink:0;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;color:rgba(245,240,232,.7)}
+.ht-scroll{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.ht-scroll::-webkit-scrollbar{display:none}
+.hero-thumb{width:52px;height:52px;flex-shrink:0;object-fit:cover;opacity:.5;cursor:pointer;border:2px solid transparent;transition:opacity .15s,border-color .15s}
 .hero-thumb.active{opacity:1;border-color:var(--gold)}
 .hero-thumb:hover{opacity:.8}
 .hero-thumb.featured-t{border-color:rgba(184,146,42,.5)}
@@ -348,8 +351,6 @@ main{padding-top:82px}
     <button class="angle-toggle-btn" id="angle-toggle-btn" style="display:none" onclick="toggleAngle()">🔄 細節角度</button>
     <!-- 播放按鈕（大圖上方中間） -->
     <button class="hero-play-btn" id="btn-play" style="display:none" data-i18n="photo.play">▶ 連續播放</button>
-    <!-- 浮動縮略圖帶（大圖下方） -->
-    <div class="hero-thumbs" id="hero-thumbs"></div>
     <div class="photo-info" id="photo-info" style="display:none">
       <div class="photo-meta">
         <div class="photo-weight" id="photo-weight"></div>
@@ -358,6 +359,9 @@ main{padding-top:82px}
     </div>
     <div class="photo-angle" id="photo-angle"></div>
   </div>
+
+  <!-- 縮圖帶：正面／細節兩排，位於大圖下方，不疊圖 -->
+  <div class="hero-thumbs" id="hero-thumbs"></div>
 
   <!-- 精選影片帶（有資料才顯示） -->
   <div class="featured-videos" id="featured-videos" style="display:none"></div>
@@ -944,7 +948,7 @@ function showPhoto(idx) {
   const badge = document.getElementById('featured-badge');
   badge.style.display = p.is_featured ? 'block' : 'none';
   // 更新浮動縮略圖（在大圖內橫向捲動，不跳頁）
-  document.querySelectorAll('.hero-thumb').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.hero-thumb').forEach(el => el.classList.toggle('active', +el.dataset.i===idx));
   const activeThumb = document.querySelector('.hero-thumb.active');
   if (activeThumb) activeThumb.scrollIntoView({inline:'center', behavior:'smooth', block:'nearest'});
   document.getElementById('btn-prev').classList.toggle('disabled', idx===0);
@@ -956,25 +960,29 @@ function showPhoto(idx) {
 function buildThumbnails() {
   const c = document.getElementById('hero-thumbs');
   c.innerHTML = '';
-  photos.forEach((p,i) => {
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;flex-shrink:0;width:46px';
+  // 上排＝正面 Front、下排＝細節 Detail；縮圖帶全域 index，點擊仍跳該張
+  const mkThumb = (p, i) => {
     const img = document.createElement('img');
     img.className = 'hero-thumb' + (p.is_featured ? ' featured-t' : '');
     img.src = p.photo_url;
+    img.dataset.i = i;
     img.title = p.is_featured ? t('photo.featured') : (p.angle === 'detail' ? t('tl.detail') : t('tl.front'));
     img.loading = 'lazy';
     img.onclick = () => showPhoto(i);
-    wrap.appendChild(img);
-    // 細節角度標示
-    if ((p.angle || 'front') === 'detail') {
-      const badge = document.createElement('div');
-      badge.style.cssText = 'position:absolute;bottom:2px;left:0;right:0;background:rgba(184,146,42,.75);color:#fff;font-size:7px;text-align:center;letter-spacing:.04em;font-family:"DM Mono",monospace;pointer-events:none';
-      badge.textContent = t('tl.detail');
-      wrap.appendChild(badge);
-    }
-    c.appendChild(wrap);
-  });
+    return img;
+  };
+  const fronts = [], details = [];
+  photos.forEach((p, i) => { ((p.angle || 'front') === 'detail' ? details : fronts).push([p, i]); });
+  const mkRow = (labelKey, arr) => {
+    if (!arr.length) return;
+    const row = document.createElement('div'); row.className = 'ht-row';
+    const lab = document.createElement('span'); lab.className = 'ht-lab'; lab.textContent = t(labelKey);
+    const scroll = document.createElement('div'); scroll.className = 'ht-scroll';
+    arr.forEach(([p, i]) => scroll.appendChild(mkThumb(p, i)));
+    row.appendChild(lab); row.appendChild(scroll); c.appendChild(row);
+  };
+  mkRow('tl.front', fronts);
+  mkRow('tl.detail', details);
   if (photos.length > 0) document.getElementById('btn-play').style.display = 'block';
 }
 
@@ -2376,6 +2384,6 @@ async function uploadTlVideo() {
   }
 }
 </script>
-<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v1.9 · 刪照修復：DB 先刪(service key 真刪)成功才刪 B2，根治 RLS 假成功破圖</div>
+<div style="text-align:center;padding:12px;font-size:10px;color:#9B9B85">v2.0 · 展示縮圖改上下兩排（正面／細節）、移到大圖下方深色帶不疊圖；高亮改用全域 index 對應</div>
 </body>
 </html>
