@@ -1752,7 +1752,7 @@ async function init() {
 
   // 同時取得 rehab 基本資料 + plant_web 網頁狀態
   const [rehabRows, webRows] = await Promise.all([
-    dbGet('rehab', '?rid=eq.' + rid + '&limit=1'),
+    dbGet('rehab', '?rid=eq.' + rid + '&select=id,rid,plant_id,plant_name,status,purchase_date,note,loc,qty&limit=1'),  // 明列欄位,不抓 price/cost_vnd(避免成本外洩+相容日後鎖欄位)
     dbGet('plant_web', '?rid=eq.' + rid + '&limit=1'),
   ]);
 
